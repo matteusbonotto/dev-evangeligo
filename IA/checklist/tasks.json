@@ -1,0 +1,322 @@
+{
+  "projeto": "EvangeliGO",
+  "atualizado": "2026-09-08",
+  "colunas": ["backlog", "todo", "in_progress", "review", "done"],
+  "tarefas": [
+    {
+      "id": "T-001",
+      "titulo": "Criar framework IA/ (agentes, memória, docs, standards, commands, checklist)",
+      "descricao": "Estrutura operacional de conhecimento do projeto.",
+      "agente": "project-manager",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": []
+    },
+    {
+      "id": "T-002",
+      "titulo": "Definir roadmap e tasks.json",
+      "descricao": "Roadmap priorizado da nova versão profissional.",
+      "agente": "project-manager",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-001"]
+    },
+    {
+      "id": "T-003",
+      "titulo": "Criar fundação do app profissional (Vite + React + TS + PWA)",
+      "descricao": "Scaffold do novo app no workspace evangeligo.",
+      "agente": "frontend-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-002"]
+    },
+    {
+      "id": "T-004",
+      "titulo": "Design system e tema profissional",
+      "descricao": "Tokens, cores, tipografia, componentes base.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-005",
+      "titulo": "Autenticação completa (cadastro, login, Google, recuperação, guards)",
+      "descricao": "Fluxo de autenticação com onboarding estilo Duolingo.",
+      "agente": "backend-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-006",
+      "titulo": "Onboarding estilo Duolingo (7 passos)",
+      "descricao": "Boas-vindas/termos, nome, nascimento, e-mail, senha, estado civil, objetivo. Substitui a antiga tela única de cadastro (`OnboardingPage.tsx`). Migrado do legado (passoCadastro/app.js), exceto o 7º passo (objetivo, sem equivalente no legado — lá era criação de avatar, já coberta por T-033). Conta só é criada no passo final (uma chamada), evitando depender de sessão nos passos intermediários. Nova coluna `profiles.objetivo` + trigger `handle_new_user` estendido (migration 20260904120000). Verificado contra o banco real: fluxo completo em Chromium até o limite de taxa de e-mail do Supabase, e o trigger validado via Admin API (bypassa o envio de e-mail) confirmando nascimento/estado_civil/objetivo persistidos corretamente.",
+      "agente": "game-design",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-005"]
+    },
+    {
+      "id": "T-007",
+      "titulo": "Trilhas de estudo e aulas (5 trilhas, 17 aulas)",
+      "descricao": "Solas, TULIP, Soberania, Pactos, Obras/Fruto.",
+      "agente": "content-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-008",
+      "titulo": "Sistema de quiz (corações, Escudo da Fé, explicações)",
+      "descricao": "Quiz com feedback, explicação e referência bíblica.",
+      "agente": "gamificacao",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-007"]
+    },
+    {
+      "id": "T-009",
+      "titulo": "Sistema de gamificação (XP, níveis, sequências, conquistas, missões)",
+      "descricao": "Progressão, streaks, achievements, missões e economia.",
+      "agente": "gamificacao",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-010",
+      "titulo": "Sistema RPG (Armadura de Deus, itens, inventário, loja)",
+      "descricao": "Loja/armadura/inventário/conquistas de verdade (ADR-029) — antes eram dado estático decorativo. `src/features/rpg/`: catálogo de 13 itens (portado de docs/itens_*.json do legado), comprar/equipar/desequipar/usar/vender puros e testados, XP/ouro reconciliados pela curva real de nível, conquistas ligadas ao catálogo já existente (nunca usado antes, incl. 'Soldado de Cristo', nunca implementada no legado apesar de documentada). Escudo da Fé (quiz) e bônus de venda do Cinto são os únicos com consumidor de gameplay real hoje; os demais bônus por peça são exibidos honestamente sem um pipeline de XP/ouro ao vivo pra multiplicar ainda (aulas/leitura não creditam progresso de verdade, gap pré-existente). Bônus de armadura é híbrido: efeito fixo por peça (como o legado) + conjunto por raridade (adição já existente no dashboard, mantida por decisão explícita do usuário).",
+      "agente": "rpg",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-009"]
+    },
+    {
+      "id": "T-011",
+      "titulo": "Bíblia Almeida completa (leitura, marcações, notas)",
+      "descricao": "Migrar e validar conteúdo licenciado.",
+      "agente": "content-specialist",
+      "prioridade": "media",
+      "status": "review",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-012",
+      "titulo": "Harpa Cristã (hinos)",
+      "descricao": "Migrar e validar conteúdo licenciado.",
+      "agente": "content-specialist",
+      "prioridade": "media",
+      "status": "review",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-013",
+      "titulo": "Feed de devocionais",
+      "descricao": "Publicar reflexões com versículos.",
+      "agente": "social",
+      "prioridade": "media",
+      "status": "todo",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-014",
+      "titulo": "Chat com amigos e missões colaborativas",
+      "descricao": "Mensagens, amizades, convites.",
+      "agente": "social",
+      "prioridade": "media",
+      "status": "todo",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-015",
+      "titulo": "Painel admin",
+      "descricao": "CRUD de conteúdo e usuários.",
+      "agente": "backend-specialist",
+      "prioridade": "media",
+      "status": "todo",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-016",
+      "titulo": "Documentos legais (Termos, Privacidade) e consentimento",
+      "descricao": "LGPD, dados sensíveis, exportação/exclusão.",
+      "agente": "juridico",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-017",
+      "titulo": "Acessibilidade (WCAG AA, VLibras)",
+      "descricao": "Contraste, ARIA, teclado, Libras. Auditoria dirigida (não automatizada/exaustiva, ver ADR-024): anel de foco visível global (:focus-visible, inexistente antes), VLibras integrado e confirmado funcional (mesma técnica do legado), 4 pares de cor corrigidos abaixo de 4.5:1 (calculado, não estimado), 1 elemento clicável não-semântico (marca de versículo) corrigido para operável por teclado, landmark <main> em todas as páginas autenticadas (faltava), <h1> visualmente oculto no dashboard (faltava). Uma varredura com ferramenta automatizada (ex.: axe-core) antes do lançamento público continua recomendada.",
+      "agente": "accessibility-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-018",
+      "titulo": "PWA (instalável, offline)",
+      "descricao": "Manifest, service worker, offline.",
+      "agente": "frontend-specialist",
+      "prioridade": "media",
+      "status": "todo",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-019",
+      "titulo": "Testes (unit, integração, E2E, banco)",
+      "descricao": "Cobertura das features principais. Unit/integração: 341 testes (Vitest, já existentes por feature). E2E: suíte Playwright nova (`e2e/`, desktop+mobile) cobrindo onboarding/quiz/leitura bíblica/exercícios/smoke — achou e corrigiu um bug real de layout (TopHud não cabia em 393px, navegador expandia a viewport silenciosamente, quebrando toda a página). Banco: pgTAP escrito em `supabase/tests/database/` (não executável sem Docker neste ambiente) + verificação empírica equivalente contra o banco remoto real, que achou e corrigiu um bug real e sério: `authenticated`/`service_role` não tinham GRANT de tabela em profiles/consentimentos (RLS sozinha não bastava — PostgREST rejeitava com 403 antes mesmo de aplicar a policy). Ver ADR-026.",
+      "agente": "qa-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-005", "T-006", "T-008", "T-009"]
+    },
+    {
+      "id": "T-020",
+      "titulo": "Auditoria de segurança e privacidade",
+      "descricao": "RLS, secrets, OWASP, LGPD.",
+      "agente": "security-specialist",
+      "prioridade": "alta",
+      "status": "todo",
+      "dependencias": ["T-016", "T-019"]
+    },
+    {
+      "id": "T-021",
+      "titulo": "Revisão multidisciplinar e release",
+      "descricao": "Gate de conclusão final.",
+      "agente": "project-manager",
+      "prioridade": "alta",
+      "status": "todo",
+      "dependencias": ["T-020"]
+    },
+    {
+      "id": "T-022",
+      "titulo": "Botão de demonstração com usuário mock",
+      "descricao": "AuthContext, demoUser, DashboardPage, rota /jornada, CSS do dashboard.",
+      "agente": "frontend-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-003"]
+    },
+    {
+      "id": "T-023",
+      "titulo": "Redesign do dashboard (Duolingo + HUD RPG compacto)",
+      "descricao": "Avatar + armadura equipada em grade isométrica, slots de itens permanentes/consumíveis com duração, mobile-first.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-022"]
+    },
+    {
+      "id": "T-024",
+      "titulo": "Refinamento do HUD (anel de armadura + 9 slots de itens)",
+      "descricao": "Armadura em anel uniforme ao redor da foto, nome abaixo, nível no rodapé, raridades/efeitos roguelike, empty state, 9 slots de itens (4 permanentes + 5 consumíveis) à direita, corações.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-023"]
+    },
+    {
+      "id": "T-025",
+      "titulo": "Ajustes finos do HUD após feedback visual",
+      "descricao": "Nome abaixo do badge de nível, inventário grid único 9 slots do mesmo tamanho dos slots de armadura, corações relocados, frutos da carne/obras do espírito com porcentagem.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-024"]
+    },
+    {
+      "id": "T-026",
+      "titulo": "Correção de sobreposição no HUD + Vida interior como 9 duelos de ícones",
+      "descricao": "Nome do usuário não deve mais sobrepor o badge de nível; inventário deve ficar à direita da armadura/perfil em telas largas; Fruto do Espírito x Obras da Carne viram 9 pares de ícones individuais (um por virtude/vício) competindo em barra dupla, não 2 barras genéricas.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-025"]
+    },
+    {
+      "id": "T-027",
+      "titulo": "HUD com layout único responsivo (mobile = desktop, escalado)",
+      "descricao": "Mesmo layout (anel + inventário lado a lado) em qualquer largura, com escala reduzida no mobile via variáveis CSS; nome do usuário mais próximo do badge de nível; alinhamento entre anel e inventário corrigido.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-026"]
+    },
+    {
+      "id": "T-028",
+      "titulo": "Reorganização do HUD + arcos de conjunto e bônus + Vida Interior em %",
+      "descricao": "Nome no topo do card, corações no rodapé centralizados, badges de stats sempre em linha, anel e inventário com mesmo tamanho/altura lado a lado com rótulos alinhados; arcos SVG conectando armadura equipada (círculo progressivo, pulsa e dá bônus de conjunto quando completo e uniforme); Vida Interior com percentual e selo VS em vez de soma bruta e troféu; badges de nível/quantidade/tempo proporcionais em qualquer escala.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-027"]
+    },
+    {
+      "id": "T-029",
+      "titulo": "Escala fluida do HUD mobile (fim do ciclo de tamanhos reativos)",
+      "descricao": "Substituir valores fixos por breakpoint por 1 variável base fluida (clamp ligado à largura real) + variáveis derivadas por proporção fixa; corrigir bug de ordem de regras CSS que impedia o padding mobile de ser aplicado; documentar regras de processo em IA/memory/rules.md.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-028"]
+    },
+    {
+      "id": "T-030",
+      "titulo": "HUD: tamanho via container query (fim do espaço morto) + moldura fixa do anel + fix de animação",
+      "descricao": "Substituir a estimativa de viewport do T-029 (que travava em 168px e deixava até 233px de espaço morto entre 414-639px) por container query (cqi) medindo o próprio .hud-layout, com colunas de grid iguais e max-width centralizado; anel de armadura ganha contorno hexagonal sempre visível (mesmo com slots vazios); corrigida animação hud-pop que colapsava os slots no centro do anel por conflitar com o transform de posicionamento.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-029"]
+    },
+    {
+      "id": "T-031",
+      "titulo": "AppShell: HUD superior + navegação inferior persistentes em todo o app",
+      "descricao": "Barra de status fixa (nível/XP/ouro/sequência/corações/avatar) e menu inferior (Início/Trilhas/Bíblia/Harpa) em toda página autenticada, inspirados no app legado — trilhas/bíblia/harpa reformadas com cards e barras de progresso reais (localStorage) em vez de listas de texto simples.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-011", "T-012", "T-030"]
+    },
+    {
+      "id": "T-032",
+      "titulo": "Leitura bíblica: progresso por rolagem, filtros por grupo/cronológica, marcações multi-tipo",
+      "descricao": "Barra de progresso incremental por rolagem (nunca diminui), filtros por grupo temático e ordem cronológica migrados do legado, texto corrido estilo bíblia de papel. Marcações reescritas peça-por-peça para bater com o legado (ADR-027): toolbar de narração por voz + A-/A+, menu de contexto (sheet/popup) com 4 cores de marca-texto no visual exato do legado, post-it com fita/pauta/dobra, dropdown de tradução (1 versão real + 2 bloqueadas 'em breve'), alto contraste (adição própria, sem equivalente no legado). Correções seguintes (ADR-028): versículos em parágrafo por versículo (não mais texto corrido), seleção por pinos arrastáveis igual ao legado (substituiu a seleção nativa do navegador), header e footer da leitura fixos (com variante compacta em mobile), botão 'Quiz do capítulo' honesto (placeholder 'em breve', sem quiz por capítulo no modelo de dados), popup do menu de contexto clampado à viewport no desktop.",
+      "agente": "content-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-031"]
+    },
+    {
+      "id": "T-033",
+      "titulo": "Criação e edição de personagem (avatar)",
+      "descricao": "Tela de customização de avatar (cabelo, barba, olhos, etc., como no legado) integrada ao perfil/HUD do usuário.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-005"]
+    },
+    {
+      "id": "T-034",
+      "titulo": "Exercícios além do quiz: caça-palavras e Termo Bíblico",
+      "descricao": "Novos tipos de exercício/mini-jogo além dos 3 tipos de pergunta já existentes no motor de quiz (T-008): caça-palavras (grade 8 direções, migrado do legado) e Termo Bíblico (clone de Wordle, migrado do legado). Hub `/exercicios` e item \"Exercícios\" na navegação inferior. Quebra-cabeça (tipo pedido pelo usuário sem equivalente no legado) fica em T-035.",
+      "agente": "gamificacao",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-008"]
+    },
+    {
+      "id": "T-035",
+      "titulo": "Exercício quebra-cabeça",
+      "descricao": "Tipo de exercício pedido explicitamente pelo usuário sem equivalente direto no app legado — reordenar as palavras de um versículo já migrado da Bíblia (toque sequencial, estilo \"monte a frase\" do Duolingo), reaproveitando o texto de `public/data/biblia-almeida.json` em vez de conteúdo novo. 8 desafios (`src/features/study/quebracabeca/content.ts`), do mais curto (8 palavras) ao mais longo (19 palavras).",
+      "agente": "gamificacao",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-034"]
+    }
+  ]
+}

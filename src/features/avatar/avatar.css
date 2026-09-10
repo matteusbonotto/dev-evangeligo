@@ -1,0 +1,132 @@
+/* Estilos do editor de avatar (T-033). Reaproveita tokens de global.css. */
+
+.avatar-preview {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto var(--space-20);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  /* Grudada no topo enquanto rola as categorias — como o legado
+     (".pedit-avatar-stage"), pra sempre ver o resultado das escolhas sem
+     precisar rolar de volta pro topo. */
+  position: sticky;
+  top: calc(var(--top-hud-height, 61px) + var(--space-10));
+  z-index: 5;
+  background: var(--branco);
+}
+
+.avatar-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.avatar-categoria {
+  margin-bottom: var(--space-20);
+}
+
+.avatar-categoria-label {
+  font-size: var(--font-size-13);
+  font-weight: 800;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+}
+
+.avatar-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.avatar-opcoes--cor {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: var(--space-4);
+  scrollbar-width: thin;
+}
+
+.avatar-swatch {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+}
+
+.avatar-swatch--ativo {
+  border-color: var(--verde-600);
+  box-shadow: 0 0 0 2px var(--verde-100);
+}
+
+.avatar-pill {
+  padding: var(--space-6) var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.avatar-pill:hover {
+  border-color: var(--verde-500);
+}
+
+.avatar-pill--ativo {
+  background: var(--verde-600);
+  border-color: var(--verde-600);
+  color: var(--branco);
+}
+
+/* Miniatura ao vivo por opção (cabelo/olhos/sobrancelha/boca/acessórios/
+   roupa) — como o legado: cada chip é uma prévia real do personagem com
+   aquela opção aplicada, não um texto puro. */
+.avatar-opcoes--visual {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: var(--space-8);
+}
+
+.avatar-opcao-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.avatar-opcao-visual:hover {
+  border-color: var(--verde-300, var(--verde-500));
+}
+
+.avatar-opcao-visual--ativa {
+  border-color: var(--verde-600);
+  background: var(--verde-50);
+}
+
+.avatar-opcao-visual-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--fundo);
+  object-fit: cover;
+}
+
+.avatar-opcao-visual-label {
+  font-size: var(--font-size-11, 11px);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.2;
+}

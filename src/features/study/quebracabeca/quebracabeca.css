@@ -1,0 +1,62 @@
+/* Estilos do quebra-cabeça (T-035). Reaproveita tokens de global.css. */
+
+.quebra-cabeca-contagem {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  margin-top: var(--space-6);
+}
+
+.quebra-cabeca-aviso {
+  min-height: 1.2em;
+  color: var(--erro);
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  margin-bottom: var(--space-12);
+}
+
+.quebra-cabeca-montada {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  min-height: 56px;
+  padding: var(--space-12);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-20);
+  align-content: flex-start;
+}
+
+.quebra-cabeca-montada-vazia {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  align-self: center;
+}
+
+.quebra-cabeca-banco {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: center;
+}
+
+.quebra-cabeca-ficha {
+  padding: var(--space-8) var(--space-14);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--verde-100);
+  color: var(--color-text);
+  font-size: var(--font-size-14);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quebra-cabeca-ficha:hover {
+  filter: brightness(0.96);
+}
+
+.quebra-cabeca-ficha--montada {
+  background: var(--color-primary-surface);
+  border: 1px solid var(--verde-600);
+  color: var(--verde-700);
+}

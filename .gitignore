@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.env.*.local
+playwright-report
+test-results
+coverage
+*.tsbuildinfo
+.DS_Store
+supabase/.temp
+
+# Local AI tool state (not meant to be shared/versioned)
+.claude/worktrees/
+.abacusai/

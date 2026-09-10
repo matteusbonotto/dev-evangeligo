@@ -1,0 +1,131 @@
+/* Estilos do Termo Bíblico (T-034). Reaproveita tokens de global.css. */
+
+.termo-lista-tamanho {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  margin-top: var(--space-6);
+}
+
+.termo-aviso {
+  min-height: 1.2em;
+  color: var(--erro);
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  margin-bottom: var(--space-12);
+}
+
+.termo-grade {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+  margin: 0 auto var(--space-20);
+}
+
+.termo-linha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.termo-celula {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-17);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.termo-celula--digitando {
+  border-color: var(--verde-500);
+}
+
+.termo-celula--correta {
+  background: var(--verde-600);
+  border-color: var(--verde-700);
+  color: var(--branco);
+}
+
+.termo-celula--presente {
+  /* --branco sobre --dourado-forte não atinge 4,5:1 (WCAG AA, T-017) —
+     --dourado-texto sobre --dourado (mais claro) passa com folga. */
+  background: var(--dourado);
+  border-color: var(--dourado);
+  color: var(--dourado-texto);
+}
+
+.termo-celula--ausente {
+  background: var(--color-text-muted);
+  border-color: var(--color-text-muted);
+  color: var(--branco);
+}
+
+.termo-teclado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.termo-teclado-linha {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.termo-tecla {
+  flex: 1;
+  max-width: 40px;
+  min-width: 24px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--verde-100);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: var(--font-size-13);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.termo-tecla:hover {
+  background: var(--verde-100);
+  filter: brightness(0.96);
+}
+
+.termo-tecla--acao {
+  flex: 1.6;
+  max-width: none;
+  font-size: var(--font-size-11);
+}
+
+.termo-tecla--correta {
+  background: var(--verde-600);
+  color: var(--branco);
+}
+
+.termo-tecla--presente {
+  background: var(--dourado);
+  color: var(--dourado-texto);
+}
+
+.termo-tecla--ausente {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.termo-explicacao {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-14);
+  max-width: 480px;
+  margin: var(--space-8) auto;
+}

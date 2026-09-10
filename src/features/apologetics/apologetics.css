@@ -1,0 +1,299 @@
+/* Estilos da feature Apologética (FAQ de perguntas difíceis por nível de
+   dificuldade — pedido explícito do usuário). Reaproveita tokens de
+   global.css; classes próprias (`.apol-*`) em vez de reusar `.biblia-*`
+   diretamente, já que features não compartilham CSS entre si. */
+
+.apol-intro {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-14, var(--font-size-13));
+  margin-top: var(--space-4);
+}
+
+.apol-dicas-box {
+  margin-top: var(--space-16);
+  padding: var(--space-14) var(--space-16);
+  border: 1px solid var(--dourado-suave);
+  border-radius: var(--radius-lg);
+  background: var(--dourado-claro);
+}
+
+.apol-dicas-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-weight: 700;
+  color: var(--dourado-texto);
+  margin-bottom: var(--space-8);
+}
+
+.apol-dicas-lista {
+  margin: 0;
+  padding-left: var(--space-20);
+  color: var(--dourado-texto);
+  font-size: var(--font-size-13);
+  line-height: 1.6;
+}
+
+.apol-busca-wrap {
+  position: relative;
+  margin-top: var(--space-16);
+}
+
+.apol-busca-icone {
+  position: absolute;
+  left: var(--space-14);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.apol-busca-input {
+  width: 100%;
+  padding: var(--space-10) var(--space-14) var(--space-10) var(--space-40);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-14, var(--font-size-13));
+}
+
+.apol-busca-input:focus {
+  outline: none;
+  border-color: var(--verde-500);
+}
+
+.apol-filtro-grupo {
+  margin-top: var(--space-16);
+}
+
+.apol-filtro-titulo {
+  display: block;
+  font-size: var(--font-size-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-8);
+}
+
+.apol-filtros {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: var(--space-8);
+  padding-bottom: var(--space-4);
+  scrollbar-width: thin;
+}
+
+.apol-filtro {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.apol-filtro:hover {
+  border-color: var(--verde-500);
+}
+
+.apol-filtro--ativo {
+  background: var(--verde-600);
+  border-color: var(--verde-600);
+  color: var(--branco);
+}
+
+.apol-filtro-contagem {
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+.apol-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-top: var(--space-20);
+}
+
+.apol-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.apol-card--aberta {
+  border-color: var(--verde-500);
+}
+
+.apol-card-titulo-wrap {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.apol-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  width: 100%;
+  border: none;
+  background: none;
+  padding: var(--space-14) var(--space-16);
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.apol-card-header-esquerda {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.apol-card-icone {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--verde-600);
+}
+
+.apol-card-titulo {
+  margin: 0 0 var(--space-6);
+  font-size: var(--font-size-15, var(--font-size-14));
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.apol-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.apol-card-categoria {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.apol-badge-dificuldade {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-10);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-11);
+  font-weight: 800;
+}
+
+.apol-badge-dificuldade--iniciante {
+  background: var(--verde-100);
+  color: var(--verde-700);
+}
+
+.apol-badge-dificuldade--intermediario {
+  background: var(--dourado-suave);
+  color: var(--dourado-texto);
+}
+
+.apol-badge-dificuldade--avancado {
+  background: #fbe2e2;
+  color: #9b2226;
+}
+
+.apol-badge-estudada {
+  color: var(--verde-600);
+  flex-shrink: 0;
+}
+
+.apol-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.apol-card-conteudo {
+  padding: 0 var(--space-16) var(--space-16);
+  border-top: 1px solid var(--color-border);
+}
+
+.apol-resposta {
+  padding-top: var(--space-14);
+}
+
+.apol-resposta-texto {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-14, var(--font-size-13));
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.apol-secao {
+  margin-top: var(--space-16);
+}
+
+.apol-secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--verde-700);
+  margin-bottom: var(--space-8);
+}
+
+.apol-referencias-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.apol-referencia-item {
+  padding: var(--space-6) var(--space-12);
+  border-radius: var(--radius-pill);
+  background: var(--verde-50);
+  color: var(--verde-700);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+}
+
+.apol-pontos-lista {
+  margin: 0;
+  padding-left: var(--space-20);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  line-height: 1.6;
+}
+
+.apol-vazio {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-40) var(--space-16);
+}
+
+.apol-vazio-icone {
+  font-size: 2.5rem;
+  opacity: 0.35;
+  margin-bottom: var(--space-10);
+}
+
+.apol-resultado-contagem {
+  margin-top: var(--space-16);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+}

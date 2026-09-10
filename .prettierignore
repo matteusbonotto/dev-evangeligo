@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+playwright-report
+test-results
+coverage
+*.tsbuildinfo
+IA/
+MASTER PROJECT BUILDER.md
+package-lock.json
+.abacusai/

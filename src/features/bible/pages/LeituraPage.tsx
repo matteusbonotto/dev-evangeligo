@@ -1,0 +1,1349 @@
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
+import { FiArrowLeft, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  BsCheck2,
+  BsChevronDown,
+  BsChevronRight,
+  BsChevronUp,
+  BsCircleHalf,
+  BsClipboard,
+  BsDashLg,
+  BsEraserFill,
+  BsHourglassSplit,
+  BsLockFill,
+  BsPatchQuestionFill,
+  BsPenFill,
+  BsPlayFill,
+  BsPlusLg,
+  BsStickyFill,
+  BsStopFill,
+  BsTextParagraph,
+  BsTranslate,
+  BsXLg,
+} from "react-icons/bs";
+import "../bible.css";
+import { getLivroByCodigo } from "../data/livros";
+import { getCapituloVersiculos } from "../dataLoader";
+import { buildLeituraPath } from "../routePaths";
+import {
+  aplicarMarcaTexto,
+  atualizarNota,
+  corHerdadaDoTrecho,
+  criarNota,
+  obterAnotacoesDoCapitulo,
+  removerAnotacao,
+  removerCorDeAnotacao,
+} from "../marcacoes";
+import {
+  ajustarFonteLeitura,
+  obterFonteLeituraSalva,
+  salvarFonteLeitura,
+} from "../fonteLeitura";
+import { expandirParaPalavra } from "../selecaoTexto";
+import { useNarracaoBiblia } from "../useNarracaoBiblia";
+import {
+  obterProgressoCapitulo,
+  registrarProgressoLeitura,
+} from "../progresso";
+import { CORES_MARCADOR, type Anotacao, type CorMarcador } from "../types";
+import { VERSAO_ATIVA, VERSOES_EM_BREVE } from "../versoes";
+import { AppShell } from "../../../shared/components/AppShell";
+
+type CarregamentoStatus = "carregando" | "pronto" | "erro";
+
+interface SelecaoPendente {
+  versiculo: number;
+  inicio: number;
+  fim: number;
+  texto: string;
+}
+
+interface MenuContextoState {
+  pendente: SelecaoPendente;
+  /** Anotação existente que sobrepõe o trecho selecionado, se houver (mostra "Remover marcação" e alimenta o post-it). */
+  existente: Anotacao | null;
+  modoSheet: boolean;
+  x: number;
+  y: number;
+}
+
+interface PostItState {
+  id: string | null;
+  versiculo: number;
+  inicio: number;
+  fim: number;
+  texto: string;
+  conteudo: string;
+  corFundo: CorMarcador | undefined;
+}
+
+/** Seleção em andamento por toque + pinos (antes de confirmar com "OK"). */
+interface SelecaoAtivaState {
+  versiculo: number;
+  inicio: number;
+  fim: number;
+}
+
+/** Acha o elemento `[data-verso]` mais próximo (o nó pode ser um nó de texto, sem `.closest`). */
+function encontrarVersiculoContainer(node: Node | null): HTMLElement | null {
+  if (!node) return null;
+  const el =
+    node.nodeType === Node.TEXT_NODE
+      ? node.parentElement
+      : (node as HTMLElement);
+  return el?.closest("[data-verso]") ?? null;
+}
+
+/** Soma o tamanho de todo texto antes de `node`/`offsetNoNode`, dentro de `container` — offset de caractere "achatado". */
+function offsetDentroDoContainer(
+  container: Element,
+  node: Node,
+  offsetNoNode: number,
+): number {
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  let total = 0;
+  let atual = walker.nextNode();
+  while (atual) {
+    if (atual === node) return total + offsetNoNode;
+    total += atual.textContent?.length ?? 0;
+    atual = walker.nextNode();
+  }
+  return total;
+}
+
+/** Inverso de `offsetDentroDoContainer`: acha o nó de texto + offset local para um offset "achatado". */
+function localizarNoTexto(
+  container: Element,
+  offsetAlvo: number,
+): { node: Text; offset: number } | null {
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  let total = 0;
+  let atual = walker.nextNode() as Text | null;
+  while (atual) {
+    const tamanho = atual.textContent?.length ?? 0;
+    if (offsetAlvo <= total + tamanho) {
+      return { node: atual, offset: offsetAlvo - total };
+    }
+    total += tamanho;
+    atual = walker.nextNode() as Text | null;
+  }
+  return null;
+}
+
+/** Retângulo (posição na tela) de um offset de caractere — usado para posicionar os pinos de seleção. */
+function retanguloNoOffset(
+  container: Element,
+  offsetAlvo: number,
+): DOMRect | null {
+  const local = localizarNoTexto(container, offsetAlvo);
+  if (!local) return null;
+  try {
+    const range = document.createRange();
+    range.setStart(local.node, local.offset);
+    range.setEnd(local.node, local.offset);
+    return range.getClientRects()[0] ?? range.getBoundingClientRect();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Offset de caractere sob um ponto da tela (`clientX`/`clientY`) — usa
+ * `caretRangeFromPoint` (Chromium/WebKit) ou `caretPositionFromPoint`
+ * (Firefox); nenhum dos dois existe no jsdom, por isso retorna `null`
+ * em testes (a lógica de arraste em si não é testável fora de um
+ * navegador real — ver verificação via Playwright).
+ */
+function offsetNoPonto(
+  container: Element,
+  clientX: number,
+  clientY: number,
+): number | null {
+  const doc = document as Document & {
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+    caretPositionFromPoint?: (
+      x: number,
+      y: number,
+    ) => { offsetNode: Node; offset: number } | null;
+  };
+  let node: Node | null = null;
+  let offset = 0;
+  if (doc.caretRangeFromPoint) {
+    const range = doc.caretRangeFromPoint(clientX, clientY);
+    if (!range) return null;
+    node = range.startContainer;
+    offset = range.startOffset;
+  } else if (doc.caretPositionFromPoint) {
+    const posicao = doc.caretPositionFromPoint(clientX, clientY);
+    if (!posicao) return null;
+    node = posicao.offsetNode;
+    offset = posicao.offset;
+  } else {
+    return null;
+  }
+  if (!node || !container.contains(node)) return null;
+  return offsetDentroDoContainer(container, node, offset);
+}
+
+function anotacaoSobrepondo(
+  anotacoes: Anotacao[],
+  versiculo: number,
+  inicio: number,
+  fim: number,
+): Anotacao | null {
+  return (
+    anotacoes.find(
+      (a) => a.versiculo === versiculo && a.fim > inicio && a.inicio < fim,
+    ) ?? null
+  );
+}
+
+/**
+ * Leitura de um capítulo (T-011/T-032, RF-09; reescrito para fidelidade
+ * ao app legado — usuário: "faz idêntico como o legado"). Porta do
+ * legado (`dev-pwa-biblia-game`, `app.js`/`index.html`): A+/A- de fonte,
+ * narração por voz, marca-texto de 4 cores com o mesmo menu de contexto
+ * (sheet no mobile, popup no desktop), post-it de nota com o mesmo
+ * visual (fita, pauta, dobra), dropdown de tradução, e SELEÇÃO POR
+ * TOQUE + PINOS ARRASTÁVEIS (`selecaoTexto.ts`) — a seleção nativa do
+ * navegador está desativada (`user-select: none`), igual ao legado;
+ * tentar selecionar direto com o mouse/dedo não funciona de propósito,
+ * é preciso tocar numa palavra e arrastar os pinos de início/fim.
+ * Cabeçalho e rodapé de navegação são fixos (posição na tela, não
+ * rolam com o texto — achado real do usuário), com versão compacta no
+ * mobile. "Alto contraste" e a tradução são explicados em ADR própria:
+ * o legado não tem alto contraste como feature (tem tema
+ * claro/escuro/sistema, global — fora do escopo desta página), e só
+ * migramos 1 das 3 traduções do legado. O "Quiz do capítulo" do rodapé
+ * fica bloqueado ("em breve") porque não existe conteúdo de quiz
+ * por capítulo bíblico ainda (os quizzes de T-008 são por aula/trilha,
+ * não por capítulo da Bíblia).
+ */
+export function LeituraPage() {
+  const { livroCodigo, capitulo: capituloParam } = useParams<{
+    livroCodigo: string;
+    capitulo: string;
+  }>();
+  const livro = livroCodigo ? getLivroByCodigo(livroCodigo) : undefined;
+  const capitulo = capituloParam ? Number(capituloParam) : NaN;
+
+  const [status, setStatus] = useState<CarregamentoStatus>("carregando");
+  const [versiculos, setVersiculos] = useState<string[]>([]);
+  const [anotacoes, setAnotacoes] = useState<Anotacao[]>([]);
+  const [progressoAtual, setProgressoAtual] = useState(0);
+  const [fonte, setFonte] = useState<number>(() => obterFonteLeituraSalva());
+  const [altoContraste, setAltoContraste] = useState(false);
+  const [dropdownAberto, setDropdownAberto] = useState(false);
+  const [menuContexto, setMenuContexto] = useState<MenuContextoState | null>(
+    null,
+  );
+  const [postit, setPostit] = useState<PostItState | null>(null);
+  const [selecaoAtiva, setSelecaoAtiva] = useState<SelecaoAtivaState | null>(
+    null,
+  );
+  const [arrastando, setArrastando] = useState<"inicio" | "fim" | null>(null);
+  const [pinRects, setPinRects] = useState<{
+    inicio: DOMRect;
+    fim: DOMRect;
+  } | null>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
+  const cabecalhoRef = useRef<HTMLDivElement>(null);
+
+  const narracao = useNarracaoBiblia(livro?.nome ?? "", capitulo, versiculos);
+
+  useEffect(() => {
+    if (!livro || !Number.isInteger(capitulo)) return;
+    let ativo = true;
+    // Ao trocar de capítulo (ex.: botão "Próximo capítulo" no rodapé), o
+    // React Router não rola a página pro topo sozinho — a posição de
+    // rolagem do capítulo ANTERIOR (perto do fim) ficava valendo no novo
+    // capítulo, e o cálculo de progresso por rolagem (efeito abaixo) lia
+    // esse scrollTop alto contra a altura do capítulo novo (geralmente
+    // menor), registrando ~100% de leitura antes da pessoa ler uma linha
+    // sequer — e como o progresso "nunca desce", esse valor errado ficava
+    // preso pra sempre naquele capítulo. Rolar pro topo aqui, antes do
+    // efeito de progresso rodar, corrige as duas coisas de uma vez: a
+    // posição de leitura E o cálculo do progresso partem do zero certo.
+    try {
+      window.scrollTo(0, 0);
+    } catch {
+      // jsdom (ambiente de teste) não implementa scrollTo — inofensivo lá, só barulho no console.
+    }
+    setStatus("carregando");
+    setMenuContexto(null);
+    setPostit(null);
+    setSelecaoAtiva(null);
+    getCapituloVersiculos(livro.order, capitulo)
+      .then((lista) => {
+        if (!ativo) return;
+        setVersiculos(lista);
+        setAnotacoes(obterAnotacoesDoCapitulo(livro.order, capitulo));
+        setProgressoAtual(obterProgressoCapitulo(livro.order, capitulo));
+        setStatus("pronto");
+      })
+      .catch(() => {
+        if (ativo) setStatus("erro");
+      });
+    return () => {
+      ativo = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [livro?.order, capitulo]);
+
+  useEffect(() => {
+    if (status !== "pronto" || !livro) return;
+
+    function handleScroll() {
+      const doc = document.documentElement;
+      const totalRolavel = doc.scrollHeight - doc.clientHeight;
+      const percentual =
+        totalRolavel > 0 ? (doc.scrollTop / totalRolavel) * 100 : 100;
+      const salvo = registrarProgressoLeitura(
+        livro!.order,
+        capitulo,
+        percentual,
+      );
+      setProgressoAtual(salvo);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, livro?.order, capitulo]);
+
+  // Reposiciona os pinos de seleção quando a seleção muda, a fonte muda
+  // de tamanho (reflow) ou a janela é redimensionada — a posição vem de
+  // `getClientRects()` do DOM real, não de estado próprio.
+  useLayoutEffect(() => {
+    if (!selecaoAtiva || !paperRef.current) {
+      setPinRects(null);
+      return;
+    }
+    function recalcular() {
+      if (!selecaoAtiva || !paperRef.current) return;
+      const container = paperRef.current.querySelector<HTMLElement>(
+        `[data-verso="${selecaoAtiva.versiculo}"] .biblia-versiculo-texto`,
+      );
+      if (!container) return;
+      const rInicio = retanguloNoOffset(container, selecaoAtiva.inicio);
+      const rFim = retanguloNoOffset(
+        container,
+        Math.max(selecaoAtiva.fim - 1, selecaoAtiva.inicio),
+      );
+      if (rInicio && rFim) setPinRects({ inicio: rInicio, fim: rFim });
+    }
+    recalcular();
+    window.addEventListener("resize", recalcular);
+    return () => window.removeEventListener("resize", recalcular);
+  }, [selecaoAtiva, fonte]);
+
+  // Mede a altura real do cabeçalho fixo (varia: narração ligada mostra
+  // controle de velocidade, mobile é mais compacto que desktop) e
+  // publica como `--biblia-cabecalho-height` — `.biblia-page` usa essa
+  // variável para reservar espaço equivalente, senão o topo do texto
+  // ficaria escondido atrás do cabeçalho fixo.
+  useLayoutEffect(() => {
+    const el = cabecalhoRef.current;
+    if (!el) return;
+    function medir() {
+      if (!el) return;
+      el.style.setProperty(
+        "--biblia-cabecalho-height",
+        `${el.getBoundingClientRect().height}px`,
+      );
+      el.closest<HTMLElement>(".biblia-page")?.style.setProperty(
+        "--biblia-cabecalho-height",
+        `${el.getBoundingClientRect().height}px`,
+      );
+    }
+    medir();
+    // `ResizeObserver` não existe no jsdom — a medição inicial já roda.
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(medir);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [status, narracao.narrando]);
+
+  if (
+    !livro ||
+    !Number.isInteger(capitulo) ||
+    capitulo < 1 ||
+    capitulo > livro.totalCapitulos
+  ) {
+    return <Navigate to="/biblia" replace />;
+  }
+
+  function recarregarAnotacoes() {
+    if (!livro) return;
+    setAnotacoes(obterAnotacoesDoCapitulo(livro.order, capitulo));
+  }
+
+  /**
+   * Toque numa palavra (não num pino/marcação já existente) — porta
+   * `iniciarSelecaoBiblia` do legado: expande para a palavra inteira e
+   * mostra os pinos de início/fim, em vez de depender da seleção nativa
+   * do navegador (que o usuário reportou como difícil de usar tanto no
+   * celular quanto no mouse).
+   */
+  function handleTapNaLeitura(event: ReactPointerEvent<HTMLDivElement>) {
+    if (arrastando) return;
+    const alvo = event.target as HTMLElement;
+    if (alvo.closest(".biblia-pin, .biblia-marca-texto, .biblia-nota-link"))
+      return;
+    const container = encontrarVersiculoContainer(alvo);
+    if (!container) {
+      setSelecaoAtiva(null);
+      return;
+    }
+    const textoEl = container.querySelector<HTMLElement>(
+      ".biblia-versiculo-texto",
+    );
+    if (!textoEl) return;
+    const offset = offsetNoPonto(textoEl, event.clientX, event.clientY);
+    if (offset === null) return;
+    const numeroVersiculo = Number(container.dataset.verso);
+    const texto = versiculos[numeroVersiculo - 1] ?? "";
+    const { inicio, fim } = expandirParaPalavra(texto, offset);
+    setMenuContexto(null);
+    setPostit(null);
+    setSelecaoAtiva({ versiculo: numeroVersiculo, inicio, fim });
+  }
+
+  function handlePinPointerDown(
+    tipo: "inicio" | "fim",
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) {
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setArrastando(tipo);
+  }
+
+  function handlePinPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!arrastando || !selecaoAtiva || !livro) return;
+    const container = paperRef.current?.querySelector<HTMLElement>(
+      `[data-verso="${selecaoAtiva.versiculo}"] .biblia-versiculo-texto`,
+    );
+    if (!container) return;
+    const offset = offsetNoPonto(container, event.clientX, event.clientY);
+    if (offset === null) return;
+    const texto = versiculos[selecaoAtiva.versiculo - 1] ?? "";
+    const offsetClampado = Math.max(0, Math.min(offset, texto.length));
+    setSelecaoAtiva((atual) => {
+      if (!atual) return atual;
+      if (arrastando === "inicio") {
+        return {
+          ...atual,
+          inicio: Math.max(0, Math.min(offsetClampado, atual.fim - 1)),
+        };
+      }
+      return {
+        ...atual,
+        fim: Math.min(texto.length, Math.max(offsetClampado, atual.inicio + 1)),
+      };
+    });
+  }
+
+  function handlePinPointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setArrastando(null);
+  }
+
+  function cancelarSelecaoAtiva() {
+    setSelecaoAtiva(null);
+  }
+
+  function selecionarVersiculoInteiroNaSelecaoAtiva() {
+    if (!selecaoAtiva) return;
+    const texto = versiculos[selecaoAtiva.versiculo - 1] ?? "";
+    setSelecaoAtiva((atual) =>
+      atual ? { ...atual, inicio: 0, fim: texto.length } : atual,
+    );
+  }
+
+  function confirmarSelecaoAtiva() {
+    if (!selecaoAtiva) return;
+    const texto =
+      versiculos[selecaoAtiva.versiculo - 1]?.slice(
+        selecaoAtiva.inicio,
+        selecaoAtiva.fim,
+      ) ?? "";
+    abrirMenuContexto(
+      {
+        versiculo: selecaoAtiva.versiculo,
+        inicio: selecaoAtiva.inicio,
+        fim: selecaoAtiva.fim,
+        texto,
+      },
+      pinRects?.fim.left ?? 0,
+      pinRects?.fim.bottom ?? 0,
+    );
+    setSelecaoAtiva(null);
+  }
+
+  function abrirMenuContexto(pendente: SelecaoPendente, x: number, y: number) {
+    const existente = anotacaoSobrepondo(
+      anotacoes,
+      pendente.versiculo,
+      pendente.inicio,
+      pendente.fim,
+    );
+    setPostit(null);
+    setMenuContexto({
+      pendente,
+      existente,
+      modoSheet: typeof window !== "undefined" && window.innerWidth <= 768,
+      x,
+      y,
+    });
+  }
+
+  function fecharMenuContexto() {
+    setMenuContexto(null);
+  }
+
+  function handleClickAnotacao(event: ReactMouseEvent, anotacao: Anotacao) {
+    event.stopPropagation();
+    if (anotacao.type === "note") {
+      abrirPostit(anotacao);
+    } else {
+      abrirMenuContexto(
+        {
+          versiculo: anotacao.versiculo,
+          inicio: anotacao.inicio,
+          fim: anotacao.fim,
+          texto: anotacao.texto,
+        },
+        event.clientX,
+        event.clientY,
+      );
+    }
+  }
+
+  function aplicarCorDoMenu(color: CorMarcador) {
+    if (!livro || !menuContexto) return;
+    const { versiculo, inicio, fim, texto } = menuContexto.pendente;
+    aplicarMarcaTexto(
+      livro.order,
+      capitulo,
+      versiculo,
+      inicio,
+      fim,
+      texto,
+      color,
+    );
+    recarregarAnotacoes();
+    fecharMenuContexto();
+  }
+
+  function removerMarcacaoDoMenu() {
+    if (!livro || !menuContexto?.existente) return;
+    const alvo = menuContexto.existente;
+    if (alvo.type === "note") {
+      removerCorDeAnotacao(livro.order, capitulo, alvo.id);
+    } else {
+      removerAnotacao(livro.order, capitulo, alvo.id);
+    }
+    recarregarAnotacoes();
+    fecharMenuContexto();
+  }
+
+  function abrirNotaDoMenu() {
+    if (!livro || !menuContexto) return;
+    const { existente, pendente } = menuContexto;
+    if (existente && existente.type === "note") {
+      abrirPostit(existente);
+      return;
+    }
+    const corFundo =
+      existente?.type === "highlight"
+        ? existente.color
+        : corHerdadaDoTrecho(
+            livro.order,
+            capitulo,
+            pendente.versiculo,
+            pendente.inicio,
+            pendente.fim,
+          );
+    setMenuContexto(null);
+    setPostit({
+      id: null,
+      versiculo: pendente.versiculo,
+      inicio: pendente.inicio,
+      fim: pendente.fim,
+      texto: pendente.texto,
+      conteudo: "",
+      corFundo,
+    });
+  }
+
+  function abrirPostit(nota: Anotacao) {
+    setMenuContexto(null);
+    setPostit({
+      id: nota.id,
+      versiculo: nota.versiculo,
+      inicio: nota.inicio,
+      fim: nota.fim,
+      texto: nota.texto,
+      conteudo: nota.noteContent ?? "",
+      corFundo: nota.highlightColor,
+    });
+  }
+
+  function fecharPostit() {
+    setPostit(null);
+  }
+
+  function salvarPostit() {
+    if (!livro || !postit) return;
+    if (postit.id) {
+      atualizarNota(
+        livro.order,
+        capitulo,
+        postit.id,
+        postit.conteudo,
+        postit.corFundo,
+      );
+    } else {
+      criarNota(
+        livro.order,
+        capitulo,
+        postit.versiculo,
+        postit.inicio,
+        postit.fim,
+        postit.texto,
+        postit.conteudo,
+        postit.corFundo,
+      );
+    }
+    recarregarAnotacoes();
+    fecharPostit();
+  }
+
+  function excluirPostit() {
+    if (!livro || !postit?.id) return;
+    removerAnotacao(livro.order, capitulo, postit.id);
+    recarregarAnotacoes();
+    fecharPostit();
+  }
+
+  function selecionarVersiculoInteiro() {
+    if (!menuContexto) return;
+    const { versiculo } = menuContexto.pendente;
+    const texto = versiculos[versiculo - 1] ?? "";
+    setMenuContexto((atual) =>
+      atual
+        ? {
+            ...atual,
+            pendente: { versiculo, inicio: 0, fim: texto.length, texto },
+            existente: anotacaoSobrepondo(
+              anotacoes,
+              versiculo,
+              0,
+              texto.length,
+            ),
+          }
+        : atual,
+    );
+  }
+
+  async function copiarTextoDoMenu() {
+    if (!menuContexto) return;
+    try {
+      await navigator.clipboard.writeText(menuContexto.pendente.texto);
+    } catch {
+      // clipboard indisponível (permissão negada, contexto não seguro) — sem quebrar a UI.
+    }
+    fecharMenuContexto();
+  }
+
+  function handleAumentarFonte() {
+    setFonte((atual) => {
+      const proxima = ajustarFonteLeitura(atual, 0.15);
+      salvarFonteLeitura(proxima);
+      return proxima;
+    });
+  }
+
+  function handleDiminuirFonte() {
+    setFonte((atual) => {
+      const proxima = ajustarFonteLeitura(atual, -0.15);
+      salvarFonteLeitura(proxima);
+      return proxima;
+    });
+  }
+
+  function renderizarVersiculo(numero: number, texto: string): ReactNode[] {
+    const doVersiculo = anotacoes
+      .filter((a) => a.versiculo === numero)
+      .sort((a, b) => a.inicio - b.inicio);
+
+    const partes: ReactNode[] = [];
+    let cursor = 0;
+    doVersiculo.forEach((a) => {
+      if (a.inicio > cursor) partes.push(texto.slice(cursor, a.inicio));
+      const trecho = texto.slice(a.inicio, a.fim);
+
+      if (a.type === "highlight") {
+        partes.push(
+          <mark
+            key={a.id}
+            className="biblia-marca-texto"
+            style={{ background: a.color }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Editar marca-texto: ${trecho}`}
+            onClick={(event) => handleClickAnotacao(event, a)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              handleClickAnotacao(event as unknown as ReactMouseEvent, a);
+            }}
+          >
+            {trecho}
+          </mark>,
+        );
+      } else {
+        const notaSpan = (
+          <span
+            key={a.id}
+            className="biblia-nota-link"
+            role="button"
+            tabIndex={0}
+            aria-label={`Abrir nota: ${trecho}`}
+            onClick={(event) => handleClickAnotacao(event, a)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              handleClickAnotacao(event as unknown as ReactMouseEvent, a);
+            }}
+          >
+            {trecho}
+          </span>
+        );
+        if (a.highlightColor) {
+          partes.push(
+            <mark
+              key={`${a.id}-mark`}
+              className="biblia-marca-texto biblia-marca-texto--nota"
+              style={{ background: a.highlightColor }}
+            >
+              {notaSpan}
+            </mark>,
+          );
+        } else {
+          partes.push(notaSpan);
+        }
+      }
+      cursor = a.fim;
+    });
+    if (cursor < texto.length) partes.push(texto.slice(cursor));
+    return partes;
+  }
+
+  const temAnterior = capitulo > 1;
+  const temProximo = capitulo < livro.totalCapitulos;
+
+  return (
+    <AppShell>
+      <div
+        className="biblia-progresso-fixo"
+        style={{ width: `${progressoAtual}%` }}
+        aria-hidden="true"
+      />
+      <div
+        className={`dashboard biblia-page${altoContraste ? " biblia-page--contraste" : ""}`}
+      >
+        <div className="biblia-leitura-cabecalho" ref={cabecalhoRef}>
+          <div className="biblia-leitura-topo">
+            <Link
+              className="back-link"
+              to={`/biblia/${livro.codigo.toLowerCase()}`}
+            >
+              <FiArrowLeft aria-hidden="true" /> {livro.nome}
+            </Link>
+            <p
+              className="eyebrow biblia-leitura-topo-titulo"
+              id="leitura-title"
+            >
+              {livro.nome} {capitulo}
+            </p>
+
+            <div className="btrad-wrap">
+              <button
+                type="button"
+                className="btrad-trigger"
+                aria-expanded={dropdownAberto}
+                aria-label="Mudar tradução da Bíblia"
+                onClick={() => setDropdownAberto((atual) => !atual)}
+              >
+                <BsTranslate className="btrad-ico" aria-hidden="true" />
+                <span className="btrad-label">{VERSAO_ATIVA.label}</span>
+                {dropdownAberto ? (
+                  <BsChevronUp aria-hidden="true" />
+                ) : (
+                  <BsChevronDown aria-hidden="true" />
+                )}
+              </button>
+
+              {dropdownAberto && (
+                <div className="btrad-panel" role="menu" aria-label="Tradução">
+                  <p className="btrad-panel-titulo">Tradução</p>
+                  <button
+                    type="button"
+                    className="btrad-opcao btrad-opcao--ativa"
+                    onClick={() => setDropdownAberto(false)}
+                  >
+                    <span className="btrad-opcao-badge">
+                      {VERSAO_ATIVA.label}
+                    </span>
+                    <span className="btrad-opcao-nome">
+                      {VERSAO_ATIVA.nome}
+                    </span>
+                    <BsCheck2
+                      className="btrad-opcao-check"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <div className="btrad-separador" />
+                  {VERSOES_EM_BREVE.map((versao) => (
+                    <div
+                      key={versao.valor}
+                      className="btrad-opcao btrad-opcao--bloqueada"
+                      aria-disabled="true"
+                    >
+                      <span className="btrad-opcao-badge btrad-opcao-badge--lock">
+                        <BsLockFill aria-hidden="true" />
+                      </span>
+                      <span className="btrad-opcao-nome">
+                        {versao.nome} · em breve
+                      </span>
+                      <BsHourglassSplit aria-hidden="true" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {status === "pronto" && (
+            <>
+              <div
+                className="biblia-progresso-track biblia-progresso-track--leitura"
+                role="progressbar"
+                aria-label={`Progresso de leitura de ${livro.nome} ${capitulo}`}
+                aria-valuenow={progressoAtual}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className="biblia-progresso-fill"
+                  style={{ width: `${progressoAtual}%` }}
+                />
+              </div>
+
+              <div className="bctrl-toolbar">
+                <div className="bctrl-group">
+                  <button
+                    type="button"
+                    className={`bctrl-btn${narracao.narrando ? " bctrl-btn--on" : ""}`}
+                    disabled={!versiculos.length || !narracao.disponivel}
+                    title={
+                      narracao.narrando ? "Parar narração" : "Narrar capítulo"
+                    }
+                    onClick={() =>
+                      narracao.narrando ? narracao.parar() : narracao.narrar()
+                    }
+                  >
+                    {narracao.narrando ? (
+                      <BsStopFill aria-hidden="true" />
+                    ) : (
+                      <BsPlayFill aria-hidden="true" />
+                    )}
+                    <span>{narracao.narrando ? "Parar" : "Narrar"}</span>
+                  </button>
+                  {narracao.narrando && (
+                    <div className="bctrl-speed">
+                      <button
+                        type="button"
+                        className="bctrl-speed-btn"
+                        title="Mais lento"
+                        onClick={() => narracao.mudarVelocidade(-0.25)}
+                      >
+                        <BsDashLg aria-hidden="true" />
+                      </button>
+                      <span className="bctrl-speed-val">
+                        {narracao.velocidade}x
+                      </span>
+                      <button
+                        type="button"
+                        className="bctrl-speed-btn"
+                        title="Mais rápido"
+                        onClick={() => narracao.mudarVelocidade(0.25)}
+                      >
+                        <BsPlusLg aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bctrl-sep" />
+
+                <div className="bctrl-group">
+                  <button
+                    type="button"
+                    className="bctrl-btn bctrl-fonte-sm"
+                    title="Diminuir texto"
+                    onClick={handleDiminuirFonte}
+                  >
+                    A
+                  </button>
+                  <button
+                    type="button"
+                    className="bctrl-btn bctrl-fonte-lg"
+                    title="Aumentar texto"
+                    onClick={handleAumentarFonte}
+                  >
+                    A
+                  </button>
+                </div>
+
+                <div className="bctrl-sep" />
+
+                <div className="bctrl-group">
+                  <button
+                    type="button"
+                    className={`bctrl-btn${altoContraste ? " bctrl-btn--on" : ""}`}
+                    aria-pressed={altoContraste}
+                    title={
+                      altoContraste
+                        ? "Desativar alto contraste"
+                        : "Ativar alto contraste"
+                    }
+                    onClick={() => setAltoContraste((atual) => !atual)}
+                  >
+                    <BsCircleHalf aria-hidden="true" />
+                    <span>Contraste</span>
+                  </button>
+                </div>
+              </div>
+
+              <p className="biblia-dica-selecao">
+                Toque em qualquer palavra · arraste os pinos · pressione OK.
+              </p>
+            </>
+          )}
+        </div>
+
+        {status === "pronto" && (
+          <>
+            <div
+              className="biblia-paper"
+              ref={paperRef}
+              style={{ fontSize: `${fonte}rem` }}
+              onPointerDown={handleTapNaLeitura}
+            >
+              {versiculos.map((texto, index) => {
+                const numero = index + 1;
+                return (
+                  <p
+                    key={numero}
+                    data-verso={numero}
+                    className="biblia-versiculo-inline"
+                  >
+                    <sup className="biblia-versiculo-num">{numero}</sup>
+                    <span className="biblia-versiculo-texto">
+                      {renderizarVersiculo(numero, texto)}
+                    </span>
+                  </p>
+                );
+              })}
+
+              {selecaoAtiva && pinRects && (
+                <>
+                  <div
+                    className="biblia-pin biblia-pin--inicio"
+                    style={{
+                      top:
+                        pinRects.inicio.top -
+                        (paperRef.current?.getBoundingClientRect().top ?? 0),
+                      left:
+                        pinRects.inicio.left -
+                        (paperRef.current?.getBoundingClientRect().left ?? 0),
+                      height: pinRects.inicio.height,
+                    }}
+                    onPointerDown={(event) =>
+                      handlePinPointerDown("inicio", event)
+                    }
+                    onPointerMove={handlePinPointerMove}
+                    onPointerUp={handlePinPointerUp}
+                  />
+                  <div
+                    className="biblia-pin biblia-pin--fim"
+                    style={{
+                      top:
+                        pinRects.fim.top -
+                        (paperRef.current?.getBoundingClientRect().top ?? 0),
+                      left:
+                        pinRects.fim.right -
+                        (paperRef.current?.getBoundingClientRect().left ?? 0),
+                      height: pinRects.fim.height,
+                    }}
+                    onPointerDown={(event) =>
+                      handlePinPointerDown("fim", event)
+                    }
+                    onPointerMove={handlePinPointerMove}
+                    onPointerUp={handlePinPointerUp}
+                  />
+                </>
+              )}
+            </div>
+
+            {selecaoAtiva && (
+              <div className="biblia-selecao-barra">
+                <button
+                  type="button"
+                  className="biblia-selecao-btn"
+                  onClick={cancelarSelecaoAtiva}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="biblia-selecao-btn"
+                  onClick={selecionarVersiculoInteiroNaSelecaoAtiva}
+                >
+                  Tudo
+                </button>
+                <button
+                  type="button"
+                  className="biblia-selecao-btn biblia-selecao-btn--ok"
+                  onClick={confirmarSelecaoAtiva}
+                >
+                  <BsCheck2 aria-hidden="true" /> OK
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {status === "carregando" && (
+          <p className="biblia-status">Carregando texto...</p>
+        )}
+        {status === "erro" && (
+          <p className="biblia-status biblia-status--erro">
+            Não foi possível carregar este capítulo. Tente novamente.
+          </p>
+        )}
+
+        <nav className="biblia-nav" aria-label="Navegação de capítulos">
+          {temAnterior ? (
+            <Link
+              className="secondary-button biblia-nav-lateral"
+              to={buildLeituraPath(livro.codigo, capitulo - 1)}
+            >
+              <FiChevronLeft aria-hidden="true" />{" "}
+              <span className="biblia-nav-texto">Capítulo anterior</span>
+            </Link>
+          ) : (
+            <span className="biblia-nav-lateral" />
+          )}
+
+          <button
+            type="button"
+            className="biblia-nav-quiz"
+            disabled
+            title="Quiz deste capítulo — em breve"
+          >
+            <BsPatchQuestionFill aria-hidden="true" />
+            <span className="biblia-nav-texto">Quiz do capítulo</span>
+            <BsLockFill
+              className="biblia-nav-quiz-cadeado"
+              aria-hidden="true"
+            />
+          </button>
+
+          {temProximo ? (
+            <Link
+              className="primary-button biblia-nav-lateral"
+              to={buildLeituraPath(livro.codigo, capitulo + 1)}
+            >
+              <span className="biblia-nav-texto">Próximo capítulo</span>{" "}
+              <FiChevronRight aria-hidden="true" />
+            </Link>
+          ) : (
+            <span className="biblia-nav-lateral" />
+          )}
+        </nav>
+      </div>
+
+      {menuContexto && (
+        <MenuContextoBiblico
+          estado={menuContexto}
+          onAplicarCor={aplicarCorDoMenu}
+          onRemoverMarcacao={removerMarcacaoDoMenu}
+          onInserirNota={abrirNotaDoMenu}
+          onCopiarTexto={() => void copiarTextoDoMenu()}
+          onSelecionarTudo={selecionarVersiculoInteiro}
+          onFechar={fecharMenuContexto}
+        />
+      )}
+
+      {postit && (
+        <PostItModal
+          estado={postit}
+          onMudarConteudo={(conteudo) =>
+            setPostit((atual) => (atual ? { ...atual, conteudo } : atual))
+          }
+          onMudarCor={(cor) =>
+            setPostit((atual) => (atual ? { ...atual, corFundo: cor } : atual))
+          }
+          onSalvar={salvarPostit}
+          onExcluir={postit.id ? excluirPostit : undefined}
+          onFechar={fecharPostit}
+        />
+      )}
+    </AppShell>
+  );
+}
+
+function MenuContextoBiblico({
+  estado,
+  onAplicarCor,
+  onRemoverMarcacao,
+  onInserirNota,
+  onCopiarTexto,
+  onSelecionarTudo,
+  onFechar,
+}: {
+  estado: MenuContextoState;
+  onAplicarCor: (cor: CorMarcador) => void;
+  onRemoverMarcacao: () => void;
+  onInserirNota: () => void;
+  onCopiarTexto: () => void;
+  onSelecionarTudo: () => void;
+  onFechar: () => void;
+}) {
+  const mostrarRemover = Boolean(
+    estado.existente &&
+    (estado.existente.type === "highlight" || estado.existente.highlightColor),
+  );
+  const preview = estado.pendente.texto.slice(0, 70);
+  const reticencias = estado.pendente.texto.length > 70 ? "…" : "";
+  const previewCompleto = preview ? `« ${preview}${reticencias} »` : "";
+
+  // Trava a posição do popup dentro da viewport — sem isso, uma seleção
+  // perto da borda podia abrir o popup parcialmente fora da tela
+  // (achado real ao revisar o próprio código, não só no sheet mobile).
+  const LARGURA_POPUP = 260;
+  const ALTURA_POPUP_ESTIMADA = 420;
+  const MARGEM = 12;
+  const posicaoPopup =
+    !estado.modoSheet && typeof window !== "undefined"
+      ? {
+          left: Math.min(
+            Math.max(estado.x, MARGEM),
+            Math.max(MARGEM, window.innerWidth - LARGURA_POPUP - MARGEM),
+          ),
+          top: Math.min(
+            Math.max(estado.y, MARGEM),
+            Math.max(
+              MARGEM,
+              window.innerHeight - ALTURA_POPUP_ESTIMADA - MARGEM,
+            ),
+          ),
+        }
+      : undefined;
+
+  return (
+    <div className="bctx-overlay" onClick={onFechar}>
+      <div
+        className={`bctx-container ${estado.modoSheet ? "bctx-sheet" : "bctx-popup"}`}
+        role="dialog"
+        aria-label="Marcar trecho selecionado"
+        style={posicaoPopup}
+        onClick={(event) => event.stopPropagation()}
+      >
+        {estado.modoSheet && <div className="bctx-handle" />}
+
+        {previewCompleto && <p className="bctx-preview">{previewCompleto}</p>}
+
+        <div className="bctx-section-label">Marcar texto</div>
+        <div className="bctx-cores">
+          {CORES_MARCADOR.map((cor) => (
+            <button
+              key={cor.valor}
+              type="button"
+              className="bctx-cor-btn"
+              style={{ "--c": cor.valor } as CSSProperties}
+              onClick={() => onAplicarCor(cor.valor)}
+            >
+              <span className="bctx-cor-preview">
+                <BsPenFill className="bctx-cor-pen" aria-hidden="true" />
+                <span className="bctx-cor-letra">A</span>
+              </span>
+              <span className="bctx-cor-nome">{cor.nome}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="bctx-acoes">
+          <button type="button" className="bctx-acao" onClick={onInserirNota}>
+            <span className="bctx-acao-ico bctx-ico-nota">
+              <BsStickyFill aria-hidden="true" />
+            </span>
+            <span className="bctx-acao-txt">Inserir nota</span>
+            <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
+          </button>
+
+          {mostrarRemover && (
+            <button
+              type="button"
+              className="bctx-acao bctx-acao--perigo"
+              onClick={onRemoverMarcacao}
+            >
+              <span className="bctx-acao-ico bctx-ico-remover">
+                <BsEraserFill aria-hidden="true" />
+              </span>
+              <span className="bctx-acao-txt">Remover marcação</span>
+              <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
+            </button>
+          )}
+
+          <button type="button" className="bctx-acao" onClick={onCopiarTexto}>
+            <span className="bctx-acao-ico bctx-ico-copiar">
+              <BsClipboard aria-hidden="true" />
+            </span>
+            <span className="bctx-acao-txt">Copiar texto</span>
+            <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className="bctx-acao"
+            onClick={onSelecionarTudo}
+          >
+            <span className="bctx-acao-ico bctx-ico-tudo">
+              <BsTextParagraph aria-hidden="true" />
+            </span>
+            <span className="bctx-acao-txt">Selecionar versículo inteiro</span>
+            <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
+          </button>
+        </div>
+
+        <button type="button" className="bctx-btn-fechar" onClick={onFechar}>
+          <BsXLg aria-hidden="true" /> Fechar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PostItModal({
+  estado,
+  onMudarConteudo,
+  onMudarCor,
+  onSalvar,
+  onExcluir,
+  onFechar,
+}: {
+  estado: PostItState;
+  onMudarConteudo: (valor: string) => void;
+  onMudarCor: (cor: CorMarcador) => void;
+  onSalvar: () => void;
+  onExcluir?: () => void;
+  onFechar: () => void;
+}) {
+  const corFundo = estado.corFundo ?? CORES_MARCADOR[0].valor;
+
+  return (
+    <div className="modal-nota-overlay" onClick={onFechar}>
+      <div
+        className="postit"
+        style={{ "--postit-bg": corFundo } as CSSProperties}
+        role="dialog"
+        aria-label="Nota"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="postit-fita" />
+
+        <div className="postit-cabecalho">
+          <span className="postit-titulo">
+            <BsStickyFill aria-hidden="true" />
+            <span>{estado.id ? "Sua nota" : "Nova nota"}</span>
+          </span>
+          <div
+            className="postit-cores"
+            role="group"
+            aria-label="Cor do post-it"
+          >
+            {CORES_MARCADOR.map((cor) => (
+              <button
+                key={cor.valor}
+                type="button"
+                className={`postit-cor-btn${estado.corFundo === cor.valor ? " postit-cor-btn--ativa" : ""}`}
+                style={{ background: cor.valor }}
+                title={cor.nome}
+                aria-label={cor.nome}
+                onClick={() => onMudarCor(cor.valor)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {estado.texto && (
+          <p className="postit-trecho">
+            «<em>{estado.texto}</em>»
+          </p>
+        )}
+
+        <textarea
+          className="postit-textarea"
+          rows={5}
+          value={estado.conteudo}
+          placeholder="Escreva sua nota…"
+          onChange={(event) => onMudarConteudo(event.target.value)}
+        />
+
+        <div className="postit-footer">
+          <button
+            type="button"
+            className="postit-btn postit-btn--cancelar"
+            onClick={onFechar}
+          >
+            <BsXLg aria-hidden="true" /> Cancelar
+          </button>
+          {onExcluir && (
+            <button
+              type="button"
+              className="postit-btn postit-btn--excluir"
+              onClick={onExcluir}
+            >
+              {estado.corFundo ? "Remover nota" : "Excluir"}
+            </button>
+          )}
+          <button
+            type="button"
+            className="postit-btn postit-btn--salvar"
+            disabled={!estado.conteudo.trim()}
+            onClick={onSalvar}
+          >
+            {estado.id ? "Salvar" : "Criar nota"}
+          </button>
+        </div>
+
+        <div className="postit-dobra" />
+      </div>
+    </div>
+  );
+}

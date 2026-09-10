@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash($files *)",
+      "Bash(New-Item *)",
+      "Bash($j *)",
+      "Bash($c *)",
+      "Bash(node *)",
+      "Bash(git config *)",
+      "Bash($env:GH_PAT *)",
+      "Bash(Get-Content *)",
+      "Bash(ForEach-Object *)",
+      "Bash($raw *)",
+      "Bash(gh repo create *)"
+    ]
+  }
+}

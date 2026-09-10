@@ -1,0 +1,204 @@
+/* Sistema RPG (T-010): modal de detalhe de peça/item e loja. */
+
+/* Selo de raridade EM TEXTO ("Comum"/"Raro"/"Épico"/"Lendário") — não
+   reaproveita `.rarity` (círculo de 32px pra um ÍCONE, usado na lista de
+   conquistas do dashboard): um texto dentro daquele círculo ficava
+   cortado. */
+.rpg-raridade {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: var(--space-2) var(--space-10);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-12, 12px);
+  font-weight: 700;
+  color: var(--branco);
+}
+
+.rpg-raridade--comum {
+  background: var(--raridade-comum);
+}
+
+.rpg-raridade--raro {
+  background: var(--raridade-raro);
+}
+
+.rpg-raridade--epico {
+  background: var(--raridade-epico);
+}
+
+.rpg-raridade--lendario {
+  background: var(--raridade-lendario);
+  color: var(--dourado-texto);
+}
+
+.rpg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 20, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  z-index: 60;
+}
+
+.rpg-modal {
+  width: 100%;
+  max-width: 360px;
+  max-height: calc(100vh - var(--space-32));
+  overflow-y: auto;
+  background: var(--branco);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-20);
+}
+
+.rpg-modal-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin-bottom: var(--space-12);
+}
+
+.rpg-modal-titulo {
+  font-size: var(--font-size-18, 18px);
+  font-weight: 700;
+  margin: 0;
+}
+
+.rpg-modal-fechar {
+  border: none;
+  background: transparent;
+  color: var(--texto-suave);
+  font-size: 20px;
+  line-height: 1;
+  padding: var(--space-4);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.rpg-modal-fechar:hover {
+  background: var(--fundo);
+}
+
+.rpg-modal-vazio {
+  color: var(--texto-suave);
+  font-size: var(--font-size-14, 14px);
+}
+
+.rpg-modal-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.rpg-modal-efeito,
+.rpg-modal-descricao,
+.rpg-modal-quantidade {
+  color: var(--texto);
+  font-size: var(--font-size-14, 14px);
+  margin: 0;
+}
+
+.rpg-modal-acoes {
+  display: flex;
+  gap: var(--space-10);
+  margin-top: var(--space-8);
+}
+
+.rpg-modal-acoes .primary-button,
+.rpg-modal-acoes .secondary-button {
+  flex: 1;
+}
+
+.rpg-mensagem-sucesso,
+.rpg-mensagem-erro {
+  margin-top: var(--space-12);
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-13, 13px);
+}
+
+.rpg-mensagem-sucesso {
+  color: var(--sucesso);
+  background: var(--sucesso-fundo);
+}
+
+.rpg-mensagem-erro {
+  color: var(--erro);
+  background: var(--erro-fundo);
+}
+
+/* ---------- Loja ---------- */
+
+.rpg-loja-saldo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-weight: 700;
+  color: var(--dourado-texto);
+  background: var(--dourado-claro);
+  border-radius: var(--radius-pill);
+  padding: var(--space-8) var(--space-16);
+  width: fit-content;
+  margin-bottom: var(--space-20);
+}
+
+.rpg-loja-secao-titulo {
+  font-size: var(--font-size-13, 13px);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--texto-suave);
+  margin: var(--space-24) 0 var(--space-10);
+}
+
+.rpg-loja-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-12);
+}
+
+.rpg-loja-card {
+  border: 1px solid var(--borda);
+  border-radius: var(--radius-lg);
+  padding: var(--space-14);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  background: var(--branco);
+  /* Também usado como <button> no Inventário (clicável, abre o modal de
+     detalhe) — resets do "chrome" padrão do elemento sem mudar o visual. */
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.rpg-raridade--vazio {
+  background: var(--slot-fundo, var(--fundo));
+  color: var(--slot-vazio-texto, var(--texto-suave));
+}
+
+.rpg-loja-card-nome {
+  font-weight: 700;
+  font-size: var(--font-size-14, 14px);
+}
+
+.rpg-loja-card-efeito {
+  color: var(--texto-suave);
+  font-size: var(--font-size-13, 13px);
+  flex: 1;
+}
+
+.rpg-loja-card-preco {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-weight: 700;
+  color: var(--dourado-texto);
+}
+
+.rpg-loja-card button {
+  width: 100%;
+}

@@ -1,0 +1,2008 @@
+:root {
+  /* ============================================================
+     DESIGN TOKENS — EvangeliGO
+     Catálogo completo e guia de uso em IA/docs/ux-ui.md ("Design
+     system"). Convenção de nomes (ver IA/memory/decisions.md ADR-015):
+     - Primitivas de cor mantêm os nomes em português já estabelecidos
+       nas ADR-008 a ADR-011 (verde/dourado/carne/raridade/...), com
+       novas primitivas seguindo o mesmo padrão de família.
+     - Espaçamento, raio, sombra e tamanho de fonte (categorias sem
+       token prévio) usam nomes em inglês (--space-*, --radius-*,
+       --shadow-*, --font-size-*), formato comum em design systems.
+     - Um pequeno grupo de aliases semânticos em inglês (--color-*)
+       cobre os papéis de cor mais usados (primary/text/border/...),
+       sempre apontando para uma primitiva — nunca redefinindo o valor.
+     ============================================================ */
+
+  /* --- Cor: primitivas verde (institucional/primária) --- */
+  --verde-900: #14351f;
+  --verde-700: #1d4d2e;
+  --verde-600: #25633b;
+  --verde-500: #2f7a49;
+  --verde-100: #e3efe7;
+  --verde-50: #f2f8f4;
+
+  /* --- Cor: primitivas dourado (destaque/moeda) --- */
+  --dourado: #c9a227;
+  --dourado-forte: #b08f1f;
+  --dourado-suave: #f7ecc8;
+  --dourado-claro: #fdf8e9;
+  --dourado-texto: #3a2e00;
+
+  /* --- Cor: neutras e superfícies --- */
+  --texto: #1f2937;
+  --texto-suave: #5b6b61;
+  --borda: #e2e8e4;
+  --fundo: #f7faf8;
+  --card: #ffffff;
+  --branco: #ffffff;
+  --branco-90: rgba(255, 255, 255, 0.9);
+  --branco-88: rgba(255, 255, 255, 0.88);
+  --branco-60: rgba(255, 255, 255, 0.6);
+
+  /* --- Cor: feedback --- */
+  --erro: #b91c1c;
+  --erro-fundo: #fee2e2;
+  --sucesso: #15803d;
+  --sucesso-fundo: #dcfce7;
+
+  /* --- Cor: HUD / RPG (armadura, itens, corações, Vida Interior) --- */
+  --coracao: #d64545;
+  /* Vermelho mais escuro que --coracao, só para TEXTO sobre
+     --coracao-fundo (ex.: "5/5" na pílula do HUD) — --coracao sozinho
+     não atinge o contraste mínimo de 4,5:1 do WCAG AA para texto nessa
+     combinação (T-017); ícone de coração isolado (HeartsBar, com
+     aria-label próprio) continua usando --coracao normalmente. */
+  --coracao-texto: #a83232;
+  --coracao-fundo: #fdecec;
+  --coracao-vazio: #e8c9c9;
+  --slot-fundo: #f2f8f4;
+  --slot-borda: #d9e6dd;
+  /* Reaproveita --texto-suave (já validado em 4,5:1+ contra fundos
+     claros) em vez de um tom quase-branco que falhava WCAG AA (T-017). */
+  --slot-vazio-texto: var(--texto-suave);
+  --raridade-comum: #64748b;
+  --raridade-raro: #2563eb;
+  --raridade-epico: #7c3aed;
+  --raridade-lendario: #c9a227;
+  --raridade-lendario-fundo: #fdf6e3;
+  --carne-100: #f6dede;
+  --carne-400: #b94b4b;
+  --carne-600: #8b2e2e;
+
+  /* --- Cor: marrom (moldura da logo) --- */
+  --marrom: #6b4226;
+
+  /* --- Cor: aliases semânticos (papel de uso) --- */
+  --color-primary: var(--verde-600);
+  --color-primary-hover: var(--verde-500);
+  --color-primary-strong: var(--verde-700);
+  --color-primary-strongest: var(--verde-900);
+  --color-primary-surface: var(--verde-100);
+  --color-primary-surface-subtle: var(--verde-50);
+  --color-accent: var(--dourado);
+  --color-text: var(--texto);
+  --color-text-muted: var(--texto-suave);
+  --color-border: var(--borda);
+  --color-background: var(--fundo);
+  --color-surface: var(--card);
+  --color-danger: var(--erro);
+  --color-danger-surface: var(--erro-fundo);
+
+  /* --- Espaçamento (margin / padding / gap) --- */
+  --space-2: 2px;
+  --space-3: 3px;
+  --space-4: 4px;
+  --space-5: 5px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-9: 9px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-22: 22px;
+  --space-24: 24px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-60: 60px;
+
+  /* Altura da navegação inferior fixa (`.bottom-nav`) — usada também por
+     `.app-shell-content` para reservar espaço equivalente e nenhum card
+     ficar escondido atrás dela. */
+  --bottom-nav-height: 60px;
+
+  /* Altura real da barra de topo (`.top-hud`) — valor inicial só para o
+     primeiríssimo paint; `AppShell.tsx` mede e sobrescreve via
+     `ResizeObserver` assim que monta (varia entre 1 e 2 linhas conforme
+     o breakpoint, T-019). Páginas com cabeçalho próprio grudado logo
+     abaixo (ex.: leitura bíblica) usam esta variável, nunca um número
+     fixo. */
+  --top-hud-height: 61px;
+
+  /* --- Raio de borda --- */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --raio: 14px;
+  --radius-2xl: 20px;
+  --radius-pill: 999px;
+
+  /* --- Sombra --- */
+  --sombra: 0 4px 20px rgba(20, 53, 31, 0.08);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 4px 14px rgba(20, 53, 31, 0.25);
+  --shadow-text: 0 1px 2px rgba(0, 0, 0, 0.35);
+
+  /* --- Tipografia --- */
+  --fonte: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-size-10: 10px;
+  --font-size-11: 11px;
+  --font-size-12: 12px;
+  --font-size-13: 13px;
+  --font-size-14: 14px;
+  --font-size-15: 15px;
+  --font-size-16: 16px;
+  --font-size-17: 17px;
+  --font-size-18: 18px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-26: 26px;
+  --font-size-28: 28px;
+  --font-size-30: 30px;
+  --font-size-40: 40px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--fonte);
+  color: var(--texto);
+  background: var(--fundo);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--verde-600);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  color: var(--verde-900);
+}
+
+/* Acessibilidade (T-017): anel de foco visível para navegação por teclado
+   em qualquer elemento interativo — antes disso, o app dependia só do
+   anel padrão do navegador, que fica cortado/invisível em pílulas e
+   círculos (border-radius alto), como os botões do HUD e as fichas dos
+   exercícios. `:focus-visible` evita o anel aparecer em cliques de
+   mouse, só em navegação por teclado. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--verde-500);
+  outline-offset: 2px;
+}
+
+/* Esconde visualmente mas mantém acessível a leitores de tela — para
+   títulos de página (`<h1>`) exigidos pela estrutura de landmarks mas
+   que duplicariam visualmente um título já mostrado de outra forma. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Header */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-18) var(--space-24);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--font-size-20);
+  font-weight: 800;
+  color: var(--verde-700);
+}
+
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--marrom);
+  object-fit: cover;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.header-link {
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+/* Botões */
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  background: var(--verde-600);
+  color: var(--branco);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: var(--space-12) var(--space-24);
+  font-size: var(--font-size-15);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primary-button:hover {
+  background: var(--verde-500);
+  text-decoration: none;
+}
+
+.primary-button.small {
+  padding: var(--space-8) var(--space-18);
+  font-size: var(--font-size-14);
+}
+
+.primary-button.full {
+  width: 100%;
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  background: transparent;
+  color: var(--verde-600);
+  border: 2px solid var(--verde-600);
+  border-radius: var(--radius-pill);
+  padding: var(--space-10) var(--space-22);
+  font-size: var(--font-size-15);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.secondary-button:hover {
+  background: var(--verde-50);
+  text-decoration: none;
+}
+
+.inline-button {
+  margin-top: var(--space-8);
+}
+
+.demo-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  background: var(--dourado);
+  /* --branco sobre --dourado não atinge 4,5:1 (WCAG AA); --dourado-texto
+     é a mesma cor escura já usada em texto sobre fundo dourado claro
+     em outras partes do app (T-017). */
+  color: var(--dourado-texto);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: var(--space-12) var(--space-24);
+  font-size: var(--font-size-15);
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.demo-button:hover {
+  filter: brightness(0.95);
+}
+
+/* Hero */
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--space-40);
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-40) var(--space-24) var(--space-60);
+}
+
+@media (max-width: 820px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--verde-500);
+  margin-bottom: var(--space-12);
+}
+
+.hero h1 {
+  font-size: var(--font-size-40);
+  margin-bottom: var(--space-16);
+}
+
+.hero-copy p:not(.eyebrow) {
+  color: var(--texto-suave);
+  font-size: var(--font-size-17);
+  max-width: 480px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+  margin-top: var(--space-8);
+}
+
+/* Verse card */
+.verse-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: var(--space-28);
+}
+
+.verse-label {
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--verde-500);
+}
+
+.verse-card blockquote {
+  font-size: var(--font-size-20);
+  font-style: italic;
+  color: var(--verde-900);
+  margin: var(--space-16) 0 var(--space-8);
+}
+
+.verse-card cite {
+  font-style: normal;
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+.progress-line {
+  height: 6px;
+  background: var(--verde-100);
+  border-radius: var(--radius-pill);
+  margin: var(--space-20) 0 var(--space-12);
+  overflow: hidden;
+}
+
+.progress-line i {
+  display: block;
+  height: 100%;
+  width: 30%;
+  background: var(--verde-500);
+  border-radius: var(--radius-pill);
+}
+
+.verse-card small {
+  color: var(--texto-suave);
+  font-size: var(--font-size-12);
+}
+
+/* Principles */
+.principles {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-40) var(--space-24) var(--space-60);
+}
+
+.principles h2 {
+  font-size: var(--font-size-28);
+  margin-bottom: var(--space-28);
+}
+
+.principle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-20);
+}
+
+.principle-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: var(--space-24);
+}
+
+.principle-card svg {
+  font-size: var(--font-size-28);
+  color: var(--verde-600);
+  margin-bottom: var(--space-12);
+}
+
+.principle-card h3 {
+  font-size: var(--font-size-17);
+  margin-bottom: var(--space-8);
+}
+
+.principle-card p {
+  color: var(--texto-suave);
+  font-size: var(--font-size-14);
+}
+
+/* Footer */
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-24);
+  border-top: 1px solid var(--borda);
+  color: var(--texto-suave);
+  font-size: var(--font-size-14);
+}
+
+.site-footer nav {
+  display: flex;
+  gap: var(--space-16);
+}
+
+/* Legal */
+.legal-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-40) var(--space-24);
+}
+
+.legal-page h1 {
+  font-size: var(--font-size-30);
+  margin-bottom: var(--space-8);
+}
+
+.legal-page h2 {
+  font-size: var(--font-size-20);
+  margin: var(--space-24) 0 var(--space-8);
+}
+
+.legal-page p {
+  color: var(--texto-suave);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--space-24);
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+/* Auth */
+.auth-page {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: var(--space-40) var(--space-24);
+}
+
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: var(--space-32);
+}
+
+.auth-card h1 {
+  font-size: var(--font-size-26);
+  margin-bottom: var(--space-4);
+}
+
+.auth-subtitle {
+  color: var(--texto-suave);
+  margin-bottom: var(--space-20);
+}
+
+.field {
+  display: block;
+  margin-bottom: var(--space-16);
+}
+
+.field span {
+  display: block;
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  color: var(--texto-suave);
+  margin-bottom: var(--space-6);
+}
+
+.field input {
+  width: 100%;
+  padding: var(--space-12) var(--space-14);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-15);
+  font-family: inherit;
+  background: var(--fundo);
+}
+
+.field input:focus {
+  outline: 2px solid var(--verde-500);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.form-error {
+  color: var(--erro);
+  background: var(--erro-fundo);
+  border-radius: var(--radius-sm);
+  padding: var(--space-10) var(--space-12);
+  font-size: var(--font-size-13);
+  margin-bottom: var(--space-16);
+}
+
+.auth-switch {
+  margin-top: var(--space-20);
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: var(--font-size-14);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-12);
+}
+
+.field-error {
+  display: block;
+  color: var(--erro);
+  font-size: var(--font-size-12);
+  margin-top: var(--space-4);
+}
+
+.field-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-10);
+  margin-bottom: var(--space-4);
+}
+
+.field-checkbox input {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--verde-600);
+  flex-shrink: 0;
+}
+
+.field-checkbox span {
+  font-size: var(--font-size-13);
+  color: var(--texto-suave);
+}
+
+.auth-forgot-link {
+  text-align: right;
+  margin: -8px 0 var(--space-16);
+  font-size: var(--font-size-13);
+}
+
+.password-strength {
+  display: block;
+  font-size: var(--font-size-12);
+  margin-top: var(--space-4);
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.password-strength--muito-fraca,
+.password-strength--fraca {
+  color: var(--erro);
+}
+
+.password-strength--forte,
+.password-strength--muito-forte {
+  color: var(--verde-600);
+}
+
+.form-success {
+  color: var(--verde-600);
+  background: var(--verde-100);
+  border-radius: var(--radius-sm);
+  padding: var(--space-10) var(--space-12);
+  font-size: var(--font-size-13);
+  margin-bottom: var(--space-16);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin: var(--space-20) 0;
+  color: var(--texto-suave);
+  font-size: var(--font-size-12);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--borda);
+}
+
+.secondary-button.full {
+  width: 100%;
+}
+
+.auth-google-button {
+  background: var(--branco);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading */
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--texto-suave);
+}
+
+/* Dashboard */
+.dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--space-24);
+}
+
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: var(--space-8);
+  padding: var(--space-18) 0;
+}
+
+.dash-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--verde-600);
+  color: var(--branco);
+  font-weight: 800;
+}
+
+.avatar--sm {
+  width: 30px;
+  height: 30px;
+  font-size: var(--font-size-13);
+}
+
+/* --- App Shell: HUD superior + navegação inferior persistentes (ADR-018) --- */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-shell-content {
+  flex: 1;
+  /* `--bottom-nav-height` reserva o espaço que `.bottom-nav` (fixa, fora
+     do fluxo normal) ocupa, para nenhum card ficar escondido atrás dela. */
+  padding-bottom: calc(var(--space-40) + var(--bottom-nav-height));
+}
+
+.top-hud {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--card);
+  border-bottom: 1px solid var(--borda);
+}
+
+.top-hud-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-24);
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.top-hud-level {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  flex: 1;
+  min-width: 0;
+}
+
+.top-hud-level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary-surface);
+  color: var(--color-primary-strong);
+  font-weight: 800;
+  font-size: var(--font-size-13);
+  flex-shrink: 0;
+}
+
+.top-hud-xp-track {
+  flex: 1;
+  max-width: 220px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--verde-100);
+  overflow: hidden;
+}
+
+.top-hud-xp-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--verde-600);
+  transition: width 0.3s ease;
+}
+
+.top-hud-stats {
+  display: flex;
+  gap: var(--space-6);
+  flex-shrink: 0;
+}
+
+.top-hud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-10);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-12);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.top-hud-pill--gold {
+  background: var(--dourado-suave);
+  color: var(--dourado-texto);
+}
+
+.top-hud-pill--streak {
+  background: var(--verde-100);
+  color: var(--verde-700);
+}
+
+.top-hud-pill--hearts {
+  background: var(--coracao-fundo);
+  color: var(--coracao-texto);
+}
+
+.top-hud-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-shrink: 0;
+}
+
+.top-hud--guest .top-hud-inner {
+  justify-content: space-between;
+}
+
+.top-hud-guest-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.bottom-nav {
+  /* `position: sticky` deixava a navegação inferior instável em telas
+     estreitas (mobile): páginas altas fazem a "faixa com espaço para
+     grudar" do sticky ficar mal-definida, e o link podia acabar coberto
+     por outro conteúdo durante a rolagem (achado ao rodar a suíte E2E de
+     T-019 no projeto mobile do Playwright — cliques na navegação
+     intermitentemente interceptados por cards do dashboard). `fixed` é o
+     que ADR-018 já pedia ("navegação inferior fixa") e remove essa
+     ambiguidade: sempre relativa à viewport, nunca ao documento. */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--bottom-nav-height);
+  z-index: 20;
+  background: var(--card);
+  border-top: 1px solid var(--borda);
+}
+
+.bottom-nav-inner {
+  max-width: 1100px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-8) 0 var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-11);
+  font-weight: 700;
+}
+
+.bottom-nav-item svg {
+  font-size: var(--font-size-18);
+}
+
+.bottom-nav-item:hover {
+  color: var(--verde-600);
+  text-decoration: none;
+}
+
+.bottom-nav-item--active {
+  color: var(--verde-700);
+}
+
+.dash-name {
+  font-weight: 700;
+  color: var(--verde-900);
+}
+
+.demo-badge {
+  background: var(--verde-100);
+  color: var(--verde-700);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  padding: var(--space-3) var(--space-10);
+  border-radius: var(--radius-pill);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--borda);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--texto-suave);
+  cursor: pointer;
+  font-size: var(--font-size-16);
+}
+
+.icon-button:hover {
+  color: var(--erro);
+  border-color: var(--erro);
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-20);
+  padding: var(--space-20) 0 var(--space-40);
+}
+
+.dash-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: var(--space-24);
+}
+
+.dash-card h1 {
+  font-size: var(--font-size-24);
+  margin-bottom: var(--space-12);
+}
+
+.level-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin-bottom: var(--space-12);
+}
+
+.level-badge {
+  background: var(--verde-600);
+  color: var(--branco);
+  font-weight: 700;
+  font-size: var(--font-size-13);
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-pill);
+}
+
+.xp-text {
+  color: var(--texto-suave);
+  font-size: var(--font-size-13);
+  font-weight: 600;
+}
+
+.stat-row {
+  display: flex;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+  margin-top: var(--space-16);
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  color: var(--texto-suave);
+  font-size: var(--font-size-14);
+  font-weight: 600;
+}
+
+.stat svg {
+  color: var(--verde-600);
+}
+
+.progress-item {
+  margin-bottom: var(--space-18);
+}
+
+.progress-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-14);
+  font-weight: 600;
+  color: var(--texto-suave);
+  margin-bottom: var(--space-6);
+}
+
+.progress-label span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.progress-label svg {
+  color: var(--verde-600);
+}
+
+.armor-list,
+.achievement-list,
+.inventory-list {
+  list-style: none;
+}
+
+.armor-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--borda);
+  font-size: var(--font-size-14);
+}
+
+.armor-item:last-child {
+  border-bottom: none;
+}
+
+.armor-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--verde-500);
+  flex-shrink: 0;
+}
+
+.armor-status {
+  margin-left: auto;
+  color: var(--verde-600);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+}
+
+.achievement-item {
+  display: flex;
+  gap: var(--space-12);
+  padding: var(--space-10) 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.achievement-item:last-child {
+  border-bottom: none;
+}
+
+/* "Mais opções" (Dashboard) — mesmo espírito do "Ver mais opções" do
+   legado: destinos que não cabem nos 5 slots do menu inferior. */
+.mais-opcoes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mais-opcoes-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid var(--borda);
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.mais-opcoes-item:last-child {
+  border-bottom: none;
+}
+
+.mais-opcoes-item span {
+  flex: 1;
+}
+
+.mais-opcoes-item svg:first-child {
+  color: var(--verde-600);
+  flex-shrink: 0;
+}
+
+.mais-opcoes-item svg:last-child {
+  color: var(--texto-suave);
+  flex-shrink: 0;
+}
+
+.achievement-item strong {
+  font-size: var(--font-size-14);
+  color: var(--verde-900);
+}
+
+.achievement-item p {
+  font-size: var(--font-size-13);
+  color: var(--texto-suave);
+}
+
+.rarity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--verde-100);
+  color: var(--verde-600);
+  flex-shrink: 0;
+}
+
+.inventory-item {
+  display: flex;
+  gap: var(--space-12);
+  padding: var(--space-10) 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.inventory-item:last-child {
+  border-bottom: none;
+}
+
+.inventory-item strong {
+  font-size: var(--font-size-14);
+  color: var(--verde-900);
+}
+
+.inventory-item p {
+  font-size: var(--font-size-13);
+  color: var(--texto-suave);
+}
+
+.inventory-qty {
+  font-weight: 800;
+  color: var(--verde-600);
+  flex-shrink: 0;
+}
+
+/* ===== Dashboard RPG HUD =====
+   Anel e grid do inventário ficam lado a lado, sempre do mesmo tamanho,
+   em qualquer largura de tela. O tamanho vem de container query units
+   (cqi) medidas no próprio .hud-layout — não da viewport — então
+   reflete o espaço realmente disponível ali, sem depender de somar
+   manualmente o padding de ancestrais (isso já causou bug: ver
+   IA/memory/bugs.md BUG-011). Como as duas colunas do grid são sempre
+   iguais (1fr 1fr), o anel e o grid do inventário casam por construção
+   — não há como um ficar maior que o outro.
+   Nota técnica: cqi só resolve corretamente em DESCENDENTES do elemento
+   que declara container-type, nunca no próprio elemento nem em um
+   ancestro dele — por isso --hud-ring-size (e tudo derivado dela) é
+   declarada em .hud-left/.hud-right (filhos de .hud-layout), não em
+   .hud-card nem em .hud-layout. */
+.hud-card {
+  background: linear-gradient(160deg, var(--branco) 0%, var(--verde-50) 100%);
+  border-radius: var(--radius-2xl);
+}
+
+.hud-username {
+  text-align: center;
+  font-size: var(--font-size-18);
+  font-weight: 800;
+  color: var(--verde-900);
+  margin-bottom: var(--space-4);
+}
+
+.hud-editar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  text-align: center;
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.hud-editar-avatar:hover {
+  color: var(--color-primary);
+}
+
+/* Loja (T-010) some ao lado de "Editar avatar" — mesma linha, mesmo
+   estilo, sem alterar nada do card em si (só um segundo link). */
+.hud-links-topo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-16);
+  margin-bottom: var(--space-16);
+}
+
+.hud-layout {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-16);
+  max-width: 516px;
+  margin-inline: auto;
+}
+
+.hud-left,
+.hud-right {
+  /* gap do .hud-layout é 16px, metade=8px. Cresce de 130px até um teto
+     de 250px (mesmo tamanho "desktop" de sempre); quando o card fica
+     mais largo do que o teto suporta, o excesso vira margem
+     centralizada (.hud-layout) em vez de espaço morto de um lado só. */
+  --hud-ring-size: clamp(130px, calc(50cqi - 8px), 250px);
+  --hud-ring-radius: calc(var(--hud-ring-size) * 0.4);
+  --hud-slot-size: calc(var(--hud-ring-size) * 0.176);
+  --hud-avatar-size: calc(var(--hud-ring-size) * 0.32);
+  --hud-avatar-font: calc(var(--hud-ring-size) * 0.136);
+}
+
+.hud-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hud-layout .eyebrow {
+  min-height: 2.2em;
+}
+
+.hud-right {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hud-avatar-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.hud-ring {
+  position: relative;
+  width: var(--hud-ring-size);
+  height: var(--hud-ring-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hud-ring-connectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hud-ring-arc {
+  fill: none;
+  stroke: var(--verde-500);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Moldura fixa do hexágono (sempre visível, mesmo com slots vazios) —
+   sem ela, um slot sem equipamento não recebe nenhum arco e parece
+   "flutuando" solto, desconectado do resto do anel. */
+.hud-ring-arc--base {
+  stroke: var(--slot-borda);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+  opacity: 0.7;
+}
+
+.hud-ring-arc--pulse {
+  animation: hud-ring-pulse 1.8s ease-in-out infinite;
+}
+
+.hud-ring-arc--rarity-comum {
+  stroke: var(--raridade-comum);
+}
+
+.hud-ring-arc--rarity-raro {
+  stroke: var(--raridade-raro);
+}
+
+.hud-ring-arc--rarity-epico {
+  stroke: var(--raridade-epico);
+}
+
+.hud-ring-arc--rarity-lendario {
+  stroke: var(--raridade-lendario);
+}
+
+.hud-ring-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hud-slot-size);
+  height: var(--hud-slot-size);
+  margin: calc(var(--hud-slot-size) / -2) 0 0 calc(var(--hud-slot-size) / -2);
+  padding: 0;
+  border-radius: var(--radius-lg);
+  background: var(--slot-fundo);
+  border: 1px solid var(--slot-borda);
+  color: var(--verde-600);
+  font-size: calc(var(--hud-slot-size) * 0.45);
+  font-family: inherit;
+  transform: rotate(var(--angle)) translateX(var(--hud-ring-radius))
+    rotate(calc(-1 * var(--angle)));
+  animation: hud-pop 0.3s ease;
+  /* Virou <button> no T-010 (era <div>) pra permitir abrir o detalhe da
+     peça — os resets acima/abaixo removem só o "chrome" padrão do
+     elemento, sem alterar nada do visual que já existia. */
+  cursor: pointer;
+}
+
+.hud-ring-slot:disabled {
+  cursor: default;
+}
+
+.hud-slot--rarity-comum {
+  --rarity-color: var(--raridade-comum);
+}
+
+.hud-slot--rarity-raro {
+  --rarity-color: var(--raridade-raro);
+}
+
+.hud-slot--rarity-epico {
+  --rarity-color: var(--raridade-epico);
+}
+
+.hud-slot--rarity-lendario {
+  --rarity-color: var(--raridade-lendario);
+}
+
+.hud-slot--equipped {
+  box-shadow: 0 0 0 2px var(--rarity-color, var(--dourado));
+  background: var(--branco);
+}
+
+.hud-slot--empty {
+  border-style: dashed;
+  color: var(--slot-vazio-texto);
+  opacity: 0.7;
+}
+
+.hud-slot-level {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--verde-700);
+  color: var(--branco);
+  font-size: clamp(7px, calc(var(--hud-slot-size, 44px) * 0.2), 9px);
+  font-weight: 800;
+  padding: 1px calc(var(--hud-slot-size, 44px) * 0.12);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.hud-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hud-avatar-size);
+  height: var(--hud-avatar-size);
+  border-radius: 50%;
+  background: linear-gradient(160deg, var(--verde-500), var(--verde-700));
+  color: var(--branco);
+  font-size: var(--hud-avatar-font);
+  font-weight: 800;
+  box-shadow: var(--shadow-lg);
+}
+
+.hud-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Lápis sobreposto no avatar (como o legado) — substitui o antigo link de
+   texto "Editar avatar" que ficava separado do card. */
+.hud-avatar-editar {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--branco);
+  color: var(--verde-700);
+  border: 2px solid var(--verde-100);
+  font-size: 13px;
+  box-shadow: var(--shadow-sm);
+}
+
+.hud-avatar-editar:hover {
+  background: var(--verde-50);
+}
+
+.hud-level {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--dourado);
+  color: var(--dourado-texto);
+  font-size: clamp(9px, calc(var(--hud-avatar-size, 80px) * 0.14), 12px);
+  line-height: 1.4;
+  font-weight: 800;
+  padding: 2px calc(var(--hud-avatar-size, 80px) * 0.125);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  z-index: 2;
+}
+
+.hud-set-bonus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  max-width: var(--hud-ring-size);
+  text-align: center;
+  padding: var(--space-6) var(--space-10);
+  border-radius: var(--radius-lg);
+  background: var(--branco-90);
+  border: 1px solid var(--slot-borda);
+  animation: hud-pop 0.3s ease;
+}
+
+.hud-set-bonus strong {
+  font-size: var(--font-size-11);
+  color: var(--verde-900);
+}
+
+.hud-set-bonus span {
+  font-size: var(--font-size-10);
+  color: var(--texto-suave);
+}
+
+.hud-set-bonus--comum {
+  border-color: var(--raridade-comum);
+}
+
+.hud-set-bonus--raro {
+  border-color: var(--raridade-raro);
+}
+
+.hud-set-bonus--epico {
+  border-color: var(--raridade-epico);
+}
+
+.hud-set-bonus--lendario {
+  border-color: var(--raridade-lendario);
+  background: linear-gradient(
+    160deg,
+    var(--branco),
+    var(--raridade-lendario-fundo)
+  );
+}
+
+.hud-stats {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-20);
+}
+
+.hud-hearts-row {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-18);
+}
+
+.hud-hearts-row .hearts {
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-pill);
+  background: var(--branco-60);
+  border: 1px solid var(--slot-borda);
+  font-size: var(--font-size-18);
+  gap: var(--space-4);
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-12);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-13);
+  font-weight: 700;
+  background: var(--verde-100);
+  color: var(--verde-700);
+}
+
+.stat-pill svg {
+  font-size: var(--font-size-15);
+}
+
+.stat-pill--gold {
+  background: var(--dourado-suave);
+  color: var(--dourado-texto);
+}
+
+.stat-pill-label {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.stat-bar-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-18);
+}
+
+.stat-bar-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-14);
+  font-weight: 600;
+  color: var(--texto-suave);
+  margin-bottom: var(--space-6);
+}
+
+.stat-bar-label span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.stat-bar-label svg {
+  color: var(--verde-600);
+}
+
+.stat-bar-track {
+  height: 12px;
+  background: var(--verde-100);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.stat-bar-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--verde-500), var(--verde-600));
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+.hearts {
+  display: inline-flex;
+  gap: var(--space-2);
+  font-size: var(--font-size-16);
+  color: var(--coracao);
+}
+
+.heart--empty {
+  color: var(--coracao-vazio);
+}
+
+.item-slots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.item-group-title {
+  font-size: var(--font-size-12);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--texto-suave);
+  margin-bottom: var(--space-8);
+}
+
+.item-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, var(--hud-slot-size, 44px));
+  grid-template-rows: repeat(3, var(--hud-slot-size, 44px));
+  gap: var(--space-6);
+  padding: 0;
+  margin: 0;
+  /* A coluna já tem exatamente --hud-ring-size de largura (grid 1fr
+     igual à do anel), então 100% já casa os dois sem folga. */
+  width: 100%;
+  aspect-ratio: 1;
+  place-content: center;
+}
+
+.item-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hud-slot-size, 44px);
+  height: var(--hud-slot-size, 44px);
+  padding: 0;
+  border: 1px solid var(--borda);
+  border-radius: var(--radius-lg);
+  background: var(--fundo);
+  /* Virou <button> no T-010 (era <li>) pra permitir abrir o detalhe do
+     item — resets do "chrome" padrão do elemento, sem alterar o visual. */
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.item-tile:disabled {
+  cursor: default;
+}
+
+.item-tile--active {
+  border-color: var(--dourado);
+  background: var(--dourado-claro);
+}
+
+.item-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--hud-slot-size, 44px) * 0.64);
+  height: calc(var(--hud-slot-size, 44px) * 0.64);
+  font-size: calc(var(--hud-slot-size, 44px) * 0.45);
+  color: var(--verde-600);
+  background: transparent;
+  border-radius: 0;
+}
+
+.item-tile-qty {
+  position: absolute;
+  top: calc(var(--hud-slot-size, 44px) * -0.1);
+  right: calc(var(--hud-slot-size, 44px) * -0.1);
+  font-size: clamp(8px, calc(var(--hud-slot-size, 44px) * 0.24), 10px);
+  font-weight: 800;
+  padding: 0 calc(var(--hud-slot-size, 44px) * 0.1);
+  border-radius: var(--radius-pill);
+  background: var(--dourado);
+  color: var(--dourado-texto);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.item-tile-timer {
+  position: absolute;
+  bottom: calc(var(--hud-slot-size, 44px) * 0.05);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(7px, calc(var(--hud-slot-size, 44px) * 0.2), 9px);
+  font-weight: 700;
+  color: var(--verde-900);
+  white-space: nowrap;
+  background: var(--branco-88);
+  padding: 0 calc(var(--hud-slot-size, 44px) * 0.08);
+  border-radius: var(--radius-pill);
+  line-height: 1.5;
+}
+
+.rarity--comum {
+  background: var(--raridade-comum);
+  color: var(--branco);
+}
+
+.rarity--raro {
+  background: var(--raridade-raro);
+  color: var(--branco);
+}
+
+.rarity--epico {
+  background: var(--raridade-epico);
+  color: var(--branco);
+}
+
+.rarity--lendario {
+  background: var(--raridade-lendario);
+  color: var(--dourado-texto);
+}
+
+.spirit-battle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.sb-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-14);
+  padding: var(--space-10) var(--space-16);
+  border-radius: var(--raio);
+  background: var(--verde-50);
+  border: 1px solid var(--borda);
+}
+
+.sb-summary-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: var(--font-size-20);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sb-summary-side small {
+  font-size: var(--font-size-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--texto-suave);
+}
+
+.sb-summary-side--fruit {
+  color: var(--verde-700);
+}
+
+.sb-summary-side--flesh {
+  color: var(--carne-600);
+}
+
+.sb-vs {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--verde-900);
+  color: var(--branco);
+  font-size: var(--font-size-11);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.sb-goal {
+  font-size: var(--font-size-13);
+  color: var(--texto-suave);
+  text-align: center;
+  margin-top: -6px;
+}
+
+.sb-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.sb-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.sb-row-toggle {
+  display: grid;
+  grid-template-columns: 32px 1fr 32px 16px;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  background: none;
+  border: none;
+  padding: var(--space-4) 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sb-row-chevron {
+  color: var(--texto-suave);
+  transition: transform 0.2s ease;
+}
+
+.sb-row-chevron--aberto {
+  transform: rotate(180deg);
+}
+
+.sb-explicacao {
+  padding: var(--space-10) var(--space-12);
+  margin: 0 0 var(--space-6);
+  background: var(--fundo);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-13);
+  color: var(--texto);
+}
+
+.sb-explicacao-texto {
+  margin: 0 0 var(--space-6);
+}
+
+.sb-explicacao-exemplo {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.sb-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: var(--font-size-17);
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.sb-icon--ahead {
+  opacity: 1;
+}
+
+.sb-icon--fruit {
+  background: var(--verde-100);
+  color: var(--verde-700);
+}
+
+.sb-icon--flesh {
+  background: var(--carne-100);
+  color: var(--carne-600);
+}
+
+.sb-track {
+  position: relative;
+  display: flex;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--verde-100);
+}
+
+.sb-fill-fruit {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--verde-600), var(--verde-500));
+  transition: width 0.4s ease;
+}
+
+.sb-fill-flesh {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--carne-400), var(--carne-600));
+  transition: width 0.4s ease;
+}
+
+.sb-track-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-10);
+  font-weight: 800;
+  color: var(--branco);
+  white-space: nowrap;
+  text-shadow: var(--shadow-text);
+}
+
+.sb-track-label--fruit {
+  left: 8px;
+}
+
+.sb-track-label--flesh {
+  right: 8px;
+}
+
+@keyframes hud-ring-pulse {
+  0%,
+  100% {
+    stroke-width: 2;
+    opacity: 0.75;
+  }
+  50% {
+    stroke-width: 4;
+    opacity: 1;
+  }
+}
+
+/* Usa a propriedade `scale` isolada (não `transform: scale()`) porque
+   .hud-ring-slot já usa `transform` para o posicionamento no anel
+   (rotate/translateX/rotate); uma animação de `transform` substitui o
+   valor inteiro da propriedade enquanto roda, e apagaria essa posição
+   por 0.3s a cada montagem, fazendo os slots colapsarem no centro do
+   anel antes de "saltarem" pro lugar certo. */
+@keyframes hud-pop {
+  0% {
+    scale: 1.06;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+@media (min-width: 640px) {
+  .hud-card {
+    grid-column: span 2;
+  }
+  .hud-username {
+    font-size: var(--font-size-20);
+  }
+}
+
+@media (max-width: 639px) {
+  .dashboard {
+    padding: 0 var(--space-14);
+  }
+
+  .dash-card {
+    padding: var(--space-14);
+  }
+
+  .hud-layout .eyebrow {
+    font-size: var(--font-size-10);
+    letter-spacing: 0.3px;
+  }
+
+  .hud-stats {
+    gap: var(--space-6);
+  }
+
+  .hud-stats .stat-pill {
+    padding: var(--space-5) var(--space-9);
+    font-size: var(--font-size-12);
+    gap: var(--space-4);
+  }
+
+  .hud-stats .stat-pill svg {
+    font-size: var(--font-size-13);
+  }
+
+  /* Achado ao rodar E2E (T-019) num viewport de 393px real (Pixel 5): a
+     linha de stats do TopHud (nível+XP, 3 pílulas, badge/avatar/sair)
+     nunca cabia numa única linha, e o navegador mobile respondia
+     alargando silenciosamente o viewport de layout (393px -> 414px) em
+     vez de mostrar rolagem horizontal — o que quebrava toda suposição de
+     `position: fixed` relativa à viewport na página inteira (BottomNav
+     incluído). Corrigido permitindo quebra de linha em vez de forçar
+     overflow horizontal: nível/XP numa linha, pílulas+usuário na de
+     baixo, com um respiro visual entre as duas.
+  */
+  .top-hud-inner {
+    flex-wrap: wrap;
+    row-gap: var(--space-8);
+    padding: var(--space-10) var(--space-14);
+  }
+
+  .top-hud-level {
+    flex-basis: 100%;
+  }
+
+  .top-hud-pill {
+    padding: var(--space-3) var(--space-8);
+    font-size: var(--font-size-11);
+  }
+
+  .demo-badge {
+    font-size: var(--font-size-11);
+    padding: var(--space-2) var(--space-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-ring-slot,
+  .hud-set-bonus {
+    animation: none;
+  }
+  .stat-bar-track i {
+    transition: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

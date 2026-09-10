@@ -1,0 +1,103 @@
+/* Estilos do onboarding (T-006). Reaproveita tokens de global.css e as
+   classes compartilhadas de autenticação (.auth-page, .auth-card, .field,
+   .field-error, .form-error, .form-success, .password-strength). */
+
+.onboarding-topo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin-bottom: var(--space-20);
+}
+
+.onboarding-voltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.onboarding-voltar:hover {
+  border-color: var(--verde-500);
+}
+
+.onboarding-progresso-track {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--verde-100);
+  overflow: hidden;
+}
+
+.onboarding-progresso-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--verde-600);
+  transition: width 0.25s ease;
+}
+
+.onboarding-contador {
+  flex-shrink: 0;
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.onboarding-passo-titulo {
+  margin-bottom: var(--space-8);
+}
+
+.onboarding-passo-subtitulo {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-20);
+}
+
+.onboarding-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-bottom: var(--space-20);
+}
+
+.onboarding-opcao {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-14) var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-14);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.onboarding-opcao:hover {
+  border-color: var(--verde-500);
+}
+
+.onboarding-opcao--ativa {
+  border-color: var(--verde-600);
+  background: var(--color-primary-surface);
+  color: var(--verde-700);
+}
+
+.onboarding-dica-opcional {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+  margin-bottom: var(--space-16);
+}
+
+.onboarding-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-10);
+  margin-top: var(--space-8);
+}

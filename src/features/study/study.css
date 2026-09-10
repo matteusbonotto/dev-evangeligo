@@ -1,0 +1,277 @@
+/* Estilos da feature de estudo (trilhas/aulas). Compõe apenas variáveis
+   CSS já definidas em src/styles/global.css (cores, --raio, --sombra,
+   --fonte) — não define nova paleta, tipografia ou escala de espaçamento,
+   só novas classes de estrutura para conteúdo que ainda não existia
+   (cards de trilha, lista de aulas, chips de referência bíblica, slot de
+   quiz). Reaproveita .dashboard/.dash-header/.dash-card/.eyebrow/
+   .primary-button/.back-link de global.css para o restante do layout. */
+
+.trilhas-intro {
+  margin-bottom: 20px;
+}
+
+.trilha-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: inherit;
+}
+
+.trilha-card:hover {
+  text-decoration: none;
+  border-color: var(--verde-500);
+}
+
+.trilha-card h2 {
+  font-size: 19px;
+}
+
+.trilha-card-description {
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+.trilha-aula-list {
+  list-style: none;
+  margin-top: 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trilha-aula-item a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.trilha-aula-item a:hover {
+  border-color: var(--verde-500);
+  background: var(--verde-50);
+  text-decoration: none;
+}
+
+.trilha-aula-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--verde-100);
+  color: var(--verde-700);
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.trilha-aula-item-title {
+  flex: 1;
+}
+
+.trilha-aula-item-minutes {
+  color: var(--texto-suave);
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.aula-content h1 {
+  font-size: 24px;
+  margin: 8px 0 16px;
+}
+
+.aula-summary {
+  color: var(--texto);
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.aula-ref-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 20px;
+  padding: 0;
+}
+
+.aula-ref-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--verde-100);
+  color: var(--verde-700);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.aula-quiz-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--slot-borda);
+  border-radius: var(--raio);
+  color: var(--texto-suave);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.aula-quiz-slot svg {
+  color: var(--verde-600);
+  flex-shrink: 0;
+}
+
+.aula-quiz-slot--available {
+  color: var(--verde-700);
+  border-style: solid;
+  border-color: var(--verde-500);
+  background: var(--verde-50);
+  font-weight: 700;
+}
+
+.aula-quiz-slot--available:hover {
+  background: var(--verde-100);
+  text-decoration: none;
+}
+
+/* --- Quiz (T-008) --- */
+
+.quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin-bottom: var(--space-20);
+}
+
+.quiz-hearts {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--font-size-16);
+}
+
+.quiz-hearts .heart-full {
+  color: var(--coracao);
+}
+
+.quiz-hearts .heart-empty {
+  color: var(--coracao-vazio);
+}
+
+.quiz-progress {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  font-weight: 700;
+  margin-bottom: var(--space-6);
+}
+
+.quiz-prompt {
+  font-size: var(--font-size-20);
+  margin-bottom: var(--space-16);
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-bottom: var(--space-20);
+}
+
+.quiz-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  margin-bottom: var(--space-4);
+}
+
+.quiz-option {
+  text-align: left;
+  padding: var(--space-12) var(--space-14);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-14);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quiz-option:hover {
+  border-color: var(--verde-500);
+}
+
+.quiz-option--selected {
+  border-color: var(--verde-600);
+  background: var(--color-primary-surface);
+  color: var(--color-primary-strong);
+}
+
+.quiz-feedback-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--font-size-18);
+  font-weight: 800;
+  margin-bottom: var(--space-8);
+}
+
+.quiz-feedback--correct .quiz-feedback-title {
+  color: var(--verde-700);
+}
+
+.quiz-feedback--incorrect .quiz-feedback-title {
+  color: var(--erro);
+}
+
+.quiz-feedback-explanation {
+  color: var(--color-text);
+  font-size: var(--font-size-14);
+  line-height: 1.6;
+  margin-bottom: var(--space-12);
+}
+
+.quiz-feedback-ref {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: var(--space-20);
+}
+
+.quiz-results {
+  text-align: center;
+  padding: var(--space-20) 0;
+}
+
+.quiz-results-score {
+  font-size: var(--font-size-16);
+  font-weight: 700;
+  margin: var(--space-8) 0;
+}
+
+.quiz-results-reward {
+  color: var(--dourado-texto);
+  background: var(--dourado-suave);
+  display: inline-block;
+  padding: var(--space-6) var(--space-14);
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+  margin-bottom: var(--space-20);
+}
+
+.quiz-results-reward--empty {
+  color: var(--color-text-muted);
+  background: var(--color-background);
+}
+
+.quiz-results-actions {
+  display: flex;
+  gap: var(--space-10);
+  justify-content: center;
+}

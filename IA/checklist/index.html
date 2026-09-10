@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kanban — EvangeliGO</title>
+  <style>
+    :root {
+      --verde: #25633b;
+      --verde-claro: #3a8a52;
+      --fundo: #f4f7f5;
+      --card: #ffffff;
+      --texto: #1f2937;
+      --texto-suave: #6b7280;
+      --borda: #e5e7eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--fundo);
+      color: var(--texto);
+      padding: 24px;
+    }
+    header { margin-bottom: 20px; }
+    h1 { font-size: 22px; color: var(--verde); }
+    .sub { color: var(--texto-suave); font-size: 13px; margin-top: 4px; }
+    .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+    .col {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 200px;
+    }
+    .col h2 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--texto-suave);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .col h2 .count {
+      background: var(--verde);
+      color: #fff;
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 11px;
+    }
+    .card {
+      background: var(--fundo);
+      border: 1px solid var(--borda);
+      border-left: 4px solid var(--verde);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .card .id { font-size: 11px; color: var(--texto-suave); font-weight: 600; }
+    .card .titulo { font-size: 13px; font-weight: 600; margin: 4px 0; }
+    .card .agente { font-size: 11px; color: var(--verde-claro); }
+    .card .prio { font-size: 10px; padding: 1px 6px; border-radius: 999px; }
+    .prio.alta { background: #fee2e2; color: #b91c1c; }
+    .prio.media { background: #fef3c7; color: #b45309; }
+    .prio.baixa { background: #e0e7ff; color: #4338ca; }
+    .card.done { opacity: 0.6; border-left-color: #10b981; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kanban — EvangeliGO</h1>
+    <p class="sub" id="meta">Carregando...</p>
+  </header>
+  <div class="board" id="board"></div>
+  <script>
+    const colunas = ["backlog", "todo", "in_progress", "review", "done"];
+    const labels = {
+      backlog: "Backlog",
+      todo: "A Fazer",
+      in_progress: "Em Progresso",
+      review: "Revisão",
+      done: "Concluído"
+    };
+    fetch("tasks.json")
+      .then((r) => r.json())
+      .then((data) => {
+        document.getElementById("meta").textContent =
+          data.projeto + " — atualizado em " + data.atualizado;
+        const board = document.getElementById("board");
+        colunas.forEach((col) => {
+          const tarefas = data.tarefas.filter((t) => t.status === col);
+          const div = document.createElement("div");
+          div.className = "col";
+          div.innerHTML =
+            '<h2>' + labels[col] + ' <span class="count">' + tarefas.length + "</span></h2>";
+          tarefas.forEach((t) => {
+            const card = document.createElement("div");
+            card.className = "card" + (t.status === "done" ? " done" : "");
+            card.innerHTML =
+              '<div class="id">' + t.id + '</div>' +
+              '<div class="titulo">' + t.titulo + "</div>" +
+              '<div class="agente">' + t.agente + "</div>" +
+              '<span class="prio ' + t.prioridade + '">' + t.prioridade + "</span>";
+            div.appendChild(card);
+          });
+          board.appendChild(div);
+        });
+      })
+      .catch((e) => {
+        document.getElementById("meta").textContent =
+          "Erro ao carregar tasks.json: " + e.message;
+      });
+  </script>
+</body>
+</html>
