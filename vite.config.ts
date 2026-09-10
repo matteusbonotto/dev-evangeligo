@@ -2,7 +2,10 @@ import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // O GitHub Pages publica este projeto em /dev-evangeligo/, enquanto no
+  // desenvolvimento local ele continua disponível na raiz.
+  base: mode === "github-pages" ? "/dev-evangeligo/" : "/",
   plugins: [
     react(),
     VitePWA({
@@ -32,7 +35,7 @@ export default defineConfig({
         theme_color: "#25633b",
         background_color: "#ffffff",
         display: "standalone",
-        start_url: "/",
+        start_url: "./",
         icons: [
           {
             src: "/pwa-192x192.png",
@@ -67,4 +70,4 @@ export default defineConfig({
       VITE_SUPABASE_ANON_KEY: "",
     },
   },
-});
+}));
