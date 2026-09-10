@@ -11,7 +11,7 @@ import type { BibliaData } from "./types";
 let cache: Promise<BibliaData> | null = null;
 
 export function loadBibliaData(): Promise<BibliaData> {
-  cache ??= fetch("/data/biblia-almeida.json").then((response) => {
+  cache ??= fetch(`${import.meta.env.BASE_URL}data/biblia-almeida.json`).then((response) => {
     if (!response.ok) {
       throw new Error("Não foi possível carregar o texto bíblico.");
     }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   obterChaveDoDia,
+  obterCacaPalavrasDoDia,
   obterLeituraDoDia,
   obterQuebraCabecaDoDia,
   obterTermoDoDia,
@@ -19,6 +20,7 @@ describe("desafios do dia são determinísticos", () => {
     expect(obterVersiculoDoDia(chave)).toEqual(obterVersiculoDoDia(chave));
     expect(obterTermoDoDia(chave)).toEqual(obterTermoDoDia(chave));
     expect(obterQuebraCabecaDoDia(chave)).toEqual(obterQuebraCabecaDoDia(chave));
+    expect(obterCacaPalavrasDoDia(chave)).toEqual(obterCacaPalavrasDoDia(chave));
     expect(obterLeituraDoDia(chave)).toEqual(obterLeituraDoDia(chave));
   });
 

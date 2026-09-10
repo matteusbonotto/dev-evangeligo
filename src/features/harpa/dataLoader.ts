@@ -8,7 +8,7 @@ import type { Hino, HarpaData, HinoBruto } from "./types";
 let cache: Promise<HarpaData> | null = null;
 
 export function loadHarpaData(): Promise<HarpaData> {
-  cache ??= fetch("/data/harpa-crista.json").then((response) => {
+  cache ??= fetch(`${import.meta.env.BASE_URL}data/harpa-crista.json`).then((response) => {
     if (!response.ok) {
       throw new Error("Não foi possível carregar a Harpa Cristã.");
     }

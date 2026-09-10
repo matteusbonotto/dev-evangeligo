@@ -1,8 +1,10 @@
 import { getLivroByOrder, LIVROS_BIBLIA } from "../bible/data/livros";
 import { QUEBRA_CABECA_CHALLENGES } from "../study/quebracabeca/content";
 import { TERMO_CHALLENGES } from "../study/termo/content";
+import { WORDSEARCH_PUZZLES } from "../study/wordsearch/content";
 import type { QuebraCabecaChallenge } from "../study/quebracabeca/types";
 import type { TermoChallenge } from "../study/termo/types";
+import type { WordSearchPuzzle } from "../study/wordsearch/types";
 
 /**
  * Destaques do dia (Home): versículo/termo/quebra-cabeça/leitura escolhidos
@@ -60,6 +62,12 @@ export function obterTermoDoDia(chaveDoDia: string): TermoChallenge {
 
 export function obterQuebraCabecaDoDia(chaveDoDia: string): QuebraCabecaChallenge {
   return QUEBRA_CABECA_CHALLENGES[hashTexto(`${chaveDoDia}:quebra`) % QUEBRA_CABECA_CHALLENGES.length];
+}
+
+export function obterCacaPalavrasDoDia(chaveDoDia: string): WordSearchPuzzle {
+  return WORDSEARCH_PUZZLES[
+    hashTexto(`${chaveDoDia}:caca-palavras`) % WORDSEARCH_PUZZLES.length
+  ];
 }
 
 export interface LeituraDoDia {

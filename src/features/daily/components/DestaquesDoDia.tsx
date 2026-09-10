@@ -12,8 +12,10 @@ import { buildLeituraPath } from "../../bible/routePaths";
 import { useAuth } from "../../authentication/context/AuthContext";
 import { buildTermoPath } from "../../study/termo/routePaths";
 import { buildQuebraCabecaPath } from "../../study/quebracabeca/routePaths";
+import { buildWordSearchPath } from "../../study/wordsearch/routePaths";
 import {
   obterChaveDoDia,
+  obterCacaPalavrasDoDia,
   obterLeituraDoDia,
   obterQuebraCabecaDoDia,
   obterTermoDoDia,
@@ -42,6 +44,7 @@ export function DestaquesDoDia() {
   const versiculo = useMemo(() => obterVersiculoDoDia(chave), [chave]);
   const termo = useMemo(() => obterTermoDoDia(chave), [chave]);
   const quebra = useMemo(() => obterQuebraCabecaDoDia(chave), [chave]);
+  const cacaPalavras = useMemo(() => obterCacaPalavrasDoDia(chave), [chave]);
   const leitura = useMemo(() => obterLeituraDoDia(chave), [chave]);
   const [estado, setEstado] = useState(() => carregarEstadoDiario(chave));
   const [textoVersiculo, setTextoVersiculo] = useState<string | null>(null);
@@ -150,6 +153,19 @@ export function DestaquesDoDia() {
           </p>
           <span className="destaque-card-link">
             {estado.concluidos.quebra ? "Concluído ✓" : "Jogar"}
+          </span>
+        </Link>
+
+        <Link
+          className={`destaque-card destaque-card--acao${estado.concluidos.cacaPalavras ? " destaque-card--feito" : ""}`}
+          to={buildWordSearchPath(cacaPalavras.id)}
+        >
+          <p className="destaque-card-titulo">
+            <FiGrid aria-hidden="true" /> Caça-palavras do dia
+          </p>
+          <p className="destaque-card-referencia">{cacaPalavras.titulo}</p>
+          <span className="destaque-card-link">
+            {estado.concluidos.cacaPalavras ? "Concluído ✓" : "Jogar"}
           </span>
         </Link>
       </div>

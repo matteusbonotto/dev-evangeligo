@@ -1,4 +1,9 @@
-export type TipoDesafioDiario = "versiculo" | "termo" | "quebra" | "leitura";
+export type TipoDesafioDiario =
+  | "versiculo"
+  | "termo"
+  | "quebra"
+  | "cacaPalavras"
+  | "leitura";
 
 interface EstadoDiarioPersistido {
   chave: string;

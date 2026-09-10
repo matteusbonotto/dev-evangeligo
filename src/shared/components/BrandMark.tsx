@@ -6,7 +6,7 @@
 export function BrandMark() {
   return (
     <>
-      <img src="/logo.png" alt="" className="brand-logo" />
+      <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="brand-logo" />
       EvangeliGO
     </>
   );

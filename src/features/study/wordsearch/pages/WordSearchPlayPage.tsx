@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiCheck } from "react-icons/fi";
 import "../wordsearch.css";
@@ -6,6 +6,9 @@ import { getWordSearchPuzzleById } from "../content";
 import { iniciarWordSearch, selecionarCelula } from "../engine";
 import { WORDSEARCH_ROUTE_PATHS } from "../routePaths";
 import { AppShell } from "../../../../shared/components/AppShell";
+import { useAuth } from "../../../authentication/context/AuthContext";
+import { obterCacaPalavrasDoDia, obterChaveDoDia } from "../../../daily/desafios";
+import { creditarRecompensaDeJogo } from "../../../daily/recompensa";
 import type { WordSearchSession } from "../types";
 
 const XP_POR_PUZZLE = 50;
@@ -20,15 +23,31 @@ const OURO_POR_PUZZLE = 25;
 export function WordSearchPlayPage() {
   const { id } = useParams<{ id: string }>();
   const puzzle = id ? getWordSearchPuzzleById(id) : undefined;
+  const { user, updateUser } = useAuth();
 
   const [session, setSession] = useState<WordSearchSession | null>(null);
   const [aviso, setAviso] = useState("Toque na primeira e na última letra.");
+  const recompensaCreditadaRef = useRef(false);
 
   useEffect(() => {
     if (!puzzle) return;
     setSession(iniciarWordSearch(puzzle));
     setAviso("Toque na primeira e na última letra.");
+    recompensaCreditadaRef.current = false;
   }, [puzzle]);
+
+  useEffect(() => {
+    if (!session?.concluido || !puzzle || !user || recompensaCreditadaRef.current) return;
+    recompensaCreditadaRef.current = true;
+    const idDeHoje = obterCacaPalavrasDoDia(obterChaveDoDia()).id;
+    updateUser((atual) =>
+      creditarRecompensaDeJogo({
+        usuario: atual,
+        reward: { xp: XP_POR_PUZZLE, gold: OURO_POR_PUZZLE },
+        desafioDiario: { tipo: "cacaPalavras", idJogado: puzzle.id, idDeHoje },
+      }),
+    );
+  }, [session?.concluido, puzzle, user, updateUser]);
 
   if (!puzzle) {
     return <Navigate to={WORDSEARCH_ROUTE_PATHS.lista} replace />;
