@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-08",
+  "atualizado": "2026-09-14",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -317,6 +317,24 @@
       "prioridade": "media",
       "status": "done",
       "dependencias": ["T-034"]
+    },
+    {
+      "id": "T-036",
+      "titulo": "Traduções bíblicas ao vivo (ARIB, Bíblia Livre)",
+      "descricao": "Dropdown de tradução com as 3 traduções reais do legado (Almeida Atualizada local + ARIB/Bíblia Livre buscadas ao vivo em bible-api.com/api.getbible.net, mesma cadeia de fallback e cache do legado) — antes só a Almeida Atualizada era real, as outras 2 apareciam bloqueadas \"em breve\" (ver ADR-027/ADR-031).",
+      "agente": "content-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-011", "T-032"]
+    },
+    {
+      "id": "T-037",
+      "titulo": "Cores de fala na leitura bíblica (Jesus em vermelho, Deus em azul)",
+      "descricao": "Toggle \"Cores de fala\" na leitura bíblica pinta o versículo inteiro em vermelho (fala de Jesus) ou azul (fala de Deus Pai). Jesus: 487 faixas extraídas mecanicamente de marcação OSIS pública-domínio (KJV). Deus: 30 faixas curadas manualmente, cobrindo só os momentos mais reconhecidos (criação, Decálogo, sarça ardente, Jó, chamados proféticos, vozes do céu, Apocalipse 21) — não exaustivo, sem dataset aberto equivalente disponível. Ver ADR-032. Pendente validação doutrinária formal pelo agente teologia-reformada (mesmo padrão de ADR-007).",
+      "agente": "content-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-032"]
     }
   ]
 }

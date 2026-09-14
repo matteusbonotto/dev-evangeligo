@@ -19,8 +19,8 @@ import {
   BsClipboard,
   BsDashLg,
   BsEraserFill,
-  BsHourglassSplit,
   BsLockFill,
+  BsPaletteFill,
   BsPatchQuestionFill,
   BsPenFill,
   BsPlayFill,
@@ -33,7 +33,16 @@ import {
 } from "react-icons/bs";
 import "../bible.css";
 import { getLivroByCodigo } from "../data/livros";
-import { getCapituloVersiculos } from "../dataLoader";
+import { obterFalante } from "../data/falasEspeciais";
+import {
+  obterPreferenciaCoresFala,
+  salvarPreferenciaCoresFala,
+} from "../coresFala";
+import {
+  obterTraducaoPreferida,
+  salvarTraducaoPreferida,
+} from "../traducaoPreferida";
+import { obterCapituloTraduzido, type CodigoTraducao } from "../traducoes";
 import { buildLeituraPath } from "../routePaths";
 import {
   aplicarMarcaTexto,
@@ -56,7 +65,7 @@ import {
   registrarProgressoLeitura,
 } from "../progresso";
 import { CORES_MARCADOR, type Anotacao, type CorMarcador } from "../types";
-import { VERSAO_ATIVA, VERSOES_EM_BREVE } from "../versoes";
+import { TRADUCOES_BIBLIA } from "../versoes";
 import { AppShell } from "../../../shared/components/AppShell";
 
 type CarregamentoStatus = "carregando" | "pronto" | "erro";
@@ -227,7 +236,13 @@ function anotacaoSobrepondo(
  * migramos 1 das 3 traduções do legado. O "Quiz do capítulo" do rodapé
  * fica bloqueado ("em breve") porque não existe conteúdo de quiz
  * por capítulo bíblico ainda (os quizzes de T-008 são por aula/trilha,
- * não por capítulo da Bíblia).
+ * não por capítulo da Bíblia). "Cores de fala" (botão na toolbar, ligado
+ * por padrão) pinta o versículo inteiro em vermelho quando é fala de
+ * Jesus, ou azul quando é fala de Deus Pai — ver `data/falasEspeciais.ts`
+ * para a proveniência dos dados e o escopo (Jesus: as 4 evangelhos +
+ * Atos/Epístolas/Apocalipse, dataset completo extraído de marcação
+ * pública-domínio; Deus: um conjunto curado dos momentos mais
+ * reconhecidos, não exaustivo).
  */
 export function LeituraPage() {
   const { livroCodigo, capitulo: capituloParam } = useParams<{
@@ -243,6 +258,12 @@ export function LeituraPage() {
   const [progressoAtual, setProgressoAtual] = useState(0);
   const [fonte, setFonte] = useState<number>(() => obterFonteLeituraSalva());
   const [altoContraste, setAltoContraste] = useState(false);
+  const [coresFala, setCoresFala] = useState<boolean>(() =>
+    obterPreferenciaCoresFala(),
+  );
+  const [traducao, setTraducao] = useState<CodigoTraducao>(() =>
+    obterTraducaoPreferida(),
+  );
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [menuContexto, setMenuContexto] = useState<MenuContextoState | null>(
     null,
@@ -258,12 +279,15 @@ export function LeituraPage() {
   } | null>(null);
   const paperRef = useRef<HTMLDivElement>(null);
   const cabecalhoRef = useRef<HTMLDivElement>(null);
+  const chaveCapituloAnteriorRef = useRef<string | null>(null);
 
   const narracao = useNarracaoBiblia(livro?.nome ?? "", capitulo, versiculos);
 
   useEffect(() => {
     if (!livro || !Number.isInteger(capitulo)) return;
     let ativo = true;
+    // Troca de TRADUÇÃO (mesmo capítulo) não deve rolar a página nem
+    // reiniciar o progresso de leitura — só troca de capítulo faz isso.
     // Ao trocar de capítulo (ex.: botão "Próximo capítulo" no rodapé), o
     // React Router não rola a página pro topo sozinho — a posição de
     // rolagem do capítulo ANTERIOR (perto do fim) ficava valendo no novo
@@ -274,21 +298,28 @@ export function LeituraPage() {
     // preso pra sempre naquele capítulo. Rolar pro topo aqui, antes do
     // efeito de progresso rodar, corrige as duas coisas de uma vez: a
     // posição de leitura E o cálculo do progresso partem do zero certo.
-    try {
-      window.scrollTo(0, 0);
-    } catch {
-      // jsdom (ambiente de teste) não implementa scrollTo — inofensivo lá, só barulho no console.
+    const chaveAtual = `${livro.order}:${capitulo}`;
+    const mudouCapitulo = chaveCapituloAnteriorRef.current !== chaveAtual;
+    chaveCapituloAnteriorRef.current = chaveAtual;
+    if (mudouCapitulo) {
+      try {
+        window.scrollTo(0, 0);
+      } catch {
+        // jsdom (ambiente de teste) não implementa scrollTo — inofensivo lá, só barulho no console.
+      }
     }
     setStatus("carregando");
     setMenuContexto(null);
     setPostit(null);
     setSelecaoAtiva(null);
-    getCapituloVersiculos(livro.order, capitulo)
+    obterCapituloTraduzido(livro, capitulo, traducao)
       .then((lista) => {
         if (!ativo) return;
         setVersiculos(lista);
         setAnotacoes(obterAnotacoesDoCapitulo(livro.order, capitulo));
-        setProgressoAtual(obterProgressoCapitulo(livro.order, capitulo));
+        if (mudouCapitulo) {
+          setProgressoAtual(obterProgressoCapitulo(livro.order, capitulo));
+        }
         setStatus("pronto");
       })
       .catch(() => {
@@ -298,7 +329,7 @@ export function LeituraPage() {
       ativo = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [livro?.order, capitulo]);
+  }, [livro?.order, capitulo, traducao]);
 
   useEffect(() => {
     if (status !== "pronto" || !livro) return;
@@ -683,6 +714,21 @@ export function LeituraPage() {
     });
   }
 
+  function handleSelecionarTraducao(codigo: CodigoTraducao) {
+    setDropdownAberto(false);
+    if (codigo === traducao) return;
+    setTraducao(codigo);
+    salvarTraducaoPreferida(codigo);
+  }
+
+  function handleAlternarCoresFala() {
+    setCoresFala((atual) => {
+      const proximo = !atual;
+      salvarPreferenciaCoresFala(proximo);
+      return proximo;
+    });
+  }
+
   function renderizarVersiculo(numero: number, texto: string): ReactNode[] {
     const doVersiculo = anotacoes
       .filter((a) => a.versiculo === numero)
@@ -788,7 +834,9 @@ export function LeituraPage() {
                 onClick={() => setDropdownAberto((atual) => !atual)}
               >
                 <BsTranslate className="btrad-ico" aria-hidden="true" />
-                <span className="btrad-label">{VERSAO_ATIVA.label}</span>
+                <span className="btrad-label">
+                  {TRADUCOES_BIBLIA.find((v) => v.valor === traducao)?.label}
+                </span>
                 {dropdownAberto ? (
                   <BsChevronUp aria-hidden="true" />
                 ) : (
@@ -799,37 +847,24 @@ export function LeituraPage() {
               {dropdownAberto && (
                 <div className="btrad-panel" role="menu" aria-label="Tradução">
                   <p className="btrad-panel-titulo">Tradução</p>
-                  <button
-                    type="button"
-                    className="btrad-opcao btrad-opcao--ativa"
-                    onClick={() => setDropdownAberto(false)}
-                  >
-                    <span className="btrad-opcao-badge">
-                      {VERSAO_ATIVA.label}
-                    </span>
-                    <span className="btrad-opcao-nome">
-                      {VERSAO_ATIVA.nome}
-                    </span>
-                    <BsCheck2
-                      className="btrad-opcao-check"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <div className="btrad-separador" />
-                  {VERSOES_EM_BREVE.map((versao) => (
-                    <div
+                  {TRADUCOES_BIBLIA.map((versao) => (
+                    <button
                       key={versao.valor}
-                      className="btrad-opcao btrad-opcao--bloqueada"
-                      aria-disabled="true"
+                      type="button"
+                      className={`btrad-opcao${versao.valor === traducao ? " btrad-opcao--ativa" : ""}`}
+                      role="menuitemradio"
+                      aria-checked={versao.valor === traducao}
+                      onClick={() => handleSelecionarTraducao(versao.valor)}
                     >
-                      <span className="btrad-opcao-badge btrad-opcao-badge--lock">
-                        <BsLockFill aria-hidden="true" />
-                      </span>
-                      <span className="btrad-opcao-nome">
-                        {versao.nome} · em breve
-                      </span>
-                      <BsHourglassSplit aria-hidden="true" />
-                    </div>
+                      <span className="btrad-opcao-badge">{versao.label}</span>
+                      <span className="btrad-opcao-nome">{versao.nome}</span>
+                      {versao.valor === traducao && (
+                        <BsCheck2
+                          className="btrad-opcao-check"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </button>
                   ))}
                 </div>
               )}
@@ -935,6 +970,20 @@ export function LeituraPage() {
                     <BsCircleHalf aria-hidden="true" />
                     <span>Contraste</span>
                   </button>
+                  <button
+                    type="button"
+                    className={`bctrl-btn${coresFala ? " bctrl-btn--on" : ""}`}
+                    aria-pressed={coresFala}
+                    title={
+                      coresFala
+                        ? "Desativar cores de fala (Jesus em vermelho, Deus em azul)"
+                        : "Ativar cores de fala (Jesus em vermelho, Deus em azul)"
+                    }
+                    onClick={handleAlternarCoresFala}
+                  >
+                    <BsPaletteFill aria-hidden="true" />
+                    <span>Cores de fala</span>
+                  </button>
                 </div>
               </div>
 
@@ -955,6 +1004,10 @@ export function LeituraPage() {
             >
               {versiculos.map((texto, index) => {
                 const numero = index + 1;
+                const falante = coresFala
+                  ? obterFalante(livro.codigo, capitulo, numero)
+                  : null;
+                const classeFala = falante ? ` biblia-fala-${falante}` : "";
                 return (
                   <p
                     key={numero}
@@ -962,7 +1015,7 @@ export function LeituraPage() {
                     className="biblia-versiculo-inline"
                   >
                     <sup className="biblia-versiculo-num">{numero}</sup>
-                    <span className="biblia-versiculo-texto">
+                    <span className={`biblia-versiculo-texto${classeFala}`}>
                       {renderizarVersiculo(numero, texto)}
                     </span>
                   </p>

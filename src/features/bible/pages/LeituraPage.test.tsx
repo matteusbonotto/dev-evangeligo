@@ -25,8 +25,14 @@ function renderLeituraPage(path: string) {
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
         <Routes>
-          <Route path="/biblia/:livroCodigo/:capitulo" element={<LeituraPage />} />
-          <Route path="/biblia/:livroCodigo" element={<p>Lista de capítulos</p>} />
+          <Route
+            path="/biblia/:livroCodigo/:capitulo"
+            element={<LeituraPage />}
+          />
+          <Route
+            path="/biblia/:livroCodigo"
+            element={<p>Lista de capítulos</p>}
+          />
           <Route path="/biblia" element={<p>Lista de livros</p>} />
         </Routes>
       </AuthProvider>
@@ -41,11 +47,18 @@ function renderLeituraPage(path: string) {
  * então é mockado para devolver um Range no offset desejado
  * (as coordenadas de pixel em si não importam para o teste).
  */
-function selecionarPalavraNoVersiculo(numeroVersiculo: number, offsetNaPalavra: number) {
-  const container = document.querySelector(`[data-verso="${numeroVersiculo}"]`)!;
+function selecionarPalavraNoVersiculo(
+  numeroVersiculo: number,
+  offsetNaPalavra: number,
+) {
+  const container = document.querySelector(
+    `[data-verso="${numeroVersiculo}"]`,
+  )!;
   const textoEl = container.querySelector(".biblia-versiculo-texto")!;
   const textNode = textoEl.childNodes[0];
-  (document as unknown as { caretRangeFromPoint: () => Range }).caretRangeFromPoint = () => {
+  (
+    document as unknown as { caretRangeFromPoint: () => Range }
+  ).caretRangeFromPoint = () => {
     const range = document.createRange();
     range.setStart(textNode, offsetNaPalavra);
     range.setEnd(textNode, offsetNaPalavra);
@@ -60,7 +73,9 @@ beforeEach(() => {
   _resetCacheParaTeste();
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(bibliaFake) }),
+    vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve(bibliaFake) }),
   );
 });
 
@@ -71,7 +86,9 @@ afterEach(() => {
 describe("LeituraPage", () => {
   it("carrega e exibe os versículos do capítulo em texto corrido", async () => {
     renderLeituraPage("/biblia/jhn/1");
-    expect(await screen.findByText(/No princípio era o Verbo\./)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/No princípio era o Verbo\./),
+    ).toBeInTheDocument();
     expect(screen.getByText(/O Verbo estava com Deus\./)).toBeInTheDocument();
   });
 
@@ -81,7 +98,9 @@ describe("LeituraPage", () => {
 
     selecionarPalavraNoVersiculo(1, 0); // "No"
 
-    const menu = screen.getByRole("dialog", { name: "Marcar trecho selecionado" });
+    const menu = screen.getByRole("dialog", {
+      name: "Marcar trecho selecionado",
+    });
     expect(within(menu).getByText("« No »")).toBeInTheDocument();
     expect(within(menu).getByText("Amarelo")).toBeInTheDocument();
     expect(within(menu).getByText("Laranja")).toBeInTheDocument();
@@ -89,7 +108,9 @@ describe("LeituraPage", () => {
     expect(within(menu).getByText("Azul")).toBeInTheDocument();
     expect(within(menu).getByText("Inserir nota")).toBeInTheDocument();
     expect(within(menu).getByText("Copiar texto")).toBeInTheDocument();
-    expect(within(menu).queryByText("Remover marcação")).not.toBeInTheDocument();
+    expect(
+      within(menu).queryByText("Remover marcação"),
+    ).not.toBeInTheDocument();
   });
 
   it("tocar numa palavra mostra a barra Cancelar/Tudo/OK antes de abrir o menu", async () => {
@@ -98,7 +119,9 @@ describe("LeituraPage", () => {
     const container = document.querySelector('[data-verso="1"]')!;
     const textoEl = container.querySelector(".biblia-versiculo-texto")!;
     const textNode = textoEl.childNodes[0];
-    (document as unknown as { caretRangeFromPoint: () => Range }).caretRangeFromPoint = () => {
+    (
+      document as unknown as { caretRangeFromPoint: () => Range }
+    ).caretRangeFromPoint = () => {
       const range = document.createRange();
       range.setStart(textNode, 0);
       range.setEnd(textNode, 0);
@@ -107,7 +130,9 @@ describe("LeituraPage", () => {
 
     fireEvent.pointerDown(container, { clientX: 0, clientY: 0 });
 
-    expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Cancelar" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tudo" })).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
@@ -118,7 +143,9 @@ describe("LeituraPage", () => {
     const container = document.querySelector('[data-verso="1"]')!;
     const textoEl = container.querySelector(".biblia-versiculo-texto")!;
     const textNode = textoEl.childNodes[0];
-    (document as unknown as { caretRangeFromPoint: () => Range }).caretRangeFromPoint = () => {
+    (
+      document as unknown as { caretRangeFromPoint: () => Range }
+    ).caretRangeFromPoint = () => {
       const range = document.createRange();
       range.setStart(textNode, 0);
       range.setEnd(textNode, 0);
@@ -128,7 +155,9 @@ describe("LeituraPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
 
-    expect(screen.queryByRole("button", { name: "OK" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "OK" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -138,7 +167,9 @@ describe("LeituraPage", () => {
     const container = document.querySelector('[data-verso="1"]')!;
     const textoEl = container.querySelector(".biblia-versiculo-texto")!;
     const textNode = textoEl.childNodes[0];
-    (document as unknown as { caretRangeFromPoint: () => Range }).caretRangeFromPoint = () => {
+    (
+      document as unknown as { caretRangeFromPoint: () => Range }
+    ).caretRangeFromPoint = () => {
       const range = document.createRange();
       range.setStart(textNode, 0);
       range.setEnd(textNode, 0);
@@ -149,7 +180,9 @@ describe("LeituraPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Tudo" }));
     fireEvent.click(screen.getByRole("button", { name: "OK" }));
 
-    const menu = screen.getByRole("dialog", { name: "Marcar trecho selecionado" });
+    const menu = screen.getByRole("dialog", {
+      name: "Marcar trecho selecionado",
+    });
     expect(
       within(menu).getByText("« No princípio era o Verbo. »"),
     ).toBeInTheDocument();
@@ -183,7 +216,9 @@ describe("LeituraPage", () => {
 
     fireEvent.click(screen.getByText("No"));
 
-    const menu = screen.getByRole("dialog", { name: "Marcar trecho selecionado" });
+    const menu = screen.getByRole("dialog", {
+      name: "Marcar trecho selecionado",
+    });
     expect(within(menu).getByText("Remover marcação")).toBeInTheDocument();
   });
 
@@ -209,7 +244,9 @@ describe("LeituraPage", () => {
 
     const postit = screen.getByRole("dialog", { name: "Nota" });
     expect(within(postit).getByText("Nova nota")).toBeInTheDocument();
-    expect(within(postit).getByRole("button", { name: "Criar nota" })).toBeDisabled();
+    expect(
+      within(postit).getByRole("button", { name: "Criar nota" }),
+    ).toBeDisabled();
 
     fireEvent.change(within(postit).getByPlaceholderText("Escreva sua nota…"), {
       target: { value: "Minha nota." },
@@ -243,8 +280,12 @@ describe("LeituraPage", () => {
 
     const postit = screen.getByRole("dialog", { name: "Nota" });
     expect(within(postit).getByText("Sua nota")).toBeInTheDocument();
-    expect(within(postit).getByDisplayValue("Nota sem cor")).toBeInTheDocument();
-    expect(within(postit).getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(
+      within(postit).getByDisplayValue("Nota sem cor"),
+    ).toBeInTheDocument();
+    expect(
+      within(postit).getByRole("button", { name: "Excluir" }),
+    ).toBeInTheDocument();
   });
 
   it("excluir uma nota a remove por completo", async () => {
@@ -289,16 +330,83 @@ describe("LeituraPage", () => {
     expect(pagina).toHaveClass("biblia-page--contraste");
   });
 
-  it("o dropdown de tradução mostra a versão ativa e as opções bloqueadas", async () => {
+  it("o dropdown de tradução mostra as 3 traduções reais e marca a ativa", async () => {
     renderLeituraPage("/biblia/jhn/1");
     await screen.findByText(/No princípio era o Verbo\./);
 
-    fireEvent.click(screen.getByRole("button", { name: "Mudar tradução da Bíblia" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mudar tradução da Bíblia" }),
+    );
 
     const painel = screen.getByRole("menu", { name: "Tradução" });
     expect(within(painel).getByText("Almeida Atualizada")).toBeInTheDocument();
-    expect(within(painel).getByText(/Almeida Imprensa Bíblica.*em breve/)).toBeInTheDocument();
-    expect(within(painel).getByText(/Bíblia Livre.*em breve/)).toBeInTheDocument();
+    expect(
+      within(painel).getByText("Almeida Imprensa Bíblica"),
+    ).toBeInTheDocument();
+    expect(within(painel).getByText("Bíblia Livre")).toBeInTheDocument();
+    expect(
+      within(painel).getByRole("menuitemradio", { name: /Almeida Atualizada/ }),
+    ).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("trocar de tradução busca o capítulo na fonte ao vivo correta e atualiza o texto", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        if (url.includes("bible-api.com")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                verses: [{ verse: 1, text: "Texto ARIB do versículo 1." }],
+              }),
+          });
+        }
+        if (url.includes("api.getbible.net/v2/livre")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                verses: [
+                  { verse: 1, text: "Texto Bíblia Livre do versículo 1." },
+                ],
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(bibliaFake),
+        });
+      }),
+    );
+
+    renderLeituraPage("/biblia/jhn/1");
+    await screen.findByText(/No princípio era o Verbo\./);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mudar tradução da Bíblia" }),
+    );
+    fireEvent.click(
+      screen.getByRole("menuitemradio", { name: /Almeida Imprensa Bíblica/ }),
+    );
+
+    expect(
+      await screen.findByText("Texto ARIB do versículo 1."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mudar tradução da Bíblia" }),
+    ).toHaveTextContent("ARIB");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mudar tradução da Bíblia" }),
+    );
+    fireEvent.click(
+      screen.getByRole("menuitemradio", { name: /Bíblia Livre/ }),
+    );
+
+    expect(
+      await screen.findByText("Texto Bíblia Livre do versículo 1."),
+    ).toBeInTheDocument();
   });
 
   it("o botão Narrar fica desabilitado quando o navegador não suporta síntese de voz", async () => {
@@ -329,7 +437,9 @@ describe("LeituraPage", () => {
   it("registra progresso de leitura ao carregar o capítulo", async () => {
     renderLeituraPage("/biblia/jhn/1");
     await screen.findByText(/No princípio era o Verbo\./);
-    const barra = screen.getByRole("progressbar", { name: /Progresso de leitura/ });
+    const barra = screen.getByRole("progressbar", {
+      name: /Progresso de leitura/,
+    });
     expect(barra).toHaveAttribute("aria-valuenow", "100");
   });
 

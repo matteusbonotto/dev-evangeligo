@@ -372,6 +372,23 @@
   text-decoration: underline dotted 2px;
 }
 
+/* --- Cores de fala (red-letter Jesus / blue-letter Deus, ver
+   `data/falasEspeciais.ts` e o botão "Cores de fala" na toolbar) — cores
+   escolhidas e conferidas (fórmula WCAG, script Node) para pelo menos
+   6:1 de contraste contra o papel (`--dourado-claro`) e contra o branco
+   puro do alto contraste; `--coracao-texto` é reaproveitado do HUD em
+   vez de um vermelho novo. Como são declaradas diretamente no elemento
+   do texto do versículo, a cor herdada de `.biblia-page--contraste
+   .biblia-paper` (preto puro) é sobrescrita normalmente, sem precisar de
+   regra extra por contraste. */
+.biblia-fala-jesus {
+  color: var(--coracao-texto);
+}
+
+.biblia-fala-deus {
+  color: #1d4ed8;
+}
+
 .biblia-nota-link {
   color: #2563eb;
   text-decoration: underline;
@@ -421,7 +438,9 @@
   padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   white-space: nowrap;
 }
 
@@ -557,7 +576,9 @@
   padding: 6px 4px 8px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
 .bctx-cor-btn::after {
@@ -751,7 +772,10 @@
   border-radius: 50%;
   border: 2px solid rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   padding: 0;
 }
 
@@ -813,7 +837,9 @@
   font-weight: 600;
   padding: 5px 13px;
   cursor: pointer;
-  transition: opacity 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
 }
 
 .postit-btn:disabled {
@@ -842,7 +868,11 @@
   right: 0;
   width: 28px;
   height: 28px;
-  background: linear-gradient(-135deg, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.13) 50%);
+  background: linear-gradient(
+    -135deg,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 0.13) 50%
+  );
   border-radius: 0 0 4px 0;
   pointer-events: none;
 }
@@ -908,13 +938,13 @@
   text-align: left;
 }
 
-.btrad-opcao--ativa {
-  background: var(--color-primary-surface);
+.btrad-opcao:hover {
+  background: var(--verde-50);
 }
 
-.btrad-opcao--bloqueada {
-  cursor: default;
-  opacity: 0.55;
+.btrad-opcao--ativa,
+.btrad-opcao--ativa:hover {
+  background: var(--color-primary-surface);
 }
 
 .btrad-opcao-badge {
@@ -933,11 +963,6 @@
 .btrad-opcao--ativa .btrad-opcao-badge {
   background: var(--verde-600);
   color: var(--branco);
-}
-
-.btrad-opcao-badge--lock {
-  background: var(--color-border);
-  color: var(--color-text-muted);
 }
 
 .btrad-opcao-nome {

@@ -59,7 +59,11 @@ export default defineConfig(({ mode }) => ({
     // padrão do Vitest também casa com `*.spec.ts`, então precisa ser
     // excluído explicitamente (senão falha ao tentar rodar `test.describe`
     // do `@playwright/test` como se fosse `describe` do Vitest).
-    exclude: [...configDefaults.exclude, "e2e/**"],
+    // `.claude/worktrees/**` são cópias temporárias do repositório usadas
+    // por agentes em sessões passadas (não fazem parte do código do
+    // projeto, já ignoradas pelo git) — sem excluir aqui, `npm run test`
+    // roda a suíte inteira várias vezes (uma por worktree encontrada).
+    exclude: [...configDefaults.exclude, "e2e/**", ".claude/**"],
     // Testes precisam ser determinísticos independente de `.env.local` do
     // desenvolvedor (ex.: credenciais reais do Supabase) — sem isso, um
     // `.env.local` preenchido muda silenciosamente qual caminho de código
