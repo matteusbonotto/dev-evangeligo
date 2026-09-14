@@ -29,4 +29,8 @@
 - HUD via container query (T-030): a estimativa de largura de tela (`vw`) do HUD mobile trocada por medição real do container (`cqi`), eliminando até 233px de espaço morto entre anel e inventário em telas de 414-639px de largura; anel de armadura ganhou contorno hexagonal sempre visível ligando os 6 slots (mesmo vazios); corrigido bug em que a animação de entrada dos slots colapsava a posição deles no centro do anel por 0.3s a cada carregamento da página.
 - Traduções bíblicas ao vivo (T-036): dropdown de tradução com as 3 traduções reais do legado (Almeida Atualizada local + ARIB/Bíblia Livre buscadas ao vivo em bible-api.com/api.getbible.net), substituindo as 2 opções que ficavam bloqueadas "em breve".
 - Cores de fala na leitura bíblica (T-037): Jesus em vermelho (487 faixas, dataset público-domínio) e Deus Pai em azul (30 faixas curadas, cobertura inicial não exaustiva), com toggle na toolbar de leitura.
-- `npm run lint`/`typecheck`/`test`/`build` limpos (o `format:check` do projeto inteiro já tinha pendências pré-existentes antes desta rodada, não relacionadas a estas duas tarefas).
+- Busca por versículo (T-038): filtro livro/capítulo/versículo em `LivrosPage`, com destaque temporário do versículo encontrado.
+- Bíblia Livre como tradução padrão (T-039).
+- Significado da palavra/frase no idioma original (T-040): hebraico/grego com números de Strong e definição léxica completa, via `bolls.life`.
+- "Quem fala" (T-041/T-042): autor de cada um dos 66 livros + biografia ao vivo da Wikipédia + 7 momentos curados de falantes nomeados (Pedro, Paulo, Tomé, Maria, Estêvão) além de Jesus/Deus.
+- `npm run lint`/`typecheck`/`test`/`build` limpos (o `format:check` do projeto inteiro já tinha pendências pré-existentes antes destas rodadas, não relacionadas).

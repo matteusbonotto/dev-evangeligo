@@ -21,4 +21,5 @@ export const TRADUCOES_BIBLIA: VersaoBiblia[] = [
   { valor: "livre", label: "BL", nome: "Bíblia Livre" },
 ];
 
-export const TRADUCAO_PADRAO: CodigoTraducao = "aa";
+/** Pedido explícito do usuário (2026-09-14, ver ADR-034). */
+export const TRADUCAO_PADRAO: CodigoTraducao = "livre";

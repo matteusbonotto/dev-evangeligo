@@ -81,6 +81,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("LeituraPage", () => {
@@ -344,8 +345,9 @@ describe("LeituraPage", () => {
       within(painel).getByText("Almeida Imprensa Bíblica"),
     ).toBeInTheDocument();
     expect(within(painel).getByText("Bíblia Livre")).toBeInTheDocument();
+    // Bíblia Livre é o padrão para quem nunca escolheu (pedido do usuário, ADR-034).
     expect(
-      within(painel).getByRole("menuitemradio", { name: /Almeida Atualizada/ }),
+      within(painel).getByRole("menuitemradio", { name: /Bíblia Livre/ }),
     ).toHaveAttribute("aria-checked", "true");
   });
 
@@ -381,7 +383,8 @@ describe("LeituraPage", () => {
     );
 
     renderLeituraPage("/biblia/jhn/1");
-    await screen.findByText(/No princípio era o Verbo\./);
+    // Bíblia Livre é o padrão (ADR-034) — já carrega ao vivo dessa fonte.
+    await screen.findByText("Texto Bíblia Livre do versículo 1.");
 
     fireEvent.click(
       screen.getByRole("button", { name: "Mudar tradução da Bíblia" }),
@@ -401,12 +404,75 @@ describe("LeituraPage", () => {
       screen.getByRole("button", { name: "Mudar tradução da Bíblia" }),
     );
     fireEvent.click(
-      screen.getByRole("menuitemradio", { name: /Bíblia Livre/ }),
+      screen.getByRole("menuitemradio", { name: /Almeida Atualizada/ }),
     );
 
     expect(
-      await screen.findByText("Texto Bíblia Livre do versículo 1."),
+      await screen.findByText(/No princípio era o Verbo\./),
     ).toBeInTheDocument();
+  });
+
+  it("abrir com ?v=N destaca o versículo e o destaque some sozinho depois de um tempo", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderLeituraPage("/biblia/jhn/1?v=2");
+    await screen.findByText(/O Verbo estava com Deus\./);
+
+    const paragrafo = document.querySelector('[data-verso="2"]');
+    expect(paragrafo).toHaveClass("biblia-versiculo-destaque");
+    expect(document.querySelector('[data-verso="1"]')).not.toHaveClass(
+      "biblia-versiculo-destaque",
+    );
+
+    await vi.advanceTimersByTimeAsync(2600);
+    expect(paragrafo).not.toHaveClass("biblia-versiculo-destaque");
+  });
+
+  it("?v= fora do intervalo de versículos do capítulo não quebra a página nem destaca nada", async () => {
+    renderLeituraPage("/biblia/jhn/1?v=99");
+    await screen.findByText(/No princípio era o Verbo\./);
+    expect(
+      document.querySelector(".biblia-versiculo-destaque"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tocar no número do versículo abre o painel com o autor do livro e o significado original", async () => {
+    renderLeituraPage("/biblia/jhn/1");
+    await screen.findByText(/No princípio era o Verbo\./);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Informações do versículo 1" }),
+    );
+
+    const painel = screen.getByRole("dialog", {
+      name: "Informações do versículo 1",
+    });
+    expect(within(painel).getByText(/João \(o apóstolo/)).toBeInTheDocument();
+    expect(
+      within(painel).getByText(/Significado original/),
+    ).toBeInTheDocument();
+    expect(
+      await within(painel).findByText(
+        /Não foi possível carregar o texto original/,
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(within(painel).getByRole("button", { name: "Fechar" }));
+    expect(
+      screen.queryByRole("dialog", { name: "Informações do versículo 1" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tocar no número do versículo não inicia a seleção de marca-texto (pinos não aparecem)", async () => {
+    renderLeituraPage("/biblia/jhn/1");
+    await screen.findByText(/No princípio era o Verbo\./);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Informações do versículo 1" }),
+    );
+
+    expect(document.querySelector(".biblia-pin")).not.toBeInTheDocument();
+    // Espera o fetch assíncrono do painel assentar antes do teste terminar.
+    await screen.findByText(/Não foi possível carregar o texto original/);
   });
 
   it("o botão Narrar fica desabilitado quando o navegador não suporta síntese de voz", async () => {

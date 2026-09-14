@@ -8,7 +8,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { FiArrowLeft, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import {
   BsCheck2,
@@ -43,6 +43,7 @@ import {
   salvarTraducaoPreferida,
 } from "../traducaoPreferida";
 import { obterCapituloTraduzido, type CodigoTraducao } from "../traducoes";
+import { PainelInfoVersiculo } from "./PainelInfoVersiculo";
 import { buildLeituraPath } from "../routePaths";
 import {
   aplicarMarcaTexto,
@@ -101,6 +102,13 @@ interface SelecaoAtivaState {
   versiculo: number;
   inicio: number;
   fim: number;
+}
+
+/** Painel "quem fala"/"significado original" aberto ao tocar no número do versículo (T-041/T-040). */
+interface InfoVersiculoState {
+  versiculo: number;
+  x: number;
+  y: number;
 }
 
 /** Acha o elemento `[data-verso]` mais próximo (o nó pode ser um nó de texto, sem `.closest`). */
@@ -251,6 +259,7 @@ export function LeituraPage() {
   }>();
   const livro = livroCodigo ? getLivroByCodigo(livroCodigo) : undefined;
   const capitulo = capituloParam ? Number(capituloParam) : NaN;
+  const [searchParams] = useSearchParams();
 
   const [status, setStatus] = useState<CarregamentoStatus>("carregando");
   const [versiculos, setVersiculos] = useState<string[]>([]);
@@ -264,11 +273,17 @@ export function LeituraPage() {
   const [traducao, setTraducao] = useState<CodigoTraducao>(() =>
     obterTraducaoPreferida(),
   );
+  const [versiculoDestacado, setVersiculoDestacado] = useState<number | null>(
+    null,
+  );
   const [dropdownAberto, setDropdownAberto] = useState(false);
   const [menuContexto, setMenuContexto] = useState<MenuContextoState | null>(
     null,
   );
   const [postit, setPostit] = useState<PostItState | null>(null);
+  const [infoVersiculo, setInfoVersiculo] = useState<InfoVersiculoState | null>(
+    null,
+  );
   const [selecaoAtiva, setSelecaoAtiva] = useState<SelecaoAtivaState | null>(
     null,
   );
@@ -312,6 +327,8 @@ export function LeituraPage() {
     setMenuContexto(null);
     setPostit(null);
     setSelecaoAtiva(null);
+    setInfoVersiculo(null);
+    setVersiculoDestacado(null);
     obterCapituloTraduzido(livro, capitulo, traducao)
       .then((lista) => {
         if (!ativo) return;
@@ -352,6 +369,33 @@ export function LeituraPage() {
     return () => window.removeEventListener("scroll", handleScroll);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, livro?.order, capitulo]);
+
+  // Busca por versículo (T-038/ADR-033): `?v=N` na URL (ver
+  // `buildLeituraPath`) rola até o versículo e aplica um destaque
+  // temporário (anel pulsante, não um preenchimento sólido — não pode ser
+  // confundido com marca-texto permanente do usuário). `searchParams` só
+  // muda de referência quando a query string da URL muda de verdade
+  // (`useSearchParams` internamente faz `useMemo(..., [location.search])`),
+  // então este efeito já é "um disparo só" por navegação sem precisar de
+  // uma ref de dedupe própria.
+  useEffect(() => {
+    if (status !== "pronto") return;
+    const alvo = Number(searchParams.get("v"));
+    if (!Number.isInteger(alvo) || alvo < 1 || alvo > versiculos.length) {
+      return;
+    }
+    const elemento = paperRef.current?.querySelector<HTMLElement>(
+      `[data-verso="${alvo}"]`,
+    );
+    try {
+      elemento?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch {
+      // jsdom (ambiente de teste) não implementa scrollIntoView — inofensivo lá.
+    }
+    setVersiculoDestacado(alvo);
+    const timer = setTimeout(() => setVersiculoDestacado(null), 2600);
+    return () => clearTimeout(timer);
+  }, [status, searchParams, versiculos.length]);
 
   // Reposiciona os pinos de seleção quando a seleção muda, a fonte muda
   // de tamanho (reflow) ou a janela é redimensionada — a posição vem de
@@ -430,7 +474,11 @@ export function LeituraPage() {
   function handleTapNaLeitura(event: ReactPointerEvent<HTMLDivElement>) {
     if (arrastando) return;
     const alvo = event.target as HTMLElement;
-    if (alvo.closest(".biblia-pin, .biblia-marca-texto, .biblia-nota-link"))
+    if (
+      alvo.closest(
+        ".biblia-pin, .biblia-marca-texto, .biblia-nota-link, .biblia-versiculo-num-btn",
+      )
+    )
       return;
     const container = encontrarVersiculoContainer(alvo);
     if (!container) {
@@ -541,6 +589,21 @@ export function LeituraPage() {
 
   function fecharMenuContexto() {
     setMenuContexto(null);
+  }
+
+  function handleAbrirInfoVersiculo(
+    numero: number,
+    event: ReactMouseEvent<HTMLButtonElement>,
+  ) {
+    event.stopPropagation();
+    setMenuContexto(null);
+    setPostit(null);
+    setSelecaoAtiva(null);
+    setInfoVersiculo({
+      versiculo: numero,
+      x: event.clientX,
+      y: event.clientY,
+    });
   }
 
   function handleClickAnotacao(event: ReactMouseEvent, anotacao: Anotacao) {
@@ -989,6 +1052,8 @@ export function LeituraPage() {
 
               <p className="biblia-dica-selecao">
                 Toque em qualquer palavra · arraste os pinos · pressione OK.
+                Toque no número do versículo para ver quem fala e o significado
+                original.
               </p>
             </>
           )}
@@ -1008,13 +1073,28 @@ export function LeituraPage() {
                   ? obterFalante(livro.codigo, capitulo, numero)
                   : null;
                 const classeFala = falante ? ` biblia-fala-${falante}` : "";
+                const classeDestaque =
+                  numero === versiculoDestacado
+                    ? " biblia-versiculo-destaque"
+                    : "";
                 return (
                   <p
                     key={numero}
                     data-verso={numero}
-                    className="biblia-versiculo-inline"
+                    className={`biblia-versiculo-inline${classeDestaque}`}
                   >
-                    <sup className="biblia-versiculo-num">{numero}</sup>
+                    <sup>
+                      <button
+                        type="button"
+                        className="biblia-versiculo-num biblia-versiculo-num-btn"
+                        aria-label={`Informações do versículo ${numero}`}
+                        onClick={(event) =>
+                          handleAbrirInfoVersiculo(numero, event)
+                        }
+                      >
+                        {numero}
+                      </button>
+                    </sup>
                     <span className={`biblia-versiculo-texto${classeFala}`}>
                       {renderizarVersiculo(numero, texto)}
                     </span>
@@ -1164,6 +1244,18 @@ export function LeituraPage() {
           onSalvar={salvarPostit}
           onExcluir={postit.id ? excluirPostit : undefined}
           onFechar={fecharPostit}
+        />
+      )}
+
+      {infoVersiculo && (
+        <PainelInfoVersiculo
+          livro={livro}
+          capitulo={capitulo}
+          numero={infoVersiculo.versiculo}
+          modoSheet={typeof window !== "undefined" && window.innerWidth <= 768}
+          x={infoVersiculo.x}
+          y={infoVersiculo.y}
+          onFechar={() => setInfoVersiculo(null)}
         />
       )}
     </AppShell>

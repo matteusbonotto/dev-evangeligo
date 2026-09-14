@@ -27,6 +27,8 @@ Cada agente é **especialista da área + especialista no projeto atual** (Evange
 | `security-specialist.md` | Segurança, RLS, secrets, OWASP |
 | `accessibility-specialist.md` | Acessibilidade, VLibras, WCAG |
 | `content-specialist.md` | Conteúdo bíblico, Harpa Cristã, devocionais, curadoria |
+| `linguistica-biblica.md` | Hebraico/aramaico/grego bíblicos, léxico de Strong, significado de palavras/frases originais |
+| `historia-cultura-biblica.md` | Autoria, datação, contexto histórico-cultural e biografia dos personagens bíblicos |
 
 ## Hierarquia de decisões
 

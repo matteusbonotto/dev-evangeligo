@@ -6,6 +6,78 @@
   margin-top: var(--space-8);
 }
 
+/* --- Busca por referência (livro/capítulo/versículo), T-038/ADR-033 --- */
+
+.biblia-busca-versiculo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+  padding: var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.biblia-busca-icone {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.biblia-busca-select {
+  flex: 1 1 110px;
+  min-width: 90px;
+  padding: var(--space-8) var(--space-10);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-13);
+  font-weight: 600;
+}
+
+.biblia-busca-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.biblia-busca-input {
+  flex: 1 1 80px;
+}
+
+.biblia-busca-aviso {
+  flex-basis: 100%;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+}
+
+.biblia-busca-ir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-shrink: 0;
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  background: var(--verde-600);
+  color: var(--branco);
+  font-weight: 700;
+  font-size: var(--font-size-13);
+  white-space: nowrap;
+}
+
+.biblia-busca-ir:hover {
+  background: var(--verde-700);
+  text-decoration: none;
+}
+
+.biblia-busca-ir--desabilitado {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .biblia-filtros {
   display: flex;
   flex-wrap: nowrap;
@@ -326,11 +398,63 @@
   margin-bottom: 0;
 }
 
+/* Destaque temporário de uma busca por versículo bem-sucedida (T-038/
+   ADR-033) — anel pulsante que desaparece sozinho, nunca um preenchimento
+   sólido, para não ser confundido com as cores de marca-texto permanentes
+   do usuário (`CORES_MARCADOR`). */
+.biblia-versiculo-destaque {
+  animation: biblia-pulso-destaque 2.4s ease-out;
+}
+
+@keyframes biblia-pulso-destaque {
+  0% {
+    box-shadow: 0 0 0 0 var(--color-primary);
+    background: var(--color-primary-surface);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+    background: var(--color-primary-surface);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .biblia-versiculo-destaque {
+    animation: none;
+    background: var(--color-primary-surface);
+  }
+}
+
 .biblia-versiculo-num {
   color: var(--color-primary);
   font-weight: 800;
   font-size: 0.7em;
   margin-right: 2px;
+}
+
+/* Número do versículo agora é um botão de verdade (T-041/T-040) — toque
+   nele abre "quem fala"/"significado original", separado do toque nas
+   PALAVRAS do texto (que continua abrindo marca-texto/nota). Sublinhado
+   pontilhado reaproveita a linguagem visual já usada em
+   `.biblia-nota-link` para "isto é tocável", sem precisar de um ícone
+   fixo em cada versículo. `padding`/`margin` negativos abrem uma área de
+   toque real de ~44×44px sem mudar o layout visual do número pequeno. */
+.biblia-versiculo-num-btn {
+  all: unset;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+  border-bottom: 1px dotted currentColor;
+  padding: 12px;
+  margin: -12px;
+}
+
+.biblia-page--contraste .biblia-versiculo-num-btn {
+  border-bottom-color: #000000;
 }
 
 .biblia-dica-selecao {
@@ -690,6 +814,158 @@
   font-weight: 700;
   color: var(--color-text-muted);
   cursor: pointer;
+}
+
+/* --- Painel "quem fala" / "significado original" (T-041/T-042/T-040,
+   ADR-035/ADR-036) — reaproveita `.bctx-overlay`/`.bctx-popup`/
+   `.bctx-sheet`/`.bctx-handle`/`.bctx-section-label`/`.bctx-btn-fechar`
+   já existentes; `.linfo-*` é só o conteúdo específico deste painel. --- */
+
+.linfo-container {
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.linfo-titulo {
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.linfo-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.linfo-bloco--falante {
+  margin-top: var(--space-10);
+  padding-top: var(--space-10);
+  border-top: 1px dashed var(--color-border);
+}
+
+.linfo-linha {
+  font-size: var(--font-size-13);
+  color: var(--color-text);
+}
+
+.linfo-meta {
+  font-size: var(--font-size-12);
+  color: var(--color-text-muted);
+}
+
+.linfo-contexto {
+  font-size: var(--font-size-13);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.linfo-referencias {
+  font-size: var(--font-size-12);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.linfo-biografia {
+  margin-top: var(--space-4);
+}
+
+.linfo-ver-biografia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--verde-700);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.linfo-biografia-corpo {
+  margin-top: var(--space-8);
+  padding: var(--space-10);
+  border-radius: var(--radius-md);
+  background: var(--verde-50);
+  font-size: var(--font-size-13);
+  line-height: 1.5;
+}
+
+.linfo-fonte {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+}
+
+.linfo-carregando,
+.linfo-indisponivel {
+  font-size: var(--font-size-12);
+  color: var(--color-text-muted);
+}
+
+.linfo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.linfo-chip-wrap {
+  flex-basis: 100%;
+}
+
+.linfo-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-6) var(--space-10);
+  cursor: pointer;
+}
+
+.linfo-chip:hover {
+  border-color: var(--verde-500);
+}
+
+.linfo-chip-palavra {
+  font-family: Georgia, "Times New Roman", Cambria, serif;
+  font-size: var(--font-size-15);
+  color: var(--color-text);
+}
+
+.linfo-chip-translit {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.linfo-definicao {
+  margin: var(--space-4) 0 var(--space-8);
+  padding: var(--space-10);
+  border-radius: var(--radius-md);
+  background: var(--dourado-claro);
+  font-size: var(--font-size-12);
+  line-height: 1.5;
+}
+
+.linfo-definicao-cabecalho {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.linfo-definicao-resumo {
+  color: var(--verde-700);
+  font-weight: 600;
 }
 
 /* --- Post-it de nota (migrado de `.postit*` do legado) --- */

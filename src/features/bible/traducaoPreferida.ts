@@ -3,7 +3,8 @@ import type { CodigoTraducao } from "./traducoes";
 /** Tradução ativa persistida, global entre capítulos — mesmo padrão de `fonteLeitura.ts`. */
 
 const CHAVE = "evangeligo:biblia:traducaoAtiva";
-const PADRAO: CodigoTraducao = "aa";
+/** Padrão para quem nunca escolheu — pedido explícito do usuário (2026-09-14, ver ADR-034). */
+const PADRAO: CodigoTraducao = "livre";
 const VALIDAS: CodigoTraducao[] = ["aa", "arib", "livre"];
 
 export function obterTraducaoPreferida(): CodigoTraducao {

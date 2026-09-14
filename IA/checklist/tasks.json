@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14",
+  "atualizado": "2026-09-14 (T-038 a T-042)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -335,6 +335,51 @@
       "prioridade": "media",
       "status": "done",
       "dependencias": ["T-032"]
+    },
+    {
+      "id": "T-038",
+      "titulo": "Busca por versículo (livro/capítulo/versículo → destaque temporário)",
+      "descricao": "Filtro extra em LivrosPage (3 selects em cascata + botão Ir) para pular direto a um versículo específico. Navega via `?v=N` na URL; LeituraPage rola até o versículo e aplica um destaque temporário (anel pulsante, ~2.4s) distinto das cores de marca-texto permanentes. Ver ADR-033.",
+      "agente": "frontend-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-032"]
+    },
+    {
+      "id": "T-039",
+      "titulo": "Bíblia Livre como tradução padrão",
+      "descricao": "Troca do padrão de `aa` (Almeida Atualizada) para `livre` (Bíblia Livre), pedido explícito do usuário. Ver ADR-034.",
+      "agente": "frontend-specialist",
+      "prioridade": "baixa",
+      "status": "done",
+      "dependencias": ["T-036"]
+    },
+    {
+      "id": "T-040",
+      "titulo": "Significado da palavra/frase no idioma original (hebraico/grego, Strong's)",
+      "descricao": "Busca ao vivo em bolls.life (gratuita, sem chave) do texto original com números de Strong e definição léxica completa (BDB/Thayer's), exibido como chips tocáveis dentro do painel \"quem fala\". Granularidade por versículo inteiro, não por trecho exato do português. Ver ADR-035.",
+      "agente": "linguistica-biblica",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-032"]
+    },
+    {
+      "id": "T-041",
+      "titulo": "\"Quem fala\": autor do livro (Tier A) + biografia via Wikipédia",
+      "descricao": "Painel aberto ao tocar no número do versículo, mostrando autor/período/idioma original/gênero/contexto dos 66 livros (`data/autoresLivros.ts`) e biografia ao vivo da Wikipédia em português para ~32 autores/personagens recorrentes (`data/biografias.ts` + `biografiaExterna.ts`). Ver ADR-036.",
+      "agente": "historia-cultura-biblica",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-032"]
+    },
+    {
+      "id": "T-042",
+      "titulo": "\"Quem fala\": falantes nomeados curados (Tier B)",
+      "descricao": "7 momentos icônicos onde uma pessoa nomeada além de Jesus/Deus fala (`data/falasNomeadas.ts`): confissão e negação de Pedro, confissão de Tomé, Magnificat de Maria, visão de Estêvão, testemunhos de conversão de Paulo em Atos 22/26. Curadoria explicitamente não-exaustiva. Ver ADR-036.",
+      "agente": "historia-cultura-biblica",
+      "prioridade": "baixa",
+      "status": "done",
+      "dependencias": ["T-041", "T-037"]
     }
   ]
 }
