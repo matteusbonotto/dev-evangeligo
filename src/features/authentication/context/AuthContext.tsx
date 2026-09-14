@@ -16,10 +16,51 @@ import {
 } from "../domain/authErrorMessages";
 import { demoUser, type DemoUser } from "../demo/demoUser";
 import { AUTH_ROUTE_PATHS } from "../routePaths";
+import { ROUTE_PATHS } from "../../../app/routePaths";
+import { PRIVACY_VERSION, TERMS_VERSION } from "../domain/legalVersions";
 import {
   carregarEstadoRpg,
   salvarEstadoRpg,
 } from "../../rpg/persistencia";
+
+/**
+ * Grava o consentimento de Termos/Privacidade em `consentimentos`
+ * (T-043/ADR-037 fecha um gap real: nenhum caminho de cadastro gravava
+ * essa tabela antes, apesar de existir desde ADR-014/T-016). Idempotente
+ * por (usuário, versão dos termos, versão da privacidade) — chamado tanto
+ * no cadastro quanto no primeiro login real (contas com confirmação de
+ * e-mail pendente não têm sessão ainda no momento do `signUp`, então RLS
+ * bloqueia o insert ali; é registrado quando a sessão finalmente existe).
+ * Nunca lança para quem chama — falha aqui não pode impedir o login.
+ */
+async function registrarConsentimento(
+  userId: string,
+  termosVersao: string,
+  privacidadeVersao: string,
+  origem: string,
+): Promise<void> {
+  if (!supabaseClient) return;
+  try {
+    const { data: existente } = await supabaseClient
+      .from("consentimentos")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("terms_version", termosVersao)
+      .eq("privacy_version", privacidadeVersao)
+      .limit(1)
+      .maybeSingle();
+    if (existente) return;
+    await supabaseClient.from("consentimentos").insert({
+      user_id: userId,
+      terms_version: termosVersao,
+      privacy_version: privacidadeVersao,
+      accepted_sensitive_data: true,
+      consent_source: origem,
+    });
+  } catch {
+    // Nunca bloquear login/cadastro por causa do registro de consentimento.
+  }
+}
 
 export interface AuthActionResult {
   ok: boolean;
@@ -47,6 +88,20 @@ export interface SignInInput {
   password: string;
 }
 
+/**
+ * Dados que faltam coletar de uma conta criada via Google OAuth (nome,
+ * e-mail e senha já vêm do Google — não existe senha nessas contas) para
+ * terminar o onboarding (T-043/ADR-037): retomado em `OnboardingPage`
+ * depois do redirect de `/auth/retorno`.
+ */
+export interface CompletarCadastroGoogleInput {
+  termosVersao: string;
+  privacidadeVersao: string;
+  nascimento?: string;
+  estadoCivil?: string;
+  objetivo?: string;
+}
+
 export type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
 interface AuthContextValue {
@@ -70,6 +125,10 @@ interface AuthContextValue {
   signUpWithPassword: (input: SignUpInput) => Promise<AuthActionResult>;
   signInWithPassword: (input: SignInInput) => Promise<AuthActionResult>;
   signInWithGoogle: () => Promise<AuthActionResult>;
+  /** Termina o cadastro de uma conta criada via Google (T-043/ADR-037) — grava perfil + consentimento, marca `onboarding_completo`. */
+  completarCadastroGoogle: (
+    input: CompletarCadastroGoogleInput,
+  ) => Promise<AuthActionResult>;
   sendPasswordResetEmail: (email: string) => Promise<AuthActionResult>;
   updatePassword: (password: string) => Promise<AuthActionResult>;
 
@@ -149,7 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: false, message: authUnavailableMessage() };
       }
       const acceptedAt = new Date().toISOString();
-      const { error } = await supabaseClient.auth.signUp({
+      const { data, error } = await supabaseClient.auth.signUp({
         email: input.email,
         password: input.password,
         options: {
@@ -169,6 +228,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         return { ok: false, message: translateAuthError(error) };
       }
+      // Se o Supabase exige confirmação de e-mail, `data.session` vem nulo
+      // aqui — sem sessão, RLS bloqueia o insert em `consentimentos`
+      // (`consentimentos_insert_own` exige `auth.uid() = user_id`). Nesse
+      // caso o consentimento é registrado depois, no primeiro login real
+      // (ver `signInWithPassword`), não aqui.
+      if (data.session) {
+        await registrarConsentimento(
+          data.session.user.id,
+          input.termosVersao,
+          input.privacidadeVersao,
+          "onboarding_email",
+        );
+        await supabaseClient
+          .from("profiles")
+          .update({ onboarding_completo: true })
+          .eq("id", data.session.user.id);
+      }
       return { ok: true };
     },
     [],
@@ -179,13 +255,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!supabaseClient) {
         return { ok: false, message: authUnavailableMessage() };
       }
-      const { error } = await supabaseClient.auth.signInWithPassword({
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password,
       });
       if (error) {
         return { ok: false, message: translateAuthError(error) };
       }
+      // Cobre o caso de `signUpWithPassword` não ter conseguido gravar o
+      // consentimento (confirmação de e-mail pendente na hora do cadastro —
+      // sem sessão ainda, RLS bloqueava o insert). Idempotente, então
+      // rodar em todo login não gera duplicata nem custo real depois da
+      // primeira vez (regra 30 — corrigindo o gap encontrado, não só no
+      // caminho novo do Google).
+      const metadata = data.user.user_metadata as {
+        termos_versao?: string;
+        privacidade_versao?: string;
+      };
+      void registrarConsentimento(
+        data.user.id,
+        metadata.termos_versao || TERMS_VERSION,
+        metadata.privacidade_versao || PRIVACY_VERSION,
+        "onboarding_email",
+      );
       return { ok: true };
     },
     [],
@@ -198,16 +290,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: window.location.origin + ROUTE_PATHS.authCallback,
       },
     });
     if (error) {
       return { ok: false, message: translateAuthError(error) };
     }
-    // Em caso de sucesso o navegador é redirecionado para o Google — não há
-    // estado local adicional para atualizar aqui.
+    // Em caso de sucesso o navegador é redirecionado para o Google, e depois
+    // para `ROUTE_PATHS.authCallback` (`AuthCallbackPage`) — não há estado
+    // local adicional para atualizar aqui.
     return { ok: true };
   }, []);
+
+  const completarCadastroGoogle = useCallback(
+    async (
+      input: CompletarCadastroGoogleInput,
+    ): Promise<AuthActionResult> => {
+      if (!supabaseClient) {
+        return { ok: false, message: authUnavailableMessage() };
+      }
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const usuario = sessionData.session?.user;
+      if (!usuario) {
+        return {
+          ok: false,
+          message: "Sessão não encontrada. Tente entrar com o Google novamente.",
+        };
+      }
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update({
+          nascimento: input.nascimento || null,
+          estado_civil: input.estadoCivil || null,
+          objetivo: input.objetivo || null,
+          onboarding_completo: true,
+        })
+        .eq("id", usuario.id);
+      if (error) {
+        return { ok: false, message: translateAuthError(error) };
+      }
+      await registrarConsentimento(
+        usuario.id,
+        input.termosVersao,
+        input.privacidadeVersao,
+        "onboarding_google",
+      );
+      return { ok: true };
+    },
+    [],
+  );
 
   const sendPasswordResetEmail = useCallback(
     async (email: string): Promise<AuthActionResult> => {
@@ -260,6 +391,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpWithPassword,
       signInWithPassword,
       signInWithGoogle,
+      completarCadastroGoogle,
       sendPasswordResetEmail,
       updatePassword,
       signOut,
@@ -273,6 +405,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpWithPassword,
       signInWithPassword,
       signInWithGoogle,
+      completarCadastroGoogle,
       sendPasswordResetEmail,
       updatePassword,
       signOut,

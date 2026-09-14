@@ -5,6 +5,7 @@ export const ROUTE_PATHS = {
   signUp: "/cadastro",
   forgotPassword: "/recuperar-senha",
   resetPassword: "/redefinir-senha",
+  authCallback: "/auth/retorno",
   privacy: "/privacidade",
   terms: "/termos",
   dashboard: "/jornada",

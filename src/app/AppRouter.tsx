@@ -32,6 +32,11 @@ const ResetPasswordPage = lazy(() =>
     (module) => ({ default: module.ResetPasswordPage }),
   ),
 );
+const AuthCallbackPage = lazy(() =>
+  import("../features/authentication/pages/AuthCallbackPage").then(
+    (module) => ({ default: module.AuthCallbackPage }),
+  ),
+);
 const DashboardPage = lazy(() =>
   import("../features/dashboard/pages/DashboardPage").then((module) => ({
     default: module.DashboardPage,
@@ -148,6 +153,10 @@ export function AppRouter() {
         <Route
           path={ROUTE_PATHS.resetPassword}
           element={<ResetPasswordPage />}
+        />
+        <Route
+          path={ROUTE_PATHS.authCallback}
+          element={<AuthCallbackPage />}
         />
         <Route path={ROUTE_PATHS.dashboard} element={<DashboardPage />} />
         <Route path={ROUTE_PATHS.trilhas} element={<TrilhasPage />} />

@@ -33,4 +33,9 @@
 - Bíblia Livre como tradução padrão (T-039).
 - Significado da palavra/frase no idioma original (T-040): hebraico/grego com números de Strong e definição léxica completa, via `bolls.life`.
 - "Quem fala" (T-041/T-042): autor de cada um dos 66 livros + biografia ao vivo da Wikipédia + 7 momentos curados de falantes nomeados (Pedro, Paulo, Tomé, Maria, Estêvão) além de Jesus/Deus.
+- Banco de dados real e Google OAuth completo (T-043): 5 migrations aplicadas ao projeto Supabase de produção pela primeira vez (`profiles`, roles, `consentimentos`); gravação de consentimento agora ligada de fato a todo fluxo de cadastro; login com Google concluído de ponta a ponta (rota de callback `/auth/retorno`, retomada do onboarding pulando nome/e-mail/senha); edge function `keepalive` deployada e agendada via `pg_cron` a cada 3 dias; limite nativo de tentativas de login por IP reduzido de 30 para 15 (limite por conta via Auth Hook fica pendente de upgrade de plano, função já pronta).
 - `npm run lint`/`typecheck`/`test`/`build` limpos (o `format:check` do projeto inteiro já tinha pendências pré-existentes antes destas rodadas, não relacionadas).
+
+### Pendente
+- Fase 2: Comunidade (feed de devocionais), Ranking, Chat, Missões colaborativas/individuais — recurso do legado ainda não portado, plano próprio necessário.
+- Rate limiting de login por conta bloqueado por plano pago do Supabase (Auth Hook `password_verification_attempt`).

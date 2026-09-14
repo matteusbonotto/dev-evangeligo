@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FiArrowLeft } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "../onboarding.css";
 import { ROUTE_PATHS } from "../../../app/routePaths";
 import { useAuth } from "../context/AuthContext";
@@ -34,6 +34,16 @@ const VALORES_INICIAIS: OnboardingFormValues = {
 type Erros = Partial<Record<keyof OnboardingFormValues, string>>;
 
 /**
+ * Sequência de passos para quem já chegou aqui com sessão do Google
+ * (T-043/ADR-037, `?google=1`, vindo de `AuthCallbackPage`) — pula nome/
+ * sobrenome (1), e-mail (3) e senha (4), que já vieram do Google/não
+ * existem nessa conta. Termos (0), nascimento (2), estado civil (5) e
+ * objetivo (6) continuam sendo pedidos normalmente: o Google não coleta
+ * aceite dos NOSSOS termos, nem esses dados específicos do app.
+ */
+const PASSOS_GOOGLE = [0, 2, 5, 6] as const;
+
+/**
  * Onboarding estilo Duolingo (T-006, 7 passos): boas-vindas/termos, nome,
  * nascimento, e-mail, senha, estado civil, objetivo — substitui a antiga
  * `SignUpPage` (uma tela só) como fluxo principal de `/cadastro`. Migrado
@@ -45,8 +55,16 @@ type Erros = Partial<Record<keyof OnboardingFormValues, string>>;
  * de avatar (que já existe como feature própria, `/avatar`, T-033).
  */
 export function OnboardingPage() {
-  const { signUpWithPassword, signInWithGoogle, isAuthenticated } = useAuth();
+  const {
+    signUpWithPassword,
+    signInWithGoogle,
+    completarCadastroGoogle,
+    isAuthenticated,
+    supabaseUser,
+  } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const modoGoogle = searchParams.get("google") === "1";
 
   const [passo, setPasso] = useState(0);
   const [valores, setValores] = useState<OnboardingFormValues>(VALORES_INICIAIS);
@@ -57,15 +75,61 @@ export function OnboardingPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const tituloRef = useRef<HTMLHeadingElement>(null);
 
+  // Fora do modo Google, chegar aqui autenticado (ex.: sessão de outra aba)
+  // manda pro dashboard — no modo Google a pessoa JÁ chega autenticada de
+  // propósito (veio do redirect do OAuth) e precisamos que ela fique aqui
+  // até terminar os passos que faltam (ver `finalizarCadastro`, que navega
+  // pro dashboard manualmente ao concluir).
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !modoGoogle) {
       navigate(ROUTE_PATHS.dashboard, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, modoGoogle]);
+
+  // Pré-preenche nome/sobrenome/e-mail com o que o Google já forneceu —
+  // os passos 1/3/4 continuam existindo no estado (`OnboardingFormValues`)
+  // mesmo pulados, porque `finalizarCadastro` não os usa no modo Google.
+  useEffect(() => {
+    if (!modoGoogle || !supabaseUser) return;
+    const metadata = supabaseUser.user_metadata as {
+      full_name?: string;
+      name?: string;
+    };
+    const nomeCompleto = metadata.full_name || metadata.name || "";
+    const [primeiroNome, ...resto] = nomeCompleto.trim().split(/\s+/);
+    setValores((atual) => ({
+      ...atual,
+      nome: atual.nome || primeiroNome || "",
+      sobrenome: atual.sobrenome || resto.join(" "),
+      email: atual.email || supabaseUser.email || "",
+    }));
+  }, [modoGoogle, supabaseUser]);
 
   useEffect(() => {
     tituloRef.current?.focus();
   }, [passo]);
+
+  function proximoPasso(atual: number): number {
+    if (!modoGoogle) return atual + 1;
+    const indice = PASSOS_GOOGLE.indexOf(atual as (typeof PASSOS_GOOGLE)[number]);
+    return PASSOS_GOOGLE[indice + 1] ?? atual;
+  }
+
+  function passoAnterior(atual: number): number {
+    if (!modoGoogle) return Math.max(0, atual - 1);
+    const indice = PASSOS_GOOGLE.indexOf(atual as (typeof PASSOS_GOOGLE)[number]);
+    return PASSOS_GOOGLE[Math.max(0, indice - 1)];
+  }
+
+  const totalPassosEfetivo = modoGoogle
+    ? PASSOS_GOOGLE.length
+    : ONBOARDING_TOTAL_PASSOS;
+  const passoAtualEfetivo = modoGoogle
+    ? PASSOS_GOOGLE.indexOf(passo as (typeof PASSOS_GOOGLE)[number]) + 1
+    : passo + 1;
+  const ehUltimoPasso = modoGoogle
+    ? passo === PASSOS_GOOGLE[PASSOS_GOOGLE.length - 1]
+    : passo === ONBOARDING_TOTAL_PASSOS - 1;
 
   const strength = useMemo<PasswordStrengthResult>(
     () => evaluatePasswordStrength(valores.password),
@@ -106,6 +170,28 @@ export function OnboardingPage() {
   async function finalizarCadastro() {
     setFormError(null);
     setIsSubmitting(true);
+
+    if (modoGoogle) {
+      const resultado = await completarCadastroGoogle({
+        termosVersao: TERMS_VERSION,
+        privacidadeVersao: PRIVACY_VERSION,
+        nascimento: valores.nascimento || undefined,
+        estadoCivil: valores.estadoCivil || undefined,
+        objetivo: valores.objetivo || undefined,
+      });
+      setIsSubmitting(false);
+      if (!resultado.ok) {
+        setFormError(
+          resultado.message ?? "Não foi possível concluir seu cadastro.",
+        );
+        return;
+      }
+      // Já existe sessão (veio do redirect do Google) — sem confirmação de
+      // e-mail pendente para esperar, diferente do cadastro por senha abaixo.
+      navigate(ROUTE_PATHS.dashboard, { replace: true });
+      return;
+    }
+
     const resultado = await signUpWithPassword({
       nome: valores.nome,
       sobrenome: valores.sobrenome,
@@ -133,8 +219,8 @@ export function OnboardingPage() {
 
   async function handleAvancar() {
     if (!validarPassoAtual()) return;
-    if (passo < ONBOARDING_TOTAL_PASSOS - 1) {
-      setPasso((atual) => atual + 1);
+    if (!ehUltimoPasso) {
+      setPasso(proximoPasso(passo));
       return;
     }
     await finalizarCadastro();
@@ -143,7 +229,7 @@ export function OnboardingPage() {
   function handleVoltar() {
     setErros({});
     setFormError(null);
-    setPasso((atual) => Math.max(0, atual - 1));
+    setPasso(passoAnterior(passo));
   }
 
   async function handleGoogle() {
@@ -156,7 +242,9 @@ export function OnboardingPage() {
     }
   }
 
-  const percentual = Math.round(((passo + 1) / ONBOARDING_TOTAL_PASSOS) * 100);
+  const percentual = Math.round(
+    (passoAtualEfetivo / totalPassosEfetivo) * 100,
+  );
 
   if (successMessage) {
     return (
@@ -206,7 +294,7 @@ export function OnboardingPage() {
             />
           </div>
           <span className="onboarding-contador">
-            {passo + 1} / {ONBOARDING_TOTAL_PASSOS}
+            {passoAtualEfetivo} / {totalPassosEfetivo}
           </span>
         </div>
 
@@ -409,7 +497,7 @@ export function OnboardingPage() {
                     aria-pressed={valores.estadoCivil === valor}
                     onClick={() => {
                       atualizar("estadoCivil", valor);
-                      setPasso((atual) => atual + 1);
+                      setPasso((atual) => proximoPasso(atual));
                     }}
                   >
                     {label}
@@ -455,16 +543,18 @@ export function OnboardingPage() {
               type="submit"
               disabled={isSubmitting}
             >
-              {passo < ONBOARDING_TOTAL_PASSOS - 1
+              {!ehUltimoPasso
                 ? "Continuar"
                 : isSubmitting
-                  ? "Criando conta..."
+                  ? modoGoogle
+                    ? "Concluindo..."
+                    : "Criando conta..."
                   : "Concluir cadastro"}
             </button>
           </div>
         </form>
 
-        {passo === 0 && (
+        {passo === 0 && !modoGoogle && (
           <>
             <div className="auth-divider" role="separator">
               <span>ou</span>

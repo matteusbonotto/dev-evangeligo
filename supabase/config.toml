@@ -1,0 +1,59 @@
+# For detailed configuration reference documentation, visit:
+# https://supabase.com/docs/guides/local-development/cli/config
+#
+# IMPORTANTE (T-043/ADR-037): este arquivo é deliberadamente MÍNIMO — só
+# declara as propriedades que este projeto realmente quer gerenciar via
+# `supabase config push` (login com Google + rate limiting). O scaffold
+# padrão de `supabase init` declara DEZENAS de valores (portas de dev
+# local, tamanho do pool do pgbouncer, MFA, SMS, storage analytics etc.)
+# que já vinham diferentes no projeto hospedado — `supabase config push`
+# sincroniza qualquer propriedade DECLARADA aqui para o valor daqui,
+# então deixar aquele scaffold completo teria sobrescrito configurações
+# do projeto real com valores de template de desenvolvimento local (achado
+# real: `supabase config diff` mostrou isso ANTES de qualquer push
+# acontecer — nada chegou a ser aplicado, mas o risco era real). Qualquer
+# propriedade NÃO declarada aqui fica intocada no projeto remoto.
+project_id = "dev-evangeligo"
+
+[auth]
+enabled = true
+# Rota de callback do login com Google (T-043/ADR-037) em dev (Vite,
+# porta 5173) e produção (GitHub Pages) — lista adicionada à já existente
+# no projeto, não substitui (ver nota acima sobre só declarar o que se
+# quer gerenciar).
+additional_redirect_urls = [
+  "http://localhost:5173/auth/retorno",
+  "https://matteusbonotto.github.io/dev-evangeligo/auth/retorno",
+]
+
+[auth.rate_limit]
+# Número de tentativas de login/cadastro em uma janela de 5 minutos, por
+# IP — camada extra de defesa, reduzido do padrão da Supabase (30) além
+# do limite por conta em [auth.hook.password_verification_attempt]
+# (T-043/ADR-037, pedido explícito do usuário: "limite de tentativas a
+# cada hora").
+sign_in_sign_ups = 15
+
+# Rate limiting de login por senha (T-043/ADR-037) — bloqueia depois de 5
+# tentativas erradas em 1h por usuário. Ver
+# supabase/migrations/20260914150000_rate_limit_login.sql.
+#
+# BLOQUEADO nesta rodada: `supabase config push` retornou HTTP 402 —
+# "The following auth hooks cannot be configured for this organization:
+# HOOK_PASSWORD_VERIFICATION_ATTEMPT" — é um recurso pago (plano Pro ou
+# superior), não disponível no plano atual desta organização. A função
+# SQL já existe no banco (pronta para quando o plano permitir); esta
+# seção fica comentada até lá para não travar o push das outras mudanças.
+# [auth.hook.password_verification_attempt]
+# enabled = true
+# uri = "pg-functions://postgres/public/hook_password_verification_attempt"
+
+# Login com Google (T-043/ADR-037) — client_id não é segredo (fica visível
+# no navegador de qualquer forma durante o fluxo OAuth), mas o client
+# secret NUNCA vai literal aqui — só via variável de ambiente, já
+# configurada com `supabase secrets set GOOGLE_OAUTH_CLIENT_SECRET=...`
+# a partir do valor real (não versionado).
+[auth.external.google]
+enabled = true
+client_id = "357855289359-kbt9ttragm887ldors9t8vanpt83iq9p.apps.googleusercontent.com"
+secret = "env(GOOGLE_OAUTH_CLIENT_SECRET)"

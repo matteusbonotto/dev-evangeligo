@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-042)",
+  "atualizado": "2026-09-14 (T-038 a T-043)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -380,6 +380,15 @@
       "prioridade": "baixa",
       "status": "done",
       "dependencias": ["T-041", "T-037"]
+    },
+    {
+      "id": "T-043",
+      "titulo": "Banco de dados real, login com Google completo e rate limiting",
+      "descricao": "Migrations existentes aplicadas ao projeto Supabase correto (\"evangeligogame\"); consentimentos gravado de verdade (gap corrigido); login com Google sem senha, com AuthCallbackPage decidindo entre dashboard e retomada do onboarding (?google=1, pula nome/e-mail/senha, ainda pede nascimento/estado civil/objetivo/termos); Google OAuth habilitado no Supabase (config.toml + secrets); keepalive deployado e agendado via pg_cron; rate limiting de login (Auth Hook escrito, bloqueado por plano — mitigado com auth.rate_limit.sign_in_sign_ups reduzido). Ver ADR-037.",
+      "agente": "backend-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-005", "T-006", "T-016"]
     }
   ]
 }

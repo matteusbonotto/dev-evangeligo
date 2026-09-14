@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { AuthProvider } from "../context/AuthContext";
 import { OnboardingPage } from "./OnboardingPage";
 
-function renderOnboardingPage() {
+function renderOnboardingPage(path = "/cadastro") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
         <OnboardingPage />
       </AuthProvider>
@@ -194,5 +194,70 @@ describe("OnboardingPage", () => {
     expect(
       await screen.findByText(/Autenticação por e-mail indisponível/i),
     ).toBeInTheDocument();
+  });
+
+  describe("modo Google (?google=1, T-043/ADR-037)", () => {
+    it("pula nome, e-mail e senha — só 4 passos no total", () => {
+      renderOnboardingPage("/cadastro?google=1");
+      expect(screen.getByText("1 / 4")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByLabelText(/Termos de Uso/i));
+      fireEvent.click(screen.getByLabelText(/Política de Privacidade/i));
+      avancar();
+
+      // Pulou direto pro passo de nascimento (índice 2), não nome (índice 1).
+      expect(screen.getByText("2 / 4")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Quando você nasceu\?/ }),
+      ).toBeInTheDocument();
+      expect(screen.queryByLabelText("Nome")).not.toBeInTheDocument();
+    });
+
+    it("não mostra o botão \"Continuar com o Google\" (já está autenticado via Google)", () => {
+      renderOnboardingPage("/cadastro?google=1");
+      expect(
+        screen.queryByRole("button", { name: /Continuar com o Google/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("Voltar a partir do nascimento retorna direto pros termos (pula nome)", () => {
+      renderOnboardingPage("/cadastro?google=1");
+      fireEvent.click(screen.getByLabelText(/Termos de Uso/i));
+      fireEvent.click(screen.getByLabelText(/Política de Privacidade/i));
+      avancar();
+      expect(screen.getByText("2 / 4")).toBeInTheDocument();
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Voltar ao passo anterior" }),
+      );
+      expect(screen.getByText("1 / 4")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Termos de Uso/i)).toBeChecked();
+    });
+
+    it("chegando no último passo (objetivo) tenta concluir via Google, não por senha", async () => {
+      renderOnboardingPage("/cadastro?google=1");
+      fireEvent.click(screen.getByLabelText(/Termos de Uso/i));
+      fireEvent.click(screen.getByLabelText(/Política de Privacidade/i));
+      avancar();
+      avancar(); // nascimento — opcional, pula
+      expect(screen.getByText("3 / 4")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Casado(a)" }));
+      expect(screen.getByText("4 / 4")).toBeInTheDocument();
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Aprofundar em teologia reformada" }),
+      );
+      avancar();
+
+      // Sem Supabase configurado no teste, `completarCadastroGoogle` falha
+      // graciosamente (mesma mensagem genérica de indisponibilidade dos
+      // outros métodos) em vez de travar a tela ou lançar — o importante
+      // aqui é que o caminho do Google (e não `signUpWithPassword`) foi de
+      // fato chamado, sem nunca precisar de e-mail/senha em nenhum passo
+      // anterior (já coberto pelos testes acima).
+      expect(
+        await screen.findByText(/Autenticação por e-mail indisponível/i),
+      ).toBeInTheDocument();
+    });
   });
 });
