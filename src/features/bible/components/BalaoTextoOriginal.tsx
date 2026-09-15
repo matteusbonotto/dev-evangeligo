@@ -20,6 +20,11 @@ import type { Livro } from "../types";
  * caractere-a-caractere ao trecho exato selecionado em português (a ordem e
  * a quantidade de palavras nunca são as mesmas entre os idiomas). O balão
  * mostra todas as palavras originais do versículo que contém a seleção.
+ *
+ * Revisão de UX (Fase 4, feedback direto do usuário): no mobile isso virava
+ * um "balão" perto do toque, achado feio — agora usa `.bctx-central`
+ * (cartão centralizado, mesmo espírito do `PainelInfoVersiculo`) em vez de
+ * bottom sheet; o desktop mantém o popup perto do clique.
  */
 export interface BalaoTextoOriginalProps {
   livro: Livro;
@@ -78,24 +83,24 @@ export function BalaoTextoOriginal({
   return (
     <div className="bctx-overlay" onClick={onFechar}>
       <div
-        className={`bctx-container balao-original ${modoSheet ? "bctx-sheet" : "bctx-popup"}`}
+        className={`bctx-container balao-original ${modoSheet ? "bctx-central" : "bctx-popup"}`}
         role="dialog"
         aria-label={`Texto original de ${livro.nome} ${capitulo}:${numero}`}
         style={posicao}
         onClick={(event) => event.stopPropagation()}
       >
-        {modoSheet && <div className="bctx-handle" />}
-
-        <p className="bctx-section-label">
-          <BsTranslate aria-hidden="true" /> Texto original — {livro.nome}{" "}
-          {capitulo}:{numero}
-        </p>
-        <p className="balao-original-aviso">
-          Palavras do versículo inteiro no idioma original — a correspondência
-          exata com o trecho selecionado nem sempre é possível palavra por
-          palavra.
-        </p>
-        <PainelSignificadoOriginal palavras={palavras} />
+        <div className="bctx-corpo-rolavel">
+          <p className="bctx-section-label">
+            <BsTranslate aria-hidden="true" /> Texto original — {livro.nome}{" "}
+            {capitulo}:{numero}
+          </p>
+          <p className="balao-original-aviso">
+            Palavras do versículo inteiro no idioma original — a
+            correspondência exata com o trecho selecionado nem sempre é
+            possível palavra por palavra.
+          </p>
+          <PainelSignificadoOriginal palavras={palavras} />
+        </div>
 
         <button type="button" className="bctx-btn-fechar" onClick={onFechar}>
           <BsXLg aria-hidden="true" /> Fechar

@@ -477,6 +477,33 @@ describe("LeituraPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("o painel de informações do versículo é um acordeão: 'Quem fala' começa aberta, 'Contexto da passagem' começa fechada e expande com labels claros (não mais uma linha corrida)", async () => {
+    renderLeituraPage("/biblia/jhn/1");
+    await screen.findByText(/No princípio era o Verbo\./);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Informações do versículo 1" }),
+    );
+    const painel = screen.getByRole("dialog", {
+      name: "Informações do versículo 1",
+    });
+
+    expect(
+      within(painel).getByRole("button", { name: /Quem fala/ }),
+    ).toHaveAttribute("aria-expanded", "true");
+    const cabecalhoContexto = within(painel).getByRole("button", {
+      name: /Contexto da passagem/,
+    });
+    expect(cabecalhoContexto).toHaveAttribute("aria-expanded", "false");
+    expect(within(painel).queryByText("Idioma original")).not.toBeInTheDocument();
+
+    fireEvent.click(cabecalhoContexto);
+
+    expect(cabecalhoContexto).toHaveAttribute("aria-expanded", "true");
+    expect(within(painel).getByText("Período")).toBeInTheDocument();
+    expect(within(painel).getByText("Idioma original")).toBeInTheDocument();
+    expect(within(painel).getByText("Gênero literário")).toBeInTheDocument();
+  });
+
   it("tocar no número do versículo não inicia a seleção de marca-texto (pinos não aparecem)", async () => {
     renderLeituraPage("/biblia/jhn/1");
     await screen.findByText(/No princípio era o Verbo\./);

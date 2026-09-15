@@ -8,6 +8,7 @@ import {
   BsGlobe2,
   BsPencilSquare,
   BsPeopleFill,
+  BsTranslate,
   BsXLg,
 } from "react-icons/bs";
 import { obterBiografia, type Biografia } from "../data/biografias";
@@ -61,6 +62,21 @@ import type { Livro } from "../types";
  * texto original vai direto no botão "Ver texto original" do menu de
  * seleção, ou no novo atalho "Quem fala e contexto" desse mesmo menu (ver
  * `MenuContextoBiblico` em `LeituraPage.tsx`) — que abre ESTE painel.
+ *
+ * Revisão de UX (mesmo dia, feedback direto após publicar a Fase 4):
+ * - No mobile o painel virava um "balão" perto do toque, achado feio —
+ *   agora usa `.bctx-central` (cartão centralizado, cantos arredondados
+ *   nos 4 lados, mesmo espírito do post-it) em vez de bottom sheet. O
+ *   desktop continua com o popup perto do clique, que já funcionava bem.
+ * - As 3 seções viravam uma parede de texto sempre toda aberta —
+ *   agora cada uma é um acordeão (`SecaoAcordeon`) com cabeçalho
+ *   clicável; "Quem fala" começa aberta (resposta principal), as outras
+ *   começam fechadas — a pessoa escolhe o que quer ver.
+ * - "Contexto da passagem" concatenava período/idioma/gênero numa linha
+ *   corrida confusa ("Composto durante o Êxodo, c. 1446-1406 a.C. ·
+ *   Hebraico · Lei...") — virou uma ficha de fatos rotulados (mesmo
+ *   componente visual da grade de biografia), com o texto de contexto
+ *   histórico-cultural claramente separado abaixo, como prosa mesmo.
  */
 
 export interface PainelInfoVersiculoProps {
@@ -96,11 +112,12 @@ export function PainelInfoVersiculo({
   const LARGURA_POPUP = 320;
   const MARGEM = 12;
   // Nunca estima uma altura fixa do popup (o conteúdo cresce depois de
-  // aberto — biografia e definições expandem sob demanda). Em vez disso,
-  // trava `top` perto do toque e calcula `maxHeight` como o espaço real
-  // que sobra até o fim da tela — `overflow-y: auto` (`.linfo-container`)
-  // cuida do resto, então o botão "Fechar" nunca fica fora da viewport
-  // não importa o quanto o conteúdo cresça.
+  // aberto — biografia expande sob demanda). Em vez disso, trava `top`
+  // perto do toque e calcula `maxHeight` como o espaço real que sobra até
+  // o fim da tela — `.bctx-corpo-rolavel` cuida da rolagem interna, então
+  // o botão "Fechar" nunca fica fora da viewport não importa o quanto o
+  // conteúdo cresça. No mobile (`modoSheet`) isso nem entra em jogo: o
+  // painel vira um cartão centralizado (`.bctx-central`, só CSS).
   const posicaoPopup =
     !modoSheet && typeof window !== "undefined"
       ? (() => {
@@ -124,87 +141,153 @@ export function PainelInfoVersiculo({
   return (
     <div className="bctx-overlay" onClick={onFechar}>
       <div
-        className={`bctx-container linfo-container ${modoSheet ? "bctx-sheet" : "bctx-popup"}`}
+        className={`bctx-container linfo-container ${modoSheet ? "bctx-central" : "bctx-popup"}`}
         role="dialog"
         aria-label={`Informações do versículo ${numero}`}
         style={posicaoPopup}
         onClick={(event) => event.stopPropagation()}
       >
-        {modoSheet && <div className="bctx-handle" />}
-
-        <p className="linfo-titulo">
-          {livro.nome} {capitulo}:{numero}
-        </p>
-
-        <section aria-labelledby="linfo-quem-fala">
-          <p className="bctx-section-label" id="linfo-quem-fala">
-            <BsBookHalf aria-hidden="true" /> Quem fala
+        <div className="bctx-corpo-rolavel">
+          <p className="linfo-titulo">
+            {livro.nome} {capitulo}:{numero}
           </p>
 
+          <SecaoAcordeon
+            id="linfo-quem-fala"
+            icone={<BsBookHalf aria-hidden="true" />}
+            titulo="Quem fala"
+            abertaInicialmente
+          >
+            {infoLivro && (
+              <div className="linfo-bloco">
+                <p className="linfo-linha">
+                  <strong>Escritor do livro:</strong> {infoLivro.autor}
+                </p>
+                {biografiaAutor && (
+                  <p className="linfo-contexto">{biografiaAutor.papel}</p>
+                )}
+              </div>
+            )}
+
+            {mostrarFalanteSeparado && biografiaFalante && (
+              <div className="linfo-bloco linfo-bloco--falante">
+                <p className="linfo-linha">
+                  <strong>Nesta passagem, quem fala:</strong>{" "}
+                  {biografiaFalante.nome}
+                </p>
+                <p className="linfo-contexto">{biografiaFalante.papel}</p>
+                <p className="linfo-referencias">
+                  Confirme em:{" "}
+                  {biografiaFalante.referenciasBiblicasChave.join(", ")}
+                </p>
+              </div>
+            )}
+          </SecaoAcordeon>
+
           {infoLivro && (
-            <div className="linfo-bloco">
-              <p className="linfo-linha">
-                <strong>Escritor do livro:</strong> {infoLivro.autor}
+            <SecaoAcordeon
+              id="linfo-contexto"
+              icone={<BsGlobe2 aria-hidden="true" />}
+              titulo="Contexto da passagem"
+            >
+              <dl className="linfo-fatos">
+                <div className="linfo-fatos-linha">
+                  <dt>
+                    <BsClockHistory aria-hidden="true" /> Período
+                  </dt>
+                  <dd>{infoLivro.periodoAproximado}</dd>
+                </div>
+                <div className="linfo-fatos-linha">
+                  <dt>
+                    <BsTranslate aria-hidden="true" /> Idioma original
+                  </dt>
+                  <dd>{infoLivro.idiomaOriginal}</dd>
+                </div>
+                <div className="linfo-fatos-linha">
+                  <dt>
+                    <BsBookHalf aria-hidden="true" /> Gênero literário
+                  </dt>
+                  <dd>{infoLivro.genero}</dd>
+                </div>
+              </dl>
+              <p className="linfo-contexto-titulo">
+                Contexto histórico e cultural
               </p>
-              {biografiaAutor && (
-                <p className="linfo-contexto">{biografiaAutor.papel}</p>
-              )}
-            </div>
+              <p className="linfo-contexto">
+                {infoLivro.contextoHistoricoCultural}
+              </p>
+            </SecaoAcordeon>
+          )}
+
+          {biografiaAutor && (
+            <SecaoAcordeon
+              id="linfo-bio-autor"
+              icone={<BsPeopleFill aria-hidden="true" />}
+              titulo="Biografia do autor"
+            >
+              <BiografiaExpandivel biografia={biografiaAutor} />
+            </SecaoAcordeon>
           )}
 
           {mostrarFalanteSeparado && biografiaFalante && (
-            <div className="linfo-bloco linfo-bloco--falante">
-              <p className="linfo-linha">
-                <strong>Nesta passagem, quem fala:</strong>{" "}
-                {biografiaFalante.nome}
-              </p>
-              <p className="linfo-contexto">{biografiaFalante.papel}</p>
-              <p className="linfo-referencias">
-                Confirme em:{" "}
-                {biografiaFalante.referenciasBiblicasChave.join(", ")}
-              </p>
-            </div>
+            <SecaoAcordeon
+              id="linfo-bio-falante"
+              icone={<BsPeopleFill aria-hidden="true" />}
+              titulo="Biografia de quem fala"
+            >
+              <BiografiaExpandivel biografia={biografiaFalante} />
+            </SecaoAcordeon>
           )}
-        </section>
-
-        {infoLivro && (
-          <section aria-labelledby="linfo-contexto">
-            <p className="bctx-section-label" id="linfo-contexto">
-              <BsGlobe2 aria-hidden="true" /> Contexto da passagem
-            </p>
-            <p className="linfo-meta">
-              {infoLivro.periodoAproximado} · {infoLivro.idiomaOriginal} ·{" "}
-              {infoLivro.genero}
-            </p>
-            <p className="linfo-contexto">
-              {infoLivro.contextoHistoricoCultural}
-            </p>
-          </section>
-        )}
-
-        {biografiaAutor && (
-          <section aria-labelledby="linfo-bio-autor">
-            <p className="bctx-section-label" id="linfo-bio-autor">
-              <BsPeopleFill aria-hidden="true" /> Biografia do autor
-            </p>
-            <BiografiaExpandivel biografia={biografiaAutor} />
-          </section>
-        )}
-
-        {mostrarFalanteSeparado && biografiaFalante && (
-          <section aria-labelledby="linfo-bio-falante">
-            <p className="bctx-section-label" id="linfo-bio-falante">
-              <BsPeopleFill aria-hidden="true" /> Biografia de quem fala
-            </p>
-            <BiografiaExpandivel biografia={biografiaFalante} />
-          </section>
-        )}
+        </div>
 
         <button type="button" className="bctx-btn-fechar" onClick={onFechar}>
           <BsXLg aria-hidden="true" /> Fechar
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * Seção retrátil (T-057/ADR-049) — pedido direto do usuário: "accordions
+ * exibindo o que a pessoa quer ver e não quer ver" em vez de tudo sempre
+ * aberto de uma vez, cansativo de ler inteiro toda hora que o painel abre.
+ */
+function SecaoAcordeon({
+  id,
+  icone,
+  titulo,
+  abertaInicialmente = false,
+  children,
+}: {
+  id: string;
+  icone: ReactNode;
+  titulo: string;
+  abertaInicialmente?: boolean;
+  children: ReactNode;
+}) {
+  const [aberta, setAberta] = useState(abertaInicialmente);
+
+  return (
+    <section className="linfo-acordeon" aria-labelledby={id}>
+      <button
+        type="button"
+        className="linfo-acordeon-cabecalho"
+        id={id}
+        aria-expanded={aberta}
+        onClick={() => setAberta((atual) => !atual)}
+      >
+        <span className="bctx-section-label">
+          {icone} {titulo}
+        </span>
+        {aberta ? (
+          <BsChevronUp aria-hidden="true" />
+        ) : (
+          <BsChevronDown aria-hidden="true" />
+        )}
+      </button>
+      {aberta && <div className="linfo-acordeon-corpo">{children}</div>}
+    </section>
   );
 }
 

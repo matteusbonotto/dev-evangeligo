@@ -218,3 +218,11 @@
 - Testes atualizados/novos em `linguaOriginal.test.ts` e `LeituraPage.test.tsx`. 551 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo (Playwright, produção, mobile 390px + desktop 1280px): painel em bottom sheet com altura contida e botão Fechar sempre visível, zero erros de console. Ver ADR-048.
 - **Fase 4 de 7 do plano de UX concluída.**
+
+## 2026-09-15 (rodada seguinte) — Revisão de UX: modais mobile centralizados, contexto legível, ícones (T-057)
+- Feedback direto pós-deploy: mobile ainda parecia "balão feio" pra `PainelInfoVersiculo`/`BalaoTextoOriginal` (desktop já era bom); "Contexto da passagem" era uma linha corrida confusa; ícone de profetas (megafone) parecia moderno demais, sabedoria deveria ser um cérebro.
+- Novo `.bctx-central`: cartão CENTRALIZADO no mobile (não mais balão perto do toque nem bottom sheet), mesmo espírito visual do post-it. Novo `.bctx-corpo-rolavel`: só o corpo rola, título e botão "Fechar" sempre visíveis.
+- `PainelInfoVersiculo.tsx`: as 3 seções viram acordeões (`SecaoAcordeon`, novo) — "Quem fala" aberta por padrão, as outras fechadas. "Contexto da passagem" virou ficha de fatos rotulados (Período/Idioma original/Gênero literário, mesma grade visual da biografia) com o texto de contexto separado abaixo.
+- Ícones: profetas `BsMegaphoneFill` → `GiFlame`; sabedoria `GiFeather` → `GiBrain`.
+- 1 teste novo fixando o comportamento de acordeão. 552 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo (Playwright, produção, mobile+desktop): painel centralizado com Fechar sempre visível, acordeão expande com rótulos corretos, ícones novos renderizando. Zero erros de console. Ver ADR-049.

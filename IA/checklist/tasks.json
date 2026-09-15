@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-056; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-057; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -497,6 +497,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-052"]
+    },
+    {
+      "id": "T-057",
+      "titulo": "Revisão de UX: painéis mobile centralizados com acordeões, contexto legível, ícones bíblicos",
+      "descricao": "Feedback direto do usuário após publicar T-056: no mobile, `PainelInfoVersiculo` e `BalaoTextoOriginal` continuavam parecendo um 'balão' feio perto do toque (desktop já funcionava bem). Trocados por `.bctx-central` — cartão centralizado (mesmo espírito do post-it), com corpo rolável (`.bctx-corpo-rolavel`) separado do cabeçalho/rodapé, então 'Fechar' nunca sai da tela. As 3 seções de `PainelInfoVersiculo` viraram acordeões (`SecaoAcordeon`, novo componente) — 'Quem fala' começa aberta, 'Contexto da passagem' e 'Biografia' começam fechadas. 'Contexto da passagem' trocou a linha corrida confusa ('Composto durante o Êxodo, c. 1446-1406 a.C. · Hebraico · Lei...') por uma ficha de fatos rotulados (Período/Idioma original/Gênero literário, mesmo componente visual `.linfo-fatos` da biografia) com o texto de contexto histórico-cultural claramente separado abaixo. Ícones de categoria do livro: profetas trocou de `BsMegaphoneFill` (achado 'moderno demais') pra `GiFlame` (fogo profético); sabedoria trocou de `GiFeather` pra `GiBrain` (pedido direto do usuário).",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-056"]
     }
   ]
 }

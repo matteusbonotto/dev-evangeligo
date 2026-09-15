@@ -829,22 +829,52 @@
    toque no mobile, e a pessoa não percebe que dá pra rolar mais. */
 .bctx-popup,
 .bctx-sheet,
-.linfo-container {
+.bctx-corpo-rolavel {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 }
 
 .bctx-popup::-webkit-scrollbar,
 .bctx-sheet::-webkit-scrollbar,
-.linfo-container::-webkit-scrollbar {
+.bctx-corpo-rolavel::-webkit-scrollbar {
   width: 6px;
 }
 
 .bctx-popup::-webkit-scrollbar-thumb,
 .bctx-sheet::-webkit-scrollbar-thumb,
-.linfo-container::-webkit-scrollbar-thumb {
+.bctx-corpo-rolavel::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: var(--radius-pill);
+}
+
+/* Variante centralizada (não mais "balão" nem bottom sheet) usada no
+   mobile por `PainelInfoVersiculo`/`BalaoTextoOriginal` — feedback direto
+   do usuário: no celular esses 2 pareciam "balão feio", enquanto o
+   desktop (popup perto do toque) já funcionava bem. Mesmo espírito visual
+   do post-it (`.modal-nota-overlay`/`.postit`): cartão centralizado,
+   cantos arredondados nos 4 lados, com respiro nas bordas — sem o visual
+   amarelo de post-it, que não faz sentido pra este conteúdo. `overflow:
+   hidden` de propósito — quem rola é o `.bctx-corpo-rolavel` interno,
+   assim o cabeçalho e o botão "Fechar" ficam sempre visíveis. */
+.bctx-central {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100vw - 40px);
+  max-height: min(82vh, calc(100vh - 40px));
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+}
+
+/* Corpo rolável de um modal `.bctx-*` que precisa manter cabeçalho/rodapé
+   sempre visíveis — o botão "Fechar" nunca deve rolar pra fora da tela. */
+.bctx-corpo-rolavel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
 }
 
 .bctx-handle {
@@ -1000,6 +1030,7 @@
   justify-content: center;
   gap: var(--space-6);
   width: 100%;
+  flex-shrink: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -1019,10 +1050,41 @@
   width: 320px;
   max-width: calc(100vw - 24px);
   max-height: calc(100vh - 24px);
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  gap: var(--space-12);
+}
+
+/* Acordeões (Quem fala / Contexto da passagem / Biografia) — pedido
+   direto do usuário: "accordions exibindo o que a pessoa quer ver e não
+   quer ver" em vez de tudo sempre aberto de uma vez (cansativo de ler).
+   "Quem fala" começa aberta (é a resposta principal do painel); as
+   outras começam fechadas. */
+.linfo-acordeon {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.linfo-acordeon-cabecalho {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-10) var(--space-12);
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.linfo-acordeon-cabecalho .bctx-section-label {
+  margin-bottom: 0;
+}
+
+.linfo-acordeon-corpo {
+  padding: 0 var(--space-12) var(--space-12);
 }
 
 .linfo-titulo {
@@ -1047,9 +1109,19 @@
   color: var(--color-text);
 }
 
-.linfo-meta {
-  font-size: var(--font-size-12);
+/* Ficha de fatos do livro (Período/Idioma original/Gênero) — antes uma
+   única linha corrida "Período · Idioma · Gênero", confusa segundo o
+   usuário ("não sei o que quer dizer"). Agora reaproveita a MESMA grade
+   `.linfo-fatos`/`.linfo-fatos-linha` da biografia (ícone + rótulo em
+   cima, valor embaixo) — visual "infográfico" consistente no painel
+   inteiro, cada fato claramente rotulado. */
+.linfo-contexto-titulo {
+  font-size: var(--font-size-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--color-text-muted);
+  margin: var(--space-10) 0 var(--space-4);
 }
 
 .linfo-contexto {
@@ -1137,12 +1209,15 @@
 .balao-original {
   width: 300px;
   max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
 }
 
 .balao-original-aviso {
   font-size: var(--font-size-12);
   color: var(--color-text-muted);
-  margin-bottom: var(--space-10);
 }
 
 .linfo-chips {
