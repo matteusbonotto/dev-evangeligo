@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-044)",
+  "atualizado": "2026-09-14 (T-038 a T-044; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -398,6 +398,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-043"]
+    },
+    {
+      "id": "T-045",
+      "titulo": "Quiz por capítulo (5 perguntas) e por livro (20 perguntas) da Bíblia",
+      "descricao": "Pedido explícito do usuário, anotado para o futuro (não iniciar sem confirmação): ~7.265 perguntas no total (1.189 capítulos × 5 + 66 livros × 20). Plano completo (escala, reuso do motor de `study/quiz/engine.ts`, decisão de produto pendente sobre 'capítulo concluído', persistência em Supabase, faseamento começando pelos 4 Evangelhos) em `IA/docs/quiz-biblico-plano.md`.",
+      "agente": "teologia-reformada",
+      "prioridade": "baixa",
+      "status": "backlog",
+      "dependencias": ["T-041", "T-043"]
     }
   ]
 }
