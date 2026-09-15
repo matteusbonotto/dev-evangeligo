@@ -24,10 +24,20 @@ import { StatBar } from "../components/StatBar";
 import { StatPill } from "../components/StatPill";
 
 export function DashboardPage() {
-  const { user } = useAuth();
+  const { user, authStatus } = useAuth();
   const [selecaoRpg, setSelecaoRpg] = useState<SelecaoRpg | null>(null);
 
   if (!user) {
+    // Conta real autenticada: `user` ainda está sendo carregado do Supabase
+    // (T-047/ADR-040, `AuthContext`) — sem este caso, uma conta real recém-
+    // logada era redirecionada pra home antes da busca terminar.
+    if (authStatus === "authenticated") {
+      return (
+        <AppShell>
+          <main className="loading-screen">Carregando sua jornada...</main>
+        </AppShell>
+      );
+    }
     return <Navigate to={ROUTE_PATHS.home} replace />;
   }
 

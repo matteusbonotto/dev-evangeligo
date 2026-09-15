@@ -24,10 +24,19 @@ const NOMES_RARIDADE: Record<string, string> = {
  * só as equipadas).
  */
 export function InventarioPage() {
-  const { user } = useAuth();
+  const { user, authStatus } = useAuth();
   const [selecao, setSelecao] = useState<SelecaoRpg | null>(null);
 
   if (!user) {
+    // Conta real ainda carregando o estado de RPG (T-047/ADR-040) — não
+    // redirecionar antes da busca terminar.
+    if (authStatus === "authenticated") {
+      return (
+        <AppShell>
+          <main className="loading-screen">Carregando sua jornada...</main>
+        </AppShell>
+      );
+    }
     return <Navigate to={ROUTE_PATHS.home} replace />;
   }
 

@@ -30,17 +30,26 @@ const NOMES_RARIDADE: Record<string, string> = {
  * desbloqueei isto pra sempre" não faz sentido em dobro; (2) no legado,
  * comprar em modo demonstração é um "não-op" fingido pra quase todo item
  * (só corações realmente aplicam algo) — aqui a compra funciona de
- * verdade (persistida em `localStorage`, ver `persistencia.ts`), porque
- * hoje o app inteiro roda no equivalente a modo demonstração, sem uma
- * conta "real" separada com Supabase por trás ainda.
+ * verdade, persistida em `localStorage` no modo demonstração ou nas
+ * tabelas `rpg_*` do Supabase numa conta real (T-047/ADR-040, via
+ * `AuthContext.updateUser`).
  */
 export function LojaPage() {
-  const { user, updateUser } = useAuth();
+  const { user, authStatus, updateUser } = useAuth();
   const [mensagem, setMensagem] = useState<{ texto: string; tipo: "sucesso" | "erro" } | null>(
     null,
   );
 
   if (!user) {
+    // Conta real ainda carregando o estado de RPG (T-047/ADR-040) — não
+    // redirecionar antes da busca terminar.
+    if (authStatus === "authenticated") {
+      return (
+        <AppShell>
+          <main className="loading-screen">Carregando sua jornada...</main>
+        </AppShell>
+      );
+    }
     return <Navigate to={ROUTE_PATHS.home} replace />;
   }
 

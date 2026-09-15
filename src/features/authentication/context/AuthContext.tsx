@@ -22,6 +22,10 @@ import {
   carregarEstadoRpg,
   salvarEstadoRpg,
 } from "../../rpg/persistencia";
+import {
+  carregarOuCriarEstadoReal,
+  persistirEstadoRpgReal,
+} from "../../rpg/estadoReal";
 
 /**
  * Grava o consentimento de Termos/Privacidade em `consentimentos`
@@ -184,23 +188,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(salvo ? { ...demoUser, ...salvo } : demoUser);
   }, []);
 
-  const updateUser = useCallback((updater: (usuario: DemoUser) => DemoUser) => {
-    setUser((atual) => {
-      if (!atual) return atual;
-      const proximo = updater(atual);
-      salvarEstadoRpg({
-        level: proximo.level,
-        xp: proximo.xp,
-        xpToNextLevel: proximo.xpToNextLevel,
-        gold: proximo.gold,
-        inventory: proximo.inventory,
-        armor: proximo.armor,
-        achievements: proximo.achievements,
-        effects: proximo.effects,
+  /**
+   * Carrega o estado de RPG REAL de uma conta autenticada (T-047/ADR-040) —
+   * ponte que faltava entre `authStatus === "authenticated"` e `user`, que
+   * antes só era populado pelo modo demonstração. Não roda se já houver um
+   * `user` demo ativo (nunca pisa na demonstração) nem se o `user` real já
+   * carregado for o mesmo da sessão atual (evita refetch a cada re-render).
+   */
+  useEffect(() => {
+    if (!supabaseClient) return;
+    if (authStatus !== "authenticated" || !session?.user) return;
+    if (user && (user.isDemo || user.id === session.user.id)) return;
+    const supaUser = session.user;
+    let ativo = true;
+    Promise.resolve(
+      supabaseClient
+        .from("profiles")
+        .select("nome, sobrenome")
+        .eq("id", supaUser.id)
+        .maybeSingle(),
+    )
+      .then(({ data }) => (data as { nome: string; sobrenome: string } | null))
+      .catch(() => null)
+      .then((perfil) => carregarOuCriarEstadoReal(supaUser, perfil))
+      .then((real) => {
+        if (ativo) setUser(real);
       });
-      return proximo;
-    });
-  }, []);
+    return () => {
+      ativo = false;
+    };
+  }, [authStatus, session, user]);
+
+  const updateUser = useCallback(
+    (updater: (usuario: DemoUser) => DemoUser) => {
+      // Lê `user` direto (não a forma funcional `setUser(prev => ...)`) de
+      // propósito: a função passada a `setUser` PRECISA ser pura (contrato
+      // do React — o `StrictMode` a chama 2x em desenvolvimento pra pegar
+      // exatamente efeitos colaterais como este). `salvarEstadoRpg`
+      // (localStorage) é idempotente, então rodar 2x nunca doeu;
+      // `persistirEstadoRpgReal` (DELETE+INSERT no Supabase) NÃO é — rodar
+      // 2x concorrente causava "duplicate key value" real (achado ao
+      // testar T-047 contra o banco de verdade). Só chamadores síncronos
+      // de UI usam `updateUser`, então `user` já está atualizado aqui.
+      if (!user) return;
+      const proximo = updater(user);
+      setUser(proximo);
+      if (proximo.isDemo) {
+        salvarEstadoRpg({
+          level: proximo.level,
+          xp: proximo.xp,
+          xpToNextLevel: proximo.xpToNextLevel,
+          gold: proximo.gold,
+          inventory: proximo.inventory,
+          armor: proximo.armor,
+          achievements: proximo.achievements,
+          effects: proximo.effects,
+        });
+      } else {
+        void persistirEstadoRpgReal(proximo.id, user, proximo);
+      }
+    },
+    [user],
+  );
 
   const signUpWithPassword = useCallback(
     async (input: SignUpInput): Promise<AuthActionResult> => {

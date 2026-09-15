@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-044, T-046; T-045 anotada no backlog)",
+  "atualizado": "2026-09-14 (T-038 a T-044, T-046, T-047; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -394,6 +394,15 @@
       "id": "T-044",
       "titulo": "Corrigir cadastro/login não funcionando em produção (CI sem credenciais Supabase)",
       "descricao": "`.github/workflows/deploy-pages.yml` nunca passava `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` para o passo de build — `.env.local` é gitignored (correto), então o build do GitHub Pages sempre rodava com `isSupabaseConfigured = false`, fazendo cadastro/login por e-mail e Google falharem sempre em produção (só funcionava em localhost). Corrigido registrando as duas variáveis como secrets do repositório (`gh secret set`, valores lidos de `.env.local`, nunca impressos) e referenciando-as via `env:` no passo \"Build\" do workflow. `VITE_SUPABASE_ANON_KEY` é a chave pública/publishable (protegida por RLS, já embutida no bundle do frontend de qualquer forma) — guardá-la como secret do GitHub é higiene de não hardcodar no YAML versionado, não sigilo real.",
+      "agente": "backend-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-043"]
+    },
+    {
+      "id": "T-047",
+      "titulo": "RPG real para contas autenticadas (banco + ponte no AuthContext)",
+      "descricao": "Achado crítico: nenhuma conta real (e-mail/senha ou Google) conseguia abrir Dashboard/Loja/Inventário — só o modo demonstração populava `user`. Migration `rpg_estado_real.sql` cria `rpg_progresso`/`rpg_inventario`/`rpg_armadura`/`rpg_efeitos_ativos`/`rpg_conquistas_usuario` (RLS + grants); `src/features/rpg/estadoReal.ts` (novo módulo) carrega/cria o estado inicial e persiste mutações; `AuthContext.tsx` ganhou o `useEffect` de ponte; `DashboardPage`/`LojaPage`/`InventarioPage` pararam de redirecionar contas reais antes da busca terminar. Bug real de concorrência (StrictMode double-invoke + updater impuro) encontrado e corrigido durante verificação ao vivo contra o banco real. Trilhas/aulas/quizzes/progresso de estudo ficam de fora (dado estático/placeholder), próxima rodada. Ver ADR-040.",
       "agente": "backend-specialist",
       "prioridade": "alta",
       "status": "done",
