@@ -12,6 +12,7 @@ Cada agente é **especialista da área + especialista no projeto atual** (Evange
 | `gamificacao.md` | Sistemas de XP, níveis, sequências, conquistas, missões, recompensas e economia |
 | `rpg.md` | Progressão de personagem, Armadura de Deus (Efésios 6), itens, inventário, atributos |
 | `game-design.md` | Design de loops de jogo, onboarding estilo Duolingo, balanceamento, retenção e diversão |
+| `psicologia-engajamento.md` | Psicologia comportamental do retorno: notificações, sequência/streak, "sentimos sua falta", celebração de marcos — sempre dentro dos limites éticos do `game-design.md` |
 
 ## Agentes de engenharia
 
