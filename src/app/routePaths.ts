@@ -18,6 +18,7 @@ export const ROUTE_PATHS = {
   harpa: "/harpa",
   harpaHino: "/harpa/:numero",
   avatar: "/avatar",
+  profile: "/perfil",
   loja: "/loja",
   inventario: "/inventario",
   exercicios: "/exercicios",

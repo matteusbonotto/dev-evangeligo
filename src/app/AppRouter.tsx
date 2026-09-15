@@ -87,6 +87,11 @@ const AvatarEditorPage = lazy(() =>
     default: module.AvatarEditorPage,
   })),
 );
+const ProfilePage = lazy(() =>
+  import("../features/authentication/pages/ProfilePage").then((module) => ({
+    default: module.ProfilePage,
+  })),
+);
 const LojaPage = lazy(() =>
   import("../features/rpg/pages/LojaPage").then((module) => ({
     default: module.LojaPage,
@@ -168,6 +173,7 @@ export function AppRouter() {
         <Route path={ROUTE_PATHS.harpa} element={<HinosPage />} />
         <Route path={ROUTE_PATHS.harpaHino} element={<HinoPage />} />
         <Route path={ROUTE_PATHS.avatar} element={<AvatarEditorPage />} />
+        <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />
         <Route path={ROUTE_PATHS.loja} element={<LojaPage />} />
         <Route path={ROUTE_PATHS.inventario} element={<InventarioPage />} />
         <Route path={ROUTE_PATHS.exercicios} element={<ExerciciosPage />} />

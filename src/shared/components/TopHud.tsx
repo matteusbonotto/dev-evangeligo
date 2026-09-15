@@ -1,4 +1,15 @@
-import { FiDollarSign, FiHeart, FiLogOut, FiZap } from "react-icons/fi";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  FiChevronDown,
+  FiChevronUp,
+  FiDollarSign,
+  FiHeart,
+  FiLogOut,
+  FiUser,
+  FiZap,
+} from "react-icons/fi";
+import { ROUTE_PATHS } from "../../app/routePaths";
 import type { DemoUser } from "../../features/authentication/demo/demoUser";
 import { montarUrlAvatar } from "../../features/avatar/avatarUrl";
 
@@ -19,6 +30,7 @@ export function TopHud({
   user: DemoUser;
   onSignOut: () => void;
 }) {
+  const [menuAberto, setMenuAberto] = useState(false);
   const xpPercent = Math.min(
     100,
     Math.round((user.xp / user.xpToNextLevel) * 100),
@@ -58,20 +70,50 @@ export function TopHud({
 
         <div className="top-hud-user">
           {user.isDemo && <span className="demo-badge">Demonstração</span>}
-          <img
-            className="top-hud-avatar-img"
-            src={montarUrlAvatar(user.avatarConfig)}
-            alt={`Avatar de ${user.name}`}
-          />
-          <button
-            className="icon-button"
-            type="button"
-            onClick={onSignOut}
-            aria-label="Sair"
-            title="Sair"
-          >
-            <FiLogOut aria-hidden="true" />
-          </button>
+          <div className="top-hud-menu-wrap">
+            <button
+              type="button"
+              className="top-hud-menu-trigger"
+              aria-expanded={menuAberto}
+              aria-label={`Menu de ${user.name}`}
+              onClick={() => setMenuAberto((atual) => !atual)}
+            >
+              <img
+                className="top-hud-avatar-img"
+                src={montarUrlAvatar(user.avatarConfig)}
+                alt=""
+              />
+              {menuAberto ? (
+                <FiChevronUp aria-hidden="true" />
+              ) : (
+                <FiChevronDown aria-hidden="true" />
+              )}
+            </button>
+
+            {menuAberto && (
+              <div className="top-hud-menu-panel" role="menu">
+                <Link
+                  to={ROUTE_PATHS.profile}
+                  className="top-hud-menu-item"
+                  role="menuitem"
+                  onClick={() => setMenuAberto(false)}
+                >
+                  <FiUser aria-hidden="true" /> Perfil
+                </Link>
+                <button
+                  type="button"
+                  className="top-hud-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuAberto(false);
+                    onSignOut();
+                  }}
+                >
+                  <FiLogOut aria-hidden="true" /> Sair
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

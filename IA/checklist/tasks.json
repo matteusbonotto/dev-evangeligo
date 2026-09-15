@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052, T-053; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-054; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -470,6 +470,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-047"]
+    },
+    {
+      "id": "T-054",
+      "titulo": "Página de Perfil + menu de contexto no avatar do TopHud",
+      "descricao": "Fase 3 do plano de UX (itens 3/9). Nova rota /perfil (ProfilePage.tsx): mostra avatar ilustrado, nome, e-mail, nível/ouro/sequência, e a versão + data do consentimento de Termos/Privacidade JÁ aceito (lido de `consentimentos`, nunca pede novo aceite — resolve o pedido de aceite duplicado). TopHud.tsx troca o avatar+botão 'Sair' soltos por um menu de contexto (clique no avatar abre Perfil/Sair), removendo `.icon-button` (código morto após a troca). Verificado ao vivo com conta Supabase real: login → menu → /perfil mostra o consentimento auto-registrado no login (T-043) com a versão atual. Ver ADR-047.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-053"]
     }
   ]
 }

@@ -841,6 +841,54 @@ textarea:focus-visible,
   flex-shrink: 0;
 }
 
+/* Menu de contexto (Perfil/Sair) ao tocar no avatar, T-054/ADR-047 item 9 —
+   mesmo padrão visual de dropdown já usado pra tradução da Bíblia
+   (`.btrad-*`), só que ancorado à direita. */
+.top-hud-menu-wrap {
+  position: relative;
+}
+
+.top-hud-menu-trigger {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.top-hud-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 160px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+  z-index: 30;
+}
+
+.top-hud-menu-item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-8) var(--space-10);
+  border-radius: var(--radius-sm, 6px);
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.top-hud-menu-item:hover {
+  background: var(--verde-50);
+}
+
 .top-hud--guest .top-hud-inner {
   justify-content: space-between;
 }
@@ -917,25 +965,6 @@ textarea:focus-visible,
   border-radius: var(--radius-pill);
 }
 
-.icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--borda);
-  border-radius: 50%;
-  background: var(--card);
-  color: var(--texto-suave);
-  cursor: pointer;
-  font-size: var(--font-size-16);
-}
-
-.icon-button:hover {
-  color: var(--erro);
-  border-color: var(--erro);
-}
-
 .dash-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -954,6 +983,67 @@ textarea:focus-visible,
 .dash-card h1 {
   font-size: var(--font-size-24);
   margin-bottom: var(--space-12);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  margin: var(--space-16) 0;
+}
+
+.profile-avatar-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--verde-100);
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.profile-header-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.profile-email {
+  color: var(--texto-suave);
+  font-size: var(--font-size-14);
+  word-break: break-word;
+}
+
+.profile-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.profile-consentimento-info {
+  color: var(--texto-suave);
+  font-size: var(--font-size-14);
+  line-height: 1.5;
+}
+
+.profile-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  margin-top: var(--space-12);
+}
+
+.profile-legal-links a {
+  font-weight: 700;
+  color: var(--verde-700);
+}
+
+@media (max-width: 480px) {
+  .profile-header {
+    flex-wrap: wrap;
+  }
 }
 
 .level-row {

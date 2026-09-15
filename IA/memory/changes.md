@@ -196,3 +196,10 @@
 - **Bug real de corrida encontrado e corrigido durante a verificação ao vivo**: `AvatarEditorPage.tsx` reproduziu o mesmo bug já corrigido em T-047 (redirecionar pra home antes do `user` real carregar) — corrigido com o mesmo padrão de tela de carregamento. Varredura confirmou nenhuma outra rota tem o gap.
 - `AvatarEditorPage.test.tsx` reescrito (agora entra em modo demonstração antes de renderizar); `rpg/testUtils.ts` ganhou `avatarConfig`. 543 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real (Admin API, pré-confirmada, apagada ao final): trocar cabelo → reload completo da página → escolha preservada, avatar aparecendo no anel do Dashboard E no TopHud. Ver ADR-046.
+
+## 2026-09-15 (rodada seguinte) — Página de Perfil + menu de contexto no avatar (T-054)
+- Nova rota `/perfil` (`ProfilePage.tsx`): avatar, nome, e-mail, nível/ouro/sequência, e a versão + data do consentimento de Termos/Privacidade JÁ aceito (lido de `consentimentos`) — nunca pede um novo aceite, só exibe o que o registro automático do login (T-043) já grava. Contas demo veem uma mensagem explicando que nada é coletado nesse modo.
+- `TopHud.tsx`: avatar+botão "Sair" soltos viraram um menu de contexto (clique no avatar → painel com "Perfil"/"Sair"), mesmo padrão visual do dropdown de tradução da Bíblia. `.icon-button` (só usado pelo botão antigo) removido por ficar sem uso.
+- `ProfilePage.test.tsx` e `TopHud.test.tsx` (primeiro teste do componente) novos. 550 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real (Admin API, apagada ao final): login → menu → /perfil mostra avatar/stats/consentimento reais corretos → "Sair" funciona a partir do menu. Ver ADR-047.
+- **Fase 3 de 7 do plano de UX concluída e publicada.** Pedido novo registrado pra uma fase futura da Bíblia (ainda não planejado em detalhe): alternância lista/grid/compacto em `LivrosPage.tsx`, aplicável a mobile e desktop.
