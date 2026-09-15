@@ -20,7 +20,6 @@ import { AvatarRPG } from "../components/AvatarRPG";
 import { HeartsBar } from "../components/HeartsBar";
 import { ItemSlots } from "../components/ItemSlots";
 import { SpiritBattle } from "../components/SpiritBattle";
-import { CheckinVidaInterior } from "../components/CheckinVidaInterior";
 import { StatBar } from "../components/StatBar";
 import { StatPill } from "../components/StatPill";
 
@@ -101,7 +100,6 @@ export function DashboardPage() {
             <p className="eyebrow" id="spirit-flesh-title">
               Vida interior — Gálatas 5:16-23
             </p>
-            <CheckinVidaInterior />
             <SpiritBattle entries={user.spiritBattle} />
           </section>
 

@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-059; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-060; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -524,6 +524,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-047"]
+    },
+    {
+      "id": "T-060",
+      "titulo": "Revisão de UX do check-in de Vida Interior: modal + agenda semanal cobrindo os 9 pares",
+      "descricao": "Feedback direto do usuário pós-T-059: o check-in \"poderia facilmente ser um modal com um form rápido\" e \"só mostra 2 opções, como medir o resto?\". Usado um agente de planejamento (subagente Plan) pra pensar a revisão antes de codar, considerando explicitamente as futuras missões/oração/comunidade já mapeadas em `gamification/domain/missions.ts` (tipo 'espiritual' já tem um modelo de oração não usado) e no plano de Comunidade já aprovado e em fila. Decisão: manter a tabela `vida_interior_checkins` como está (generalizar antes da 2ª feature real — oração — seria especulativo, mesma filosofia já usada em ADR-037/040/051); trocar o sorteio por hash por uma AGENDA SEMANAL FIXA (`AGENDA_SEMANAL` em `dashboard/vidaInterior.ts`) que cobre os 9 pares exatamente 1x por semana corrida (domingo-sábado); virar um cartão em 'Destaques de hoje' que abre um MODAL de pergunta única (progresso em bolinhas, explicação opcional colapsável, atalho 'responder os N pendentes agora' pra quem quer ir além do dia), removendo os mini-formulários que ficavam soltos dentro do card 'Vida Interior' do Dashboard. Documentado explicitamente que a integração com o sistema de missões fica para quando ele for ligado a contas reais (Fase A do plano de Comunidade) — não implementado aqui.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-059"]
     }
   ]
 }

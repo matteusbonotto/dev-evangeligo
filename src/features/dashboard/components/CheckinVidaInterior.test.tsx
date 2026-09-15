@@ -36,6 +36,7 @@ describe("CheckinVidaInterior", () => {
     );
 
     await screen.findByTestId("usuario-pronto");
-    expect(screen.queryByText(/Check-in de hoje/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Vida Interior")).not.toBeInTheDocument();
+    expect(screen.queryByText(/pares esta semana/)).not.toBeInTheDocument();
   });
 });

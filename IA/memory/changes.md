@@ -239,3 +239,11 @@
 - 7 testes novos (`vidaInterior.test.ts` ×6, `CheckinVidaInterior.test.tsx` ×1). 560 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real (Admin API, apagada ao final): 50%/50% inicial → respondeu 2 pares → resumo atualizado + ouro creditado → reload completo confirma que persistiu no Supabase. Ver ADR-051.
 - **Fase 5 de 7 do plano de UX concluída.**
+
+## 2026-09-15 (rodada seguinte) — Revisão de UX do check-in de Vida Interior: modal + agenda semanal (T-060)
+- Feedback direto: o check-in deveria ser um modal, não mini-formulários soltos; "só mostra 2 opções, como medir o resto?" Usado um subagente de planejamento pra pensar a revisão considerando o sistema de missões já existente (não conectado) e o plano de Comunidade em fila.
+- `obterParesDoCheckinHoje` trocou de sorteio por hash pra uma agenda semanal FIXA (`AGENDA_SEMANAL`) — cobre os 9 pares exatamente 1x por semana corrida (domingo-sábado), resolvendo "como medir o resto" por construção, não por sorte.
+- `CheckinVidaInterior.tsx` virou um cartão em "Destaques de hoje" que abre um MODAL — uma pergunta por vez, progresso em bolinhas, explicação opcional, tela final com a recompensa e "N/9 esta semana", link "responder os pendentes agora" pra quem quer mais. Removidos os mini-formulários do card "Vida Interior" do Dashboard.
+- Decisão explícita de NÃO generalizar a tabela `vida_interior_checkins` ainda (oração não existe como feature real) — o ponto de conexão futuro com missões fica documentado, não implementado.
+- Testes atualizados/novos em `vidaInterior.test.ts` e `CheckinVidaInterior.test.tsx`. 563 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real: modal completo, recompensa creditada, progresso semanal correto, reload completo consistente. Ver ADR-052.

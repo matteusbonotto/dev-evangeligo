@@ -12,6 +12,7 @@ import { buildLeituraPath } from "../../bible/routePaths";
 import { obterCapituloTraduzido } from "../../bible/traducoes";
 import { obterTraducaoPreferida } from "../../bible/traducaoPreferida";
 import { useAuth } from "../../authentication/context/AuthContext";
+import { CheckinVidaInterior } from "../../dashboard/components/CheckinVidaInterior";
 import { buildTermoPath } from "../../study/termo/routePaths";
 import { buildQuebraCabecaPath } from "../../study/quebracabeca/routePaths";
 import { buildWordSearchPath } from "../../study/wordsearch/routePaths";
@@ -175,6 +176,8 @@ export function DestaquesDoDia() {
             {estado.concluidos.cacaPalavras ? "Concluído ✓" : "Jogar"}
           </span>
         </Link>
+
+        <CheckinVidaInterior />
       </div>
     </section>
   );

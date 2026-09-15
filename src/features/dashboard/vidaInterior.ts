@@ -1,6 +1,9 @@
 import { supabaseClient } from "../../infrastructure/supabase/client";
 import type { SpiritBattleEntry } from "../authentication/demo/demoUser";
-import { PARES_VIDA_INTERIOR } from "./data/paresVidaInterior";
+import {
+  PARES_VIDA_INTERIOR,
+  type ParVidaInterior,
+} from "./data/paresVidaInterior";
 
 /**
  * "Vida Interior" real para contas autenticadas (Fase 5 do plano de UX,
@@ -12,6 +15,18 @@ import { PARES_VIDA_INTERIOR } from "./data/paresVidaInterior";
  * contagem real desses check-ins numa janela móvel de 30 dias. A conta
  * demonstração continua com os números fixos de `demoUser.ts` (nada aqui
  * se aplica a ela — não há sessão real pra registrar check-in).
+ *
+ * Revisão de UX pós-T-059 (ADR-052): o check-in virou um MODAL de
+ * pergunta única, aberto a partir de um cartão em "Destaques de hoje"
+ * (`daily/components/DestaquesDoDia.tsx`), em vez de 2 mini-formulários
+ * soltos dentro do card "Vida Interior" do Dashboard. A rotação também
+ * trocou de um sorteio por hash pra uma agenda semanal fixa que cobre os
+ * 9 pares por semana (ver `AGENDA_SEMANAL` abaixo) — resolve a queixa "só
+ * mostra 2 opções, como medir o resto?". Conectar isso a um sistema de
+ * missões (`gamification/domain/missions.ts`, já tem um tipo "espiritual"
+ * com um modelo de oração não usado) fica para quando esse sistema for
+ * ligado a contas reais (plano de Comunidade já aprovado, em fila) — não
+ * duplicado aqui.
  */
 
 export type EscolhaVidaInterior = "fruto" | "carne";
@@ -78,22 +93,54 @@ export async function registrarCheckinVidaInterior(
 }
 
 /**
- * Escolhe determinística e estavelmente (mesmo dia = mesmos pares, muda
- * sozinho à meia-noite — mesmo espírito de `daily/desafios.ts`) 2 dos 9
- * pares pra propor o check-in de hoje, revezando ao longo dos dias em vez
- * de perguntar os 9 de uma vez (pedido do usuário: "check-in diário
- * rápido").
+ * Agenda semanal FIXA (revisão de UX pós-T-059, ver ADR-052) — trocada do
+ * sorteio por hash porque não garantia cobertura: dava a impressão de
+ * "aleatório" sem nunca fechar o ciclo de forma visível, e o usuário
+ * reportou que perguntar só 2 dos 9 pares não parecia medir a Vida
+ * Interior de verdade. Cada dia da semana (domingo=0 .. sábado=6, sempre
+ * o mesmo, não varia de semana pra semana) tem 1 ou 2 pares atribuídos —
+ * ao final de qualquer semana corrida, os 9 já foram perguntados
+ * exatamente uma vez. "Quantos dos 9 você já respondeu esta semana" vira
+ * um número concreto (calculado na UI a partir do que já foi respondido),
+ * não uma sensação vaga de aleatoriedade.
  */
-export function obterParesDoCheckinHoje(chaveDoDia: string, quantidade = 2) {
-  let hash = 5381;
-  for (const caractere of chaveDoDia) {
-    hash = (hash * 33 + (caractere.codePointAt(0) ?? 0)) >>> 0;
-  }
-  const indices = new Set<number>();
-  let passo = 0;
-  while (indices.size < quantidade && passo < PARES_VIDA_INTERIOR.length) {
-    indices.add((hash + passo * 7) % PARES_VIDA_INTERIOR.length);
-    passo += 1;
-  }
-  return Array.from(indices).map((indice) => PARES_VIDA_INTERIOR[indice]);
+const AGENDA_SEMANAL: readonly number[][] = [
+  [0], // domingo — amor
+  [1, 2], // segunda — alegria, paz
+  [3], // terça — longanimidade
+  [4], // quarta — benignidade
+  [5, 6], // quinta — bondade, fidelidade
+  [7], // sexta — mansidão
+  [8], // sábado — domínio próprio
+];
+
+function paraDataUtc(chaveDoDia: string): Date {
+  return new Date(`${chaveDoDia}T00:00:00Z`);
+}
+
+/** 0 = domingo .. 6 = sábado, calculado em UTC pra nunca depender do fuso horário de quem acessa. */
+export function obterDiaDaSemana(chaveDoDia: string): number {
+  return paraDataUtc(chaveDoDia).getUTCDay();
+}
+
+/**
+ * Chave estável da semana ("YYYY-MM-DD" do domingo que abre a semana,
+ * mesma convenção domingo-a-sábado de `AGENDA_SEMANAL`/`getUTCDay`) —
+ * agrupa o progresso semanal, reseta sozinho todo domingo.
+ */
+export function obterChaveDaSemana(chaveDoDia: string): string {
+  const data = paraDataUtc(chaveDoDia);
+  data.setUTCDate(data.getUTCDate() - data.getUTCDay());
+  return data.toISOString().slice(0, 10);
+}
+
+/** Os 1-2 pares atribuídos a hoje, pela agenda semanal fixa. */
+export function obterParesDoCheckinHoje(chaveDoDia: string): ParVidaInterior[] {
+  const indices = AGENDA_SEMANAL[obterDiaDaSemana(chaveDoDia)] ?? [];
+  return indices.map((indice) => PARES_VIDA_INTERIOR[indice]);
+}
+
+/** Todos os 9 pares, na ordem do catálogo — usado pelo link "Responder os 9 agora". */
+export function obterTodosOsPares(): ParVidaInterior[] {
+  return PARES_VIDA_INTERIOR;
 }

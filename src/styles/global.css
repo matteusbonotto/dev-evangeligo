@@ -1801,54 +1801,110 @@ textarea:focus-visible,
   gap: var(--space-16);
 }
 
-/* Check-in diário de Vida Interior (T-059/ADR-051) — pergunta rápida
-   antes do resumo Fruto×Carne, só pra conta real. */
-.civ-checkin {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-10);
-  margin-bottom: var(--space-16);
-  padding-bottom: var(--space-16);
-  border-bottom: 1px dashed var(--borda);
+/* Check-in de Vida Interior (T-059/ADR-051, revisado em ADR-052) — agora
+   um cartão em "Destaques de hoje" que abre um MODAL de pergunta única,
+   em vez de mini-formulários soltos no card do Dashboard. `.civ-card` só
+   ajusta o cartão-gatilho pra caber o ícone de coração; o resto do visual
+   vem de `.destaque-card` (já existente). */
+.civ-card {
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
 }
 
-.civ-titulo {
-  font-size: var(--font-size-13);
-  font-weight: 700;
+.civ-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: var(--space-20);
+}
+
+.civ-modal {
+  width: 100%;
+  max-width: 380px;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.civ-modal-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16) var(--space-16) 0;
+}
+
+.civ-modal-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-weight: 800;
   color: var(--color-text);
+}
+
+.civ-modal-fechar {
+  all: unset;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: var(--space-4);
+}
+
+.civ-modal-corpo {
+  padding: var(--space-16);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.civ-modal-progresso {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.civ-modal-ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.civ-modal-ponto--ativo {
+  background: var(--verde-700);
+  transform: scale(1.3);
+}
+
+.civ-modal-ponto--feito {
+  background: var(--verde-500);
 }
 
 .civ-erro {
   font-size: var(--font-size-12);
   color: var(--erro);
+  text-align: center;
 }
 
-.civ-pares {
+.civ-modal-pergunta {
+  font-size: var(--font-size-16);
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.civ-modal-botoes {
   display: flex;
   flex-direction: column;
   gap: var(--space-10);
-}
-
-.civ-par {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-8);
-  padding: var(--space-10) var(--space-12);
-  border-radius: var(--radius-md);
-  background: var(--verde-50);
-}
-
-.civ-pergunta {
-  font-size: var(--font-size-13);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.civ-botoes {
-  display: flex;
-  gap: var(--space-8);
 }
 
 .civ-btn {
@@ -1864,6 +1920,12 @@ textarea:focus-visible,
 .civ-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.civ-btn--grande {
+  padding: var(--space-12) var(--space-16);
+  font-size: var(--font-size-14);
+  border-radius: var(--radius-lg);
 }
 
 .civ-btn--fruto {
@@ -1886,16 +1948,65 @@ textarea:focus-visible,
   color: var(--branco);
 }
 
-.civ-feito {
+.civ-modal-explicacao-toggle {
+  all: unset;
   display: flex;
   align-items: center;
-  gap: var(--space-6);
+  justify-content: center;
+  gap: var(--space-4);
+  cursor: pointer;
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.civ-modal-explicacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--verde-50);
   font-size: var(--font-size-13);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.civ-modal-link-todos {
+  all: unset;
+  cursor: pointer;
+  text-align: center;
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--verde-700);
+  text-decoration: underline;
+}
+
+.civ-modal-fim {
+  align-items: center;
+  text-align: center;
+}
+
+.civ-modal-fim-icone {
+  font-size: 40px;
   color: var(--sucesso);
+}
+
+.civ-modal-fim-texto {
+  font-size: var(--font-size-14);
   font-weight: 600;
-  margin-bottom: var(--space-16);
-  padding-bottom: var(--space-16);
-  border-bottom: 1px dashed var(--borda);
+  color: var(--color-text);
+}
+
+.civ-modal-fim-recompensa {
+  font-size: var(--font-size-13);
+  font-weight: 700;
+  color: var(--dourado-texto);
+}
+
+.civ-modal-fim-progresso {
+  font-size: var(--font-size-12);
+  color: var(--color-text-muted);
 }
 
 .sb-summary {

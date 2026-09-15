@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calcularEntradasVidaInterior,
+  obterChaveDaSemana,
   obterParesDoCheckinHoje,
 } from "./vidaInterior";
 import { PARES_VIDA_INTERIOR } from "./data/paresVidaInterior";
@@ -43,35 +44,72 @@ describe("calcularEntradasVidaInterior", () => {
   });
 });
 
-describe("obterParesDoCheckinHoje", () => {
+describe("obterParesDoCheckinHoje (agenda semanal fixa)", () => {
   it("o mesmo dia sempre escolhe os mesmos pares (determinístico)", () => {
     const a = obterParesDoCheckinHoje("2026-09-15");
     const b = obterParesDoCheckinHoje("2026-09-15");
     expect(a.map((p) => p.id)).toEqual(b.map((p) => p.id));
   });
 
-  it("escolhe a quantidade pedida, sem repetir o mesmo par 2x no mesmo dia", () => {
-    const pares = obterParesDoCheckinHoje("2026-09-15", 2);
-    expect(pares).toHaveLength(2);
-    expect(new Set(pares.map((p) => p.id)).size).toBe(2);
+  it("nunca repete o mesmo par 2x no mesmo dia", () => {
+    for (const dia of ["2026-09-14", "2026-09-17"]) {
+      const pares = obterParesDoCheckinHoje(dia);
+      expect(new Set(pares.map((p) => p.id)).size).toBe(pares.length);
+    }
   });
 
-  it("dias diferentes tendem a escolher pares diferentes (não trava sempre nos 2 primeiros)", () => {
-    const dias = [
-      "2026-09-01",
-      "2026-09-02",
-      "2026-09-03",
-      "2026-09-04",
-      "2026-09-05",
-      "2026-09-06",
+  it("uma semana corrida (7 dias) cobre os 9 pares exatamente 1 vez cada — a queixa 'só mostra 2, como medir o resto' fica resolvida por construção", () => {
+    // 2026-09-13 é domingo — 1 semana completa domingo a sábado.
+    const semana = [
+      "2026-09-13",
+      "2026-09-14",
+      "2026-09-15",
+      "2026-09-16",
+      "2026-09-17",
+      "2026-09-18",
+      "2026-09-19",
     ];
-    const combinacoes = new Set(
-      dias.map((dia) =>
-        obterParesDoCheckinHoje(dia)
-          .map((p) => p.id)
-          .join(","),
-      ),
+    const idsDaSemana = semana.flatMap((dia) =>
+      obterParesDoCheckinHoje(dia).map((p) => p.id),
     );
-    expect(combinacoes.size).toBeGreaterThan(1);
+    expect(idsDaSemana).toHaveLength(PARES_VIDA_INTERIOR.length);
+    expect(new Set(idsDaSemana).size).toBe(PARES_VIDA_INTERIOR.length);
+    for (const par of PARES_VIDA_INTERIOR) {
+      expect(idsDaSemana).toContain(par.id);
+    }
+  });
+
+  it("a agenda é FIXA por dia da semana, não sorteada — o mesmo dia da semana repete os mesmos pares toda semana", () => {
+    const domingoSemana1 = obterParesDoCheckinHoje("2026-09-13").map(
+      (p) => p.id,
+    );
+    const domingoSemana2 = obterParesDoCheckinHoje("2026-09-20").map(
+      (p) => p.id,
+    );
+    expect(domingoSemana2).toEqual(domingoSemana1);
+  });
+});
+
+describe("obterChaveDaSemana", () => {
+  it("qualquer dia da mesma semana corrida devolve a MESMA chave (o domingo daquela semana)", () => {
+    const chaves = new Set(
+      [
+        "2026-09-13",
+        "2026-09-14",
+        "2026-09-15",
+        "2026-09-16",
+        "2026-09-17",
+        "2026-09-18",
+        "2026-09-19",
+      ].map(obterChaveDaSemana),
+    );
+    expect(chaves.size).toBe(1);
+    expect([...chaves][0]).toBe("2026-09-13");
+  });
+
+  it("a semana seguinte tem uma chave diferente", () => {
+    expect(obterChaveDaSemana("2026-09-20")).not.toBe(
+      obterChaveDaSemana("2026-09-13"),
+    );
   });
 });

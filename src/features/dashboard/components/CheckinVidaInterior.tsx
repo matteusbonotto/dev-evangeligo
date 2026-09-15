@@ -1,88 +1,132 @@
 import { useMemo, useState } from "react";
-import { FiCheckCircle } from "react-icons/fi";
+import {
+  FiCheckCircle,
+  FiChevronDown,
+  FiChevronUp,
+  FiHeart,
+  FiX,
+} from "react-icons/fi";
 import { useAuth } from "../../authentication/context/AuthContext";
 import { obterChaveDoDia } from "../../daily/desafios";
 import { marcarDestaquePassivoVisto } from "../../daily/recompensa";
+import { carregarEstadoDiario } from "../../daily/persistencia";
 import {
+  obterChaveDaSemana,
   obterParesDoCheckinHoje,
+  obterTodosOsPares,
   registrarCheckinVidaInterior,
   type EscolhaVidaInterior,
 } from "../vidaInterior";
+import { PARES_VIDA_INTERIOR } from "../data/paresVidaInterior";
 
 const RECOMPENSA_CHECKIN = { xp: 5, gold: 2 };
-const CHAVE_LS = "evangeligo:vidaInterior:respondidoHoje";
+const CHAVE_LS = "evangeligo:vidaInterior:respondidosSemana";
+const TOTAL_PARES = PARES_VIDA_INTERIOR.length;
 
-interface EstadoRespondidoHoje {
-  chave: string;
+interface EstadoSemanal {
+  semana: string;
   parIds: string[];
 }
 
-function carregarRespondidosHoje(chaveDoDia: string): string[] {
+function carregarRespondidosSemana(chaveSemana: string): string[] {
   try {
     const bruto = localStorage.getItem(CHAVE_LS);
     if (!bruto) return [];
-    const salvo = JSON.parse(bruto) as EstadoRespondidoHoje;
-    return salvo.chave === chaveDoDia ? salvo.parIds : [];
+    const salvo = JSON.parse(bruto) as EstadoSemanal;
+    return salvo.semana === chaveSemana ? salvo.parIds : [];
   } catch {
     return [];
   }
 }
 
-function marcarRespondidoHoje(chaveDoDia: string, parId: string): string[] {
-  const atual = carregarRespondidosHoje(chaveDoDia);
+function marcarRespondidoNaSemana(
+  chaveSemana: string,
+  parId: string,
+): string[] {
+  const atual = carregarRespondidosSemana(chaveSemana);
   const atualizado = atual.includes(parId) ? atual : [...atual, parId];
   try {
     localStorage.setItem(
       CHAVE_LS,
-      JSON.stringify({ chave: chaveDoDia, parIds: atualizado }),
+      JSON.stringify({ semana: chaveSemana, parIds: atualizado }),
     );
   } catch {
-    // localStorage indisponível — o check-in pode ser perguntado de novo, sem problema grave.
+    // localStorage indisponível — o progresso semanal só não sobrevive a um refresh, sem problema grave.
   }
   return atualizado;
 }
 
 /**
- * Check-in diário de Vida Interior (Fase 5 do plano de UX, T-059/ADR-051)
- * — pedido explícito do usuário: os percentuais de Fruto do Espírito ×
- * Obra da Carne eram só decoração, sem nenhum dado real por trás. Propõe
- * 2 dos 9 pares por dia (revezando, `obterParesDoCheckinHoje`) com uma
- * pergunta rápida "o que você viveu mais hoje?" — cada resposta vira um
- * check-in real em `vida_interior_checkins`, e os percentuais mostrados
- * em `SpiritBattle` (logo abaixo, no Dashboard) passam a refletir esses
- * check-ins de verdade. Só aparece pra conta REAL (`!isDemo`) — a conta
- * demonstração não tem uma sessão de verdade pra registrar nada, e
- * continua mostrando os números fixos de `demoUser.ts`.
+ * Check-in de Vida Interior — cartão em "Destaques de hoje" que abre um
+ * MODAL de pergunta única (revisão de UX pós-T-059, ver ADR-052).
+ *
+ * Antes (T-059) isso era 2 mini-formulários soltos dentro do card "Vida
+ * Interior" do Dashboard — feedback direto do usuário: "poderia ser
+ * facilmente um modal com um form rápido... só tá mostrando 2 opções, e aí
+ * como medir o resto?". Duas mudanças respondem isso:
+ * 1. Virou modal (uma pergunta por vez, com barra de progresso e uma
+ *    explicação opcional) em vez de mini-cartões — cabe no fluxo de
+ *    "Destaques de hoje" que já existe pros outros hábitos diários.
+ * 2. A rotação trocou de sorteio por hash pra uma agenda semanal FIXA
+ *    (`vidaInterior.ts#AGENDA_SEMANAL`) que cobre os 9 pares por semana —
+ *    "quantos dos 9 você já respondeu esta semana" agora é um número
+ *    concreto, mostrado no próprio cartão, não uma sensação vaga.
+ *
+ * Conectar isso a um sistema de missões (`gamification/domain/missions.ts`)
+ * fica para quando esse sistema for ligado a contas reais (plano de
+ * Comunidade já aprovado, em fila) — fora do escopo desta revisão.
  */
 export function CheckinVidaInterior() {
   const { user, supabaseUser, updateUser } = useAuth();
   const chave = useMemo(() => obterChaveDoDia(), []);
-  const pares = useMemo(() => obterParesDoCheckinHoje(chave), [chave]);
-  const [respondidos, setRespondidos] = useState(() =>
-    carregarRespondidosHoje(chave),
+  const chaveSemana = useMemo(() => obterChaveDaSemana(chave), [chave]);
+  const paresHoje = useMemo(() => obterParesDoCheckinHoje(chave), [chave]);
+  const [respondidosSemana, setRespondidosSemana] = useState(() =>
+    carregarRespondidosSemana(chaveSemana),
   );
-  const [enviando, setEnviando] = useState<string | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [fila, setFila] = useState<typeof PARES_VIDA_INTERIOR>([]);
+  const [indice, setIndice] = useState(0);
+  const [mostrarExplicacao, setMostrarExplicacao] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [concluido, setConcluido] = useState(false);
+  const [ganhouRecompensaHoje, setGanhouRecompensaHoje] = useState(false);
 
   if (!user || user.isDemo || !supabaseUser) return null;
 
-  const pendentes = pares.filter((par) => !respondidos.includes(par.id));
+  const pendentesHoje = paresHoje.filter(
+    (par) => !respondidosSemana.includes(par.id),
+  );
+  const tudoRespondidoHoje = pendentesHoje.length === 0;
 
-  if (pendentes.length === 0) {
-    return (
-      <p className="civ-feito">
-        <FiCheckCircle aria-hidden="true" /> Check-in de hoje concluído —
-        volte amanhã para o próximo.
-      </p>
+  function abrirModal() {
+    setFila(pendentesHoje);
+    setIndice(0);
+    setMostrarExplicacao(false);
+    setErro(null);
+    setConcluido(false);
+    setGanhouRecompensaHoje(!carregarEstadoDiario(chave).concluidos.vidaInterior);
+    setModalAberto(true);
+  }
+
+  function responderTodosOsPendentes() {
+    const pendentesSemana = obterTodosOsPares().filter(
+      (par) => !respondidosSemana.includes(par.id),
     );
+    setFila(pendentesSemana);
+    setIndice(0);
+    setMostrarExplicacao(false);
   }
 
   async function responder(parId: string, escolha: EscolhaVidaInterior) {
-    setEnviando(parId);
+    setEnviando(true);
     setErro(null);
     try {
       await registrarCheckinVidaInterior(supabaseUser!.id, parId, escolha);
-      setRespondidos(marcarRespondidoHoje(chave, parId));
+      const atualizado = marcarRespondidoNaSemana(chaveSemana, parId);
+      setRespondidosSemana(atualizado);
+
       updateUser((atual) =>
         marcarDestaquePassivoVisto(
           {
@@ -103,44 +147,173 @@ export function CheckinVidaInterior() {
           RECOMPENSA_CHECKIN,
         ),
       );
+
+      if (indice + 1 >= fila.length) {
+        setConcluido(true);
+      } else {
+        setIndice((atual) => atual + 1);
+      }
+      setMostrarExplicacao(false);
     } catch {
       setErro("Não foi possível registrar agora. Tente de novo.");
     } finally {
-      setEnviando(null);
+      setEnviando(false);
     }
   }
 
+  const parAtual = fila[indice];
+
   return (
-    <div className="civ-checkin">
-      <p className="civ-titulo">Check-in de hoje: o que você viveu mais?</p>
-      {erro && <p className="civ-erro">{erro}</p>}
-      <div className="civ-pares">
-        {pendentes.map((par) => (
-          <div key={par.id} className="civ-par">
-            <p className="civ-pergunta">
-              {par.fruitLabel} ou {par.fleshLabel}?
-            </p>
-            <div className="civ-botoes">
+    <>
+      <button
+        type="button"
+        className={`destaque-card destaque-card--acao civ-card${tudoRespondidoHoje ? " destaque-card--feito" : ""}`}
+        onClick={abrirModal}
+      >
+        <p className="destaque-card-titulo">
+          <FiHeart aria-hidden="true" /> Vida Interior
+        </p>
+        <p className="destaque-card-referencia">
+          {respondidosSemana.length}/{TOTAL_PARES} pares esta semana
+        </p>
+        <span className="destaque-card-link">
+          {tudoRespondidoHoje ? "Concluído ✓" : "Fazer check-in"}
+        </span>
+      </button>
+
+      {modalAberto && (
+        <div
+          className="civ-modal-overlay"
+          onClick={() => setModalAberto(false)}
+        >
+          <div
+            className="civ-modal"
+            role="dialog"
+            aria-label="Check-in de Vida Interior"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="civ-modal-cabecalho">
+              <p className="civ-modal-titulo">
+                <FiHeart aria-hidden="true" /> Vida Interior
+              </p>
               <button
                 type="button"
-                className="civ-btn civ-btn--fruto"
-                disabled={enviando === par.id}
-                onClick={() => void responder(par.id, "fruto")}
+                className="civ-modal-fechar"
+                aria-label="Fechar"
+                onClick={() => setModalAberto(false)}
               >
-                {par.fruitLabel}
-              </button>
-              <button
-                type="button"
-                className="civ-btn civ-btn--carne"
-                disabled={enviando === par.id}
-                onClick={() => void responder(par.id, "carne")}
-              >
-                {par.fleshLabel}
+                <FiX aria-hidden="true" />
               </button>
             </div>
+
+            {concluido || !parAtual ? (
+              <div className="civ-modal-corpo civ-modal-fim">
+                <FiCheckCircle
+                  className="civ-modal-fim-icone"
+                  aria-hidden="true"
+                />
+                <p className="civ-modal-fim-texto">
+                  {fila.length > 0
+                    ? "Check-in registrado — obrigado por refletir hoje!"
+                    : "Você já respondeu os pares de hoje."}
+                </p>
+                {fila.length > 0 && ganhouRecompensaHoje && (
+                  <p className="civ-modal-fim-recompensa">
+                    +{RECOMPENSA_CHECKIN.xp} XP · +{RECOMPENSA_CHECKIN.gold}{" "}
+                    ouro
+                  </p>
+                )}
+                <p className="civ-modal-fim-progresso">
+                  {respondidosSemana.length}/{TOTAL_PARES} pares esta semana
+                </p>
+                <button
+                  type="button"
+                  className="primary-button full"
+                  onClick={() => setModalAberto(false)}
+                >
+                  Fechar
+                </button>
+              </div>
+            ) : (
+              <div className="civ-modal-corpo">
+                <div
+                  className="civ-modal-progresso"
+                  role="progressbar"
+                  aria-valuenow={indice + 1}
+                  aria-valuemin={1}
+                  aria-valuemax={fila.length}
+                >
+                  {fila.map((par, i) => (
+                    <span
+                      key={par.id}
+                      className={`civ-modal-ponto${i === indice ? " civ-modal-ponto--ativo" : ""}${i < indice ? " civ-modal-ponto--feito" : ""}`}
+                    />
+                  ))}
+                </div>
+
+                {erro && <p className="civ-erro">{erro}</p>}
+
+                <p className="civ-modal-pergunta">
+                  Hoje você viveu mais {parAtual.fruitLabel.toLowerCase()} ou{" "}
+                  {parAtual.fleshLabel.toLowerCase()}?
+                </p>
+
+                <div className="civ-modal-botoes">
+                  <button
+                    type="button"
+                    className="civ-btn civ-btn--fruto civ-btn--grande"
+                    disabled={enviando}
+                    onClick={() => void responder(parAtual.id, "fruto")}
+                  >
+                    {parAtual.fruitLabel}
+                  </button>
+                  <button
+                    type="button"
+                    className="civ-btn civ-btn--carne civ-btn--grande"
+                    disabled={enviando}
+                    onClick={() => void responder(parAtual.id, "carne")}
+                  >
+                    {parAtual.fleshLabel}
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className="civ-modal-explicacao-toggle"
+                  onClick={() => setMostrarExplicacao((atual) => !atual)}
+                >
+                  O que isso significa?{" "}
+                  {mostrarExplicacao ? (
+                    <FiChevronUp aria-hidden="true" />
+                  ) : (
+                    <FiChevronDown aria-hidden="true" />
+                  )}
+                </button>
+                {mostrarExplicacao && (
+                  <div className="civ-modal-explicacao">
+                    <p>{parAtual.explicacao}</p>
+                    <p>
+                      <strong>No dia a dia:</strong> {parAtual.exemploDoDia}
+                    </p>
+                  </div>
+                )}
+
+                {indice === 0 &&
+                  fila.length < TOTAL_PARES - respondidosSemana.length && (
+                    <button
+                      type="button"
+                      className="civ-modal-link-todos"
+                      onClick={responderTodosOsPendentes}
+                    >
+                      Responder os {TOTAL_PARES - respondidosSemana.length}{" "}
+                      pendentes desta semana agora
+                    </button>
+                  )}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }
