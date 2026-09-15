@@ -247,3 +247,11 @@
 - Decisão explícita de NÃO generalizar a tabela `vida_interior_checkins` ainda (oração não existe como feature real) — o ponto de conexão futuro com missões fica documentado, não implementado.
 - Testes atualizados/novos em `vidaInterior.test.ts` e `CheckinVidaInterior.test.tsx`. 563 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real: modal completo, recompensa creditada, progresso semanal correto, reload completo consistente. Ver ADR-052.
+
+## 2026-09-15 (rodada seguinte) — Cenários concretos + rotação por recência no check-in (T-061)
+- Feedback direto: perguntar "Bondade ou Impureza?" constrange o usuário; a agenda semanal fixa (T-060) ainda era previsível e sem ligação com recorrência.
+- Novo `data/cenariosVidaInterior.ts`: 126 cenários (9 pares × 14) — cada pergunta descreve uma situação concreta do dia a dia (ex.: fidelidade/idolatria virou "você orou ou recorreu a horóscopo?") em vez do rótulo abstrato.
+- `AGENDA_SEMANAL` fixa trocada por `obterParesDoCheckinHoje`: sorteio ponderado por recência (par sem resposta há mais tempo pesa mais), com garantia de cobertura (nunca passa 14 dias esquecido), determinístico por usuário+dia.
+- Nova `calcularSequenciaVidaInterior`: streak real ("🔥 N dias seguidos refletindo") derivado só do histórico de check-ins — não reaproveita o streak geral de RPG (esse já estava sem uso real pra contas autenticadas).
+- Testes reescritos (13 casos: determinismo, viés de recência, garantia de cobertura, streak). 567 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos; migração de índice aplicada. Conexão com missões/oração continua fora do escopo (mesma decisão do T-060).

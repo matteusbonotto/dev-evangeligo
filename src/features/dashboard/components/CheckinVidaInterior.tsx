@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FiCheckCircle,
   FiChevronDown,
@@ -11,51 +11,15 @@ import { obterChaveDoDia } from "../../daily/desafios";
 import { marcarDestaquePassivoVisto } from "../../daily/recompensa";
 import { carregarEstadoDiario } from "../../daily/persistencia";
 import {
-  obterChaveDaSemana,
-  obterParesDoCheckinHoje,
-  obterTodosOsPares,
+  carregarEstadoCheckinVidaInteriorHoje,
+  obterIndiceCenarioVidaInterior,
   registrarCheckinVidaInterior,
   type EscolhaVidaInterior,
 } from "../vidaInterior";
 import { PARES_VIDA_INTERIOR } from "../data/paresVidaInterior";
+import { CENARIOS_VIDA_INTERIOR } from "../data/cenariosVidaInterior";
 
 const RECOMPENSA_CHECKIN = { xp: 5, gold: 2 };
-const CHAVE_LS = "evangeligo:vidaInterior:respondidosSemana";
-const TOTAL_PARES = PARES_VIDA_INTERIOR.length;
-
-interface EstadoSemanal {
-  semana: string;
-  parIds: string[];
-}
-
-function carregarRespondidosSemana(chaveSemana: string): string[] {
-  try {
-    const bruto = localStorage.getItem(CHAVE_LS);
-    if (!bruto) return [];
-    const salvo = JSON.parse(bruto) as EstadoSemanal;
-    return salvo.semana === chaveSemana ? salvo.parIds : [];
-  } catch {
-    return [];
-  }
-}
-
-function marcarRespondidoNaSemana(
-  chaveSemana: string,
-  parId: string,
-): string[] {
-  const atual = carregarRespondidosSemana(chaveSemana);
-  const atualizado = atual.includes(parId) ? atual : [...atual, parId];
-  try {
-    localStorage.setItem(
-      CHAVE_LS,
-      JSON.stringify({ semana: chaveSemana, parIds: atualizado }),
-    );
-  } catch {
-    // localStorage indisponível — o progresso semanal só não sobrevive a um refresh, sem problema grave.
-  }
-  return atualizado;
-}
-
 /**
  * Check-in de Vida Interior — cartão em "Destaques de hoje" que abre um
  * MODAL de pergunta única (revisão de UX pós-T-059, ver ADR-052).
@@ -79,11 +43,10 @@ function marcarRespondidoNaSemana(
 export function CheckinVidaInterior() {
   const { user, supabaseUser, updateUser } = useAuth();
   const chave = useMemo(() => obterChaveDoDia(), []);
-  const chaveSemana = useMemo(() => obterChaveDaSemana(chave), [chave]);
-  const paresHoje = useMemo(() => obterParesDoCheckinHoje(chave), [chave]);
-  const [respondidosSemana, setRespondidosSemana] = useState(() =>
-    carregarRespondidosSemana(chaveSemana),
-  );
+  const [paresHoje, setParesHoje] = useState<typeof PARES_VIDA_INTERIOR>([]);
+  const [respondidosHoje, setRespondidosHoje] = useState<string[]>([]);
+  const [sequencia, setSequencia] = useState(0);
+  const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [fila, setFila] = useState<typeof PARES_VIDA_INTERIOR>([]);
   const [indice, setIndice] = useState(0);
@@ -93,12 +56,25 @@ export function CheckinVidaInterior() {
   const [concluido, setConcluido] = useState(false);
   const [ganhouRecompensaHoje, setGanhouRecompensaHoje] = useState(false);
 
+  useEffect(() => {
+    if (!supabaseUser || user?.isDemo) return;
+    let ativo = true;
+    void carregarEstadoCheckinVidaInteriorHoje(supabaseUser.id, chave).then((estado) => {
+      if (!ativo) return;
+      setParesHoje(estado.paresHoje);
+      setRespondidosHoje(estado.parIdsRespondidosHoje);
+      setSequencia(estado.sequencia);
+      setCarregando(false);
+    });
+    return () => { ativo = false; };
+  }, [chave, supabaseUser, user?.isDemo]);
+
   if (!user || user.isDemo || !supabaseUser) return null;
 
   const pendentesHoje = paresHoje.filter(
-    (par) => !respondidosSemana.includes(par.id),
+    (par) => !respondidosHoje.includes(par.id),
   );
-  const tudoRespondidoHoje = pendentesHoje.length === 0;
+  const tudoRespondidoHoje = !carregando && pendentesHoje.length === 0;
 
   function abrirModal() {
     setFila(pendentesHoje);
@@ -110,22 +86,14 @@ export function CheckinVidaInterior() {
     setModalAberto(true);
   }
 
-  function responderTodosOsPendentes() {
-    const pendentesSemana = obterTodosOsPares().filter(
-      (par) => !respondidosSemana.includes(par.id),
-    );
-    setFila(pendentesSemana);
-    setIndice(0);
-    setMostrarExplicacao(false);
-  }
-
   async function responder(parId: string, escolha: EscolhaVidaInterior) {
     setEnviando(true);
     setErro(null);
     try {
       await registrarCheckinVidaInterior(supabaseUser!.id, parId, escolha);
-      const atualizado = marcarRespondidoNaSemana(chaveSemana, parId);
-      setRespondidosSemana(atualizado);
+      const eraPrimeiroDoDia = respondidosHoje.length === 0;
+      setRespondidosHoje((atual) => atual.includes(parId) ? atual : [...atual, parId]);
+      if (eraPrimeiroDoDia) setSequencia((atual) => atual + 1);
 
       updateUser((atual) =>
         marcarDestaquePassivoVisto(
@@ -174,7 +142,7 @@ export function CheckinVidaInterior() {
           <FiHeart aria-hidden="true" /> Vida Interior
         </p>
         <p className="destaque-card-referencia">
-          {respondidosSemana.length}/{TOTAL_PARES} pares esta semana
+          {carregando ? "Carregando reflexão..." : `🔥 ${sequencia} ${sequencia === 1 ? "dia seguido" : "dias seguidos"} refletindo`}
         </p>
         <span className="destaque-card-link">
           {tudoRespondidoHoje ? "Concluído ✓" : "Fazer check-in"}
@@ -224,7 +192,7 @@ export function CheckinVidaInterior() {
                   </p>
                 )}
                 <p className="civ-modal-fim-progresso">
-                  {respondidosSemana.length}/{TOTAL_PARES} pares esta semana
+                  🔥 {sequencia} {sequencia === 1 ? "dia seguido refletindo" : "dias seguidos refletindo"}
                 </p>
                 <button
                   type="button"
@@ -253,29 +221,17 @@ export function CheckinVidaInterior() {
 
                 {erro && <p className="civ-erro">{erro}</p>}
 
-                <p className="civ-modal-pergunta">
-                  Hoje você viveu mais {parAtual.fruitLabel.toLowerCase()} ou{" "}
-                  {parAtual.fleshLabel.toLowerCase()}?
-                </p>
-
-                <div className="civ-modal-botoes">
-                  <button
-                    type="button"
-                    className="civ-btn civ-btn--fruto civ-btn--grande"
-                    disabled={enviando}
-                    onClick={() => void responder(parAtual.id, "fruto")}
-                  >
-                    {parAtual.fruitLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className="civ-btn civ-btn--carne civ-btn--grande"
-                    disabled={enviando}
-                    onClick={() => void responder(parAtual.id, "carne")}
-                  >
-                    {parAtual.fleshLabel}
-                  </button>
-                </div>
+                {(() => {
+                  const cenarios = CENARIOS_VIDA_INTERIOR[parAtual.id];
+                  const cenario = cenarios[obterIndiceCenarioVidaInterior(chave, supabaseUser!.id, parAtual.id, cenarios.length)];
+                  return <>
+                    <p className="civ-modal-pergunta">{cenario.pergunta}</p>
+                    <div className="civ-modal-botoes">
+                      <button type="button" className="civ-btn civ-btn--fruto civ-btn--grande" disabled={enviando} onClick={() => void responder(parAtual.id, "fruto")}>{cenario.opcaoFruto}</button>
+                      <button type="button" className="civ-btn civ-btn--carne civ-btn--grande" disabled={enviando} onClick={() => void responder(parAtual.id, "carne")}>{cenario.opcaoCarne}</button>
+                    </div>
+                  </>;
+                })()}
 
                 <button
                   type="button"
@@ -298,17 +254,6 @@ export function CheckinVidaInterior() {
                   </div>
                 )}
 
-                {indice === 0 &&
-                  fila.length < TOTAL_PARES - respondidosSemana.length && (
-                    <button
-                      type="button"
-                      className="civ-modal-link-todos"
-                      onClick={responderTodosOsPendentes}
-                    >
-                      Responder os {TOTAL_PARES - respondidosSemana.length}{" "}
-                      pendentes desta semana agora
-                    </button>
-                  )}
               </div>
             )}
           </div>

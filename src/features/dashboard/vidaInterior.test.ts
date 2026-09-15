@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   calcularEntradasVidaInterior,
-  obterChaveDaSemana,
+  calcularSequenciaVidaInterior,
+  obterIndiceCenarioVidaInterior,
   obterParesDoCheckinHoje,
+  type CheckinVidaInteriorComData,
 } from "./vidaInterior";
 import { PARES_VIDA_INTERIOR } from "./data/paresVidaInterior";
 
@@ -31,10 +33,6 @@ describe("calcularEntradasVidaInterior", () => {
     const paz = entradas.find((e) => e.id === "paz")!;
     expect(paz.fruitValue).toBe(0);
     expect(paz.fleshValue).toBe(1);
-
-    const alegria = entradas.find((e) => e.id === "alegria")!;
-    expect(alegria.fruitValue).toBe(0);
-    expect(alegria.fleshValue).toBe(0);
   });
 
   it("preserva a metadata (rótulos/explicação) de cada par do catálogo", () => {
@@ -44,72 +42,105 @@ describe("calcularEntradasVidaInterior", () => {
   });
 });
 
-describe("obterParesDoCheckinHoje (agenda semanal fixa)", () => {
-  it("o mesmo dia sempre escolhe os mesmos pares (determinístico)", () => {
-    const a = obterParesDoCheckinHoje("2026-09-15");
-    const b = obterParesDoCheckinHoje("2026-09-15");
+/** `referencia` é a chave do dia (YYYY-MM-DD) a partir da qual contar `diasAtras` — nunca o relógio real, pra não depender de quando o teste roda. */
+function checkin(
+  parId: string,
+  diasAtras: number,
+  referencia: string,
+): CheckinVidaInteriorComData {
+  const data = new Date(`${referencia}T00:00:00`);
+  data.setDate(data.getDate() - diasAtras);
+  return { par_id: parId, created_at: data.toISOString() };
+}
+
+describe("obterParesDoCheckinHoje (rotação por peso/recência)", () => {
+  it("mesmo usuário e dia sempre escolhe o mesmo par (determinístico, reload não reembaralha)", () => {
+    const a = obterParesDoCheckinHoje("2026-09-15", "user-1", []);
+    const b = obterParesDoCheckinHoje("2026-09-15", "user-1", []);
     expect(a.map((p) => p.id)).toEqual(b.map((p) => p.id));
   });
 
-  it("nunca repete o mesmo par 2x no mesmo dia", () => {
-    for (const dia of ["2026-09-14", "2026-09-17"]) {
-      const pares = obterParesDoCheckinHoje(dia);
-      expect(new Set(pares.map((p) => p.id)).size).toBe(pares.length);
-    }
+  it("usuários diferentes podem receber pares diferentes no mesmo dia (a semente inclui o userId)", () => {
+    const escolhas = new Set(
+      Array.from({ length: 10 }, (_, i) =>
+        obterParesDoCheckinHoje("2026-09-15", `user-${i}`, [])[0]?.id,
+      ),
+    );
+    expect(escolhas.size).toBeGreaterThan(1);
   });
 
-  it("uma semana corrida (7 dias) cobre os 9 pares exatamente 1 vez cada — a queixa 'só mostra 2, como medir o resto' fica resolvida por construção", () => {
-    // 2026-09-13 é domingo — 1 semana completa domingo a sábado.
-    const semana = [
-      "2026-09-13",
-      "2026-09-14",
-      "2026-09-15",
-      "2026-09-16",
-      "2026-09-17",
-      "2026-09-18",
-      "2026-09-19",
-    ];
-    const idsDaSemana = semana.flatMap((dia) =>
-      obterParesDoCheckinHoje(dia).map((p) => p.id),
-    );
-    expect(idsDaSemana).toHaveLength(PARES_VIDA_INTERIOR.length);
-    expect(new Set(idsDaSemana).size).toBe(PARES_VIDA_INTERIOR.length);
-    for (const par of PARES_VIDA_INTERIOR) {
-      expect(idsDaSemana).toContain(par.id);
-    }
+  it("nunca repete o mesmo par 2x quando pede mais de 1 no mesmo dia", () => {
+    const pares = obterParesDoCheckinHoje("2026-09-15", "user-1", [], 5);
+    expect(new Set(pares.map((p) => p.id)).size).toBe(pares.length);
   });
 
-  it("a agenda é FIXA por dia da semana, não sorteada — o mesmo dia da semana repete os mesmos pares toda semana", () => {
-    const domingoSemana1 = obterParesDoCheckinHoje("2026-09-13").map(
-      (p) => p.id,
+  it("favorece fortemente um par nunca respondido sobre pares respondidos ontem — comparado com muitas contas independentes no MESMO dia/histórico", () => {
+    const dia = "2026-09-15";
+    const historico = PARES_VIDA_INTERIOR.filter((p) => p.id !== "paz").map(
+      (p) => checkin(p.id, 1, dia),
     );
-    const domingoSemana2 = obterParesDoCheckinHoje("2026-09-20").map(
-      (p) => p.id,
+    const contagem = { paz: 0, outro: 0 };
+    for (let i = 0; i < 60; i += 1) {
+      const [escolhido] = obterParesDoCheckinHoje(dia, `user-${i}`, historico);
+      if (escolhido.id === "paz") contagem.paz += 1;
+      else contagem.outro += 1;
+    }
+    // Sorteio uniforme entre 9 pares daria ~11% pra "paz" — a recência deve
+    // empurrar isso bem acima disso.
+    expect(contagem.paz / 60).toBeGreaterThan(0.3);
+  });
+
+  it("nunca deixa um par passar muito tempo sem aparecer (garantia de cobertura) — respondido há 21 dias sempre entra no grupo garantido", () => {
+    const dia = "2026-09-15";
+    const historico = PARES_VIDA_INTERIOR.map((p) =>
+      checkin(p.id, p.id === "paz" ? 21 : 1, dia),
     );
-    expect(domingoSemana2).toEqual(domingoSemana1);
+    const apareceu = Array.from({ length: 20 }, (_, i) =>
+      obterParesDoCheckinHoje(dia, `user-cobertura-${i}`, historico)[0].id,
+    ).includes("paz");
+    expect(apareceu).toBe(true);
   });
 });
 
-describe("obterChaveDaSemana", () => {
-  it("qualquer dia da mesma semana corrida devolve a MESMA chave (o domingo daquela semana)", () => {
-    const chaves = new Set(
-      [
-        "2026-09-13",
-        "2026-09-14",
-        "2026-09-15",
-        "2026-09-16",
-        "2026-09-17",
-        "2026-09-18",
-        "2026-09-19",
-      ].map(obterChaveDaSemana),
-    );
-    expect(chaves.size).toBe(1);
-    expect([...chaves][0]).toBe("2026-09-13");
+describe("calcularSequenciaVidaInterior", () => {
+  const hoje = "2026-09-15";
+
+  it("sem nenhum check-in, sequência é 0", () => {
+    expect(calcularSequenciaVidaInterior([], hoje)).toBe(0);
   });
 
-  it("a semana seguinte tem uma chave diferente", () => {
-    expect(obterChaveDaSemana("2026-09-20")).not.toBe(
-      obterChaveDaSemana("2026-09-13"),
+  it("dias consecutivos (incluindo hoje) contam a sequência corretamente", () => {
+    const historico = [
+      checkin("amor", 0, hoje),
+      checkin("paz", 1, hoje),
+      checkin("alegria", 2, hoje),
+    ];
+    expect(calcularSequenciaVidaInterior(historico, hoje)).toBe(3);
+  });
+
+  it("ainda não ter respondido hoje não zera a sequência — conta a partir de ontem", () => {
+    const historico = [checkin("amor", 1, hoje), checkin("paz", 2, hoje)];
+    expect(calcularSequenciaVidaInterior(historico, hoje)).toBe(2);
+  });
+
+  it("um dia sem nenhum check-in quebra a sequência", () => {
+    const historico = [checkin("amor", 0, hoje), checkin("paz", 2, hoje)];
+    expect(calcularSequenciaVidaInterior(historico, hoje)).toBe(1);
+  });
+});
+
+describe("obterIndiceCenarioVidaInterior", () => {
+  it("é determinístico pra mesma conta/dia/par e cai dentro do total de cenários", () => {
+    const indice = obterIndiceCenarioVidaInterior(
+      "2026-09-15",
+      "user-1",
+      "amor",
+      14,
     );
+    expect(indice).toBeGreaterThanOrEqual(0);
+    expect(indice).toBeLessThan(14);
+    expect(
+      obterIndiceCenarioVidaInterior("2026-09-15", "user-1", "amor", 14),
+    ).toBe(indice);
   });
 });

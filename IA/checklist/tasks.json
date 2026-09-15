@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-060; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-061; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -533,6 +533,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-059"]
+    },
+    {
+      "id": "T-061",
+      "titulo": "Check-in de Vida Interior com cenários concretos + rotação por recência (substitui a agenda fixa do T-060)",
+      "descricao": "Feedback direto: perguntar diretamente 'Bondade ou Impureza?' constrange o usuário (sempre clica a opção boa) e a agenda semanal fixa do T-060 ainda era mecânica/previsível, sem ligação com recorrência. Usado 2 agentes em paralelo (Plan pra algoritmo/streak, general-purpose pra conteúdo) — o de conteúdo caiu no rate limit da sessão, mas o `cenariosVidaInterior.ts` com 126 cenários (9 pares × 14) já tinha sido gerado antes disso e ficou completo. Novo `data/cenariosVidaInterior.ts`: cada par ganha 14 situações concretas do dia a dia (ex.: fidelidade/idolatria virou 'você orou ou recorreu a horóscopo?') em vez do rótulo abstrato. `AGENDA_SEMANAL` fixa foi substituída por `obterParesDoCheckinHoje` — sorteio ponderado por recência (quanto mais tempo sem responder um par, maior o peso), com garantia de cobertura (nenhum par passa 14 dias esquecido), determinístico por usuário+dia (reload não reembaralha). Nova `calcularSequenciaVidaInterior` dá um streak real ('🔥 N dias seguidos refletindo') derivado só do histórico de check-ins, sem tocar no streak geral de RPG (esse já estava sem uso real, não fazia sentido reaproveitar). Conexão com missões/oração continua deliberadamente fora do escopo (mesma decisão do T-060).",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-060"]
     }
   ]
 }

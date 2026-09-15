@@ -36,6 +36,12 @@ interface LinhaCheckin {
   escolha: EscolhaVidaInterior;
 }
 
+/** Histórico mínimo para rotação e sequência; o check-in continua append-only. */
+export interface CheckinVidaInteriorComData {
+  par_id: string;
+  created_at: string;
+}
+
 const DIAS_JANELA = 30;
 
 /**
@@ -92,55 +98,182 @@ export async function registrarCheckinVidaInterior(
   });
 }
 
+const JANELA_ROTACAO_DIAS = 90;
+const IDADE_SEM_REGISTRO = 21;
+const LIMITE_GARANTIA_DIAS = 14;
+
+function hashTexto(texto: string): number {
+  let hash = 5381;
+  for (const caractere of texto) {
+    hash = (hash * 33 + (caractere.codePointAt(0) ?? 0)) >>> 0;
+  }
+  return hash;
+}
+
+/** PRNG estável: a mesma conta, data e histórico produzem a mesma pergunta. */
+function criarAleatorio(seed: string): () => number {
+  let estado = hashTexto(seed);
+  return () => {
+    estado += 0x6d2b79f5;
+    let t = estado;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
+  };
+}
+
+function inicioDoDia(chaveDoDia: string): Date {
+  return new Date(`${chaveDoDia}T00:00:00`);
+}
+
+function diferencaEmDias(anterior: Date, posterior: Date): number {
+  const inicioAnterior = new Date(anterior.getFullYear(), anterior.getMonth(), anterior.getDate());
+  const inicioPosterior = new Date(posterior.getFullYear(), posterior.getMonth(), posterior.getDate());
+  return Math.max(0, Math.round((inicioPosterior.getTime() - inicioAnterior.getTime()) / 86_400_000));
+}
+
 /**
- * Agenda semanal FIXA (revisão de UX pós-T-059, ver ADR-052) — trocada do
- * sorteio por hash porque não garantia cobertura: dava a impressão de
- * "aleatório" sem nunca fechar o ciclo de forma visível, e o usuário
- * reportou que perguntar só 2 dos 9 pares não parecia medir a Vida
- * Interior de verdade. Cada dia da semana (domingo=0 .. sábado=6, sempre
- * o mesmo, não varia de semana pra semana) tem 1 ou 2 pares atribuídos —
- * ao final de qualquer semana corrida, os 9 já foram perguntados
- * exatamente uma vez. "Quantos dos 9 você já respondeu esta semana" vira
- * um número concreto (calculado na UI a partir do que já foi respondido),
- * não uma sensação vaga de aleatoriedade.
+ * Escolhe um par por dia com aleatoriedade reproduzível, favorecendo os menos
+ * vistos e forçando cobertura antes que qualquer par passe 14 dias esquecido.
+ * O histórico deve excluir o dia corrente para recarregar a página nunca trocar
+ * a pergunta após uma resposta.
  */
-const AGENDA_SEMANAL: readonly number[][] = [
-  [0], // domingo — amor
-  [1, 2], // segunda — alegria, paz
-  [3], // terça — longanimidade
-  [4], // quarta — benignidade
-  [5, 6], // quinta — bondade, fidelidade
-  [7], // sexta — mansidão
-  [8], // sábado — domínio próprio
-];
-
-function paraDataUtc(chaveDoDia: string): Date {
-  return new Date(`${chaveDoDia}T00:00:00Z`);
+export function obterParesDoCheckinHoje(
+  chaveDoDia: string,
+  userId: string,
+  historico: CheckinVidaInteriorComData[],
+  quantidade = 1,
+): ParVidaInterior[] {
+  const hoje = inicioDoDia(chaveDoDia);
+  const ultimoPorPar = new Map<string, Date>();
+  for (const checkin of historico) {
+    const data = new Date(checkin.created_at);
+    if (Number.isNaN(data.getTime()) || data >= hoje) continue;
+    const anterior = ultimoPorPar.get(checkin.par_id);
+    if (!anterior || data > anterior) ultimoPorPar.set(checkin.par_id, data);
+  }
+  const candidatos = PARES_VIDA_INTERIOR.map((par) => ({
+    par,
+    idade: ultimoPorPar.has(par.id)
+      ? diferencaEmDias(ultimoPorPar.get(par.id)!, hoje)
+      : IDADE_SEM_REGISTRO,
+  }));
+  const aleatorio = criarAleatorio(`${userId}:${chaveDoDia}:vida-interior:v2`);
+  const escolhidos: ParVidaInterior[] = [];
+  while (escolhidos.length < Math.min(quantidade, candidatos.length)) {
+    const maisAtrasados = candidatos.filter((item) => item.idade >= LIMITE_GARANTIA_DIAS);
+    const grupo = maisAtrasados.length > 0 ? maisAtrasados : candidatos;
+    const pesos = grupo.map((item) => (1 + Math.min(item.idade, LIMITE_GARANTIA_DIAS)) ** 2);
+    let alvo = aleatorio() * pesos.reduce((total, peso) => total + peso, 0);
+    let indice = 0;
+    for (; indice < pesos.length - 1; indice += 1) {
+      alvo -= pesos[indice];
+      if (alvo < 0) break;
+    }
+    const [escolhido] = grupo.splice(indice, 1);
+    escolhidos.push(escolhido.par);
+    candidatos.splice(candidatos.indexOf(escolhido), 1);
+  }
+  return escolhidos;
 }
 
-/** 0 = domingo .. 6 = sábado, calculado em UTC pra nunca depender do fuso horário de quem acessa. */
-export function obterDiaDaSemana(chaveDoDia: string): number {
-  return paraDataUtc(chaveDoDia).getUTCDay();
+/** Carrega apenas o necessário para a rotação; 90 dias limitam a consulta. */
+export async function carregarParesDoCheckinHoje(
+  userId: string,
+  chaveDoDia: string,
+): Promise<ParVidaInterior[]> {
+  if (!supabaseClient) return obterParesDoCheckinHoje(chaveDoDia, userId, []);
+  try {
+    const inicio = inicioDoDia(chaveDoDia);
+    const desde = new Date(inicio);
+    desde.setDate(desde.getDate() - JANELA_ROTACAO_DIAS);
+    const { data } = await supabaseClient
+      .from("vida_interior_checkins")
+      .select("par_id, created_at")
+      .eq("user_id", userId)
+      .gte("created_at", desde.toISOString())
+      .lt("created_at", inicio.toISOString());
+    return obterParesDoCheckinHoje(
+      chaveDoDia,
+      userId,
+      (data as CheckinVidaInteriorComData[] | null) ?? [],
+    );
+  } catch {
+    return obterParesDoCheckinHoje(chaveDoDia, userId, []);
+  }
 }
 
-/**
- * Chave estável da semana ("YYYY-MM-DD" do domingo que abre a semana,
- * mesma convenção domingo-a-sábado de `AGENDA_SEMANAL`/`getUTCDay`) —
- * agrupa o progresso semanal, reseta sozinho todo domingo.
- */
-export function obterChaveDaSemana(chaveDoDia: string): string {
-  const data = paraDataUtc(chaveDoDia);
-  data.setUTCDate(data.getUTCDate() - data.getUTCDay());
-  return data.toISOString().slice(0, 10);
+export interface EstadoCheckinVidaInteriorHoje {
+  paresHoje: ParVidaInterior[];
+  parIdsRespondidosHoje: string[];
+  sequencia: number;
 }
 
-/** Os 1-2 pares atribuídos a hoje, pela agenda semanal fixa. */
-export function obterParesDoCheckinHoje(chaveDoDia: string): ParVidaInterior[] {
-  const indices = AGENDA_SEMANAL[obterDiaDaSemana(chaveDoDia)] ?? [];
-  return indices.map((indice) => PARES_VIDA_INTERIOR[indice]);
+/** Uma única leitura da fonte de verdade para rotação, proteção contra duplicata e streak. */
+export async function carregarEstadoCheckinVidaInteriorHoje(
+  userId: string,
+  chaveDoDia: string,
+): Promise<EstadoCheckinVidaInteriorHoje> {
+  if (!supabaseClient) {
+    return {
+      paresHoje: obterParesDoCheckinHoje(chaveDoDia, userId, []),
+      parIdsRespondidosHoje: [],
+      sequencia: 0,
+    };
+  }
+  try {
+    const { data } = await supabaseClient
+      .from("vida_interior_checkins")
+      .select("par_id, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    const historico = (data as CheckinVidaInteriorComData[] | null) ?? [];
+    const respondidos = [...new Set(historico.filter((item) => {
+      const data = new Date(item.created_at);
+      return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}` === chaveDoDia;
+    }).map((item) => item.par_id))];
+    return {
+      paresHoje: obterParesDoCheckinHoje(chaveDoDia, userId, historico),
+      parIdsRespondidosHoje: respondidos,
+      sequencia: calcularSequenciaVidaInterior(historico, chaveDoDia),
+    };
+  } catch {
+    return {
+      paresHoje: obterParesDoCheckinHoje(chaveDoDia, userId, []),
+      parIdsRespondidosHoje: [],
+      sequencia: 0,
+    };
+  }
 }
 
-/** Todos os 9 pares, na ordem do catálogo — usado pelo link "Responder os 9 agora". */
-export function obterTodosOsPares(): ParVidaInterior[] {
-  return PARES_VIDA_INTERIOR;
+/** Cenário também não muda em refresh; a UI só precisa indexar seu banco pelo retorno. */
+export function obterIndiceCenarioVidaInterior(
+  chaveDoDia: string,
+  userId: string,
+  parId: string,
+  totalCenarios: number,
+): number {
+  return totalCenarios > 0
+    ? hashTexto(`${userId}:${chaveDoDia}:${parId}:cenario:v1`) % totalCenarios
+    : 0;
+}
+
+/** Dias consecutivos com ao menos uma reflexão; múltiplos pares contam uma vez. */
+export function calcularSequenciaVidaInterior(
+  historico: CheckinVidaInteriorComData[],
+  chaveDoDia: string,
+): number {
+  const dias = new Set(historico.map((item) => {
+    const data = new Date(item.created_at);
+    return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+  }));
+  const cursor = inicioDoDia(chaveDoDia);
+  if (!dias.has(chaveDoDia)) cursor.setDate(cursor.getDate() - 1);
+  let sequencia = 0;
+  while (true) {
+    const chave = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
+    if (!dias.has(chave)) return sequencia;
+    sequencia += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
 }
