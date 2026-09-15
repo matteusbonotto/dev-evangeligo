@@ -83,6 +83,39 @@
   }
 }
 
+/* Filtro por nome do livro (T-052, digitação livre, separado da busca
+   livro/capítulo/versículo acima). */
+.biblia-busca-nome {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.biblia-busca-nome-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: var(--font-size-13);
+  color: var(--color-text);
+}
+
+.biblia-busca-nome-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.biblia-busca-nome-vazio {
+  margin: var(--space-16) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  text-align: center;
+}
+
 .biblia-busca-select {
   flex: 1 1 110px;
   min-width: 90px;
@@ -207,6 +240,7 @@
 }
 
 .biblia-livro-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -228,6 +262,17 @@
   text-decoration: none;
 }
 
+/* Testamento por cor (T-052/ADR-045, item 10) — mesmo azul/vermelho já
+   usados pra "cores de fala" (Deus/Jesus, ADR-032), reforça a mesma
+   linguagem visual em vez de inventar uma paleta nova. */
+.biblia-livro-card--at {
+  border-color: color-mix(in srgb, #1d4ed8 35%, var(--color-border));
+}
+
+.biblia-livro-card--nt {
+  border-color: color-mix(in srgb, var(--coracao-texto) 35%, var(--color-border));
+}
+
 .biblia-livro-nome {
   color: var(--color-text);
 }
@@ -240,6 +285,45 @@
 
 .biblia-livro-percentual--lido {
   color: var(--verde-700);
+}
+
+/* Ícone de categoria temática (lei/histórico/profético/evangelho/carta...,
+   item 11) — canto superior esquerdo, só um sinalizador, nunca esconde o
+   nome do livro. */
+.biblia-livro-categoria {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+/* Badge redondo com a sigla do livro (item 10) — canto inferior direito. */
+.biblia-livro-sigla {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #fff;
+}
+
+.biblia-livro-sigla--at {
+  background: #1d4ed8;
+}
+
+.biblia-livro-sigla--nt {
+  background: var(--coracao-texto);
 }
 
 .biblia-capitulo-grid {

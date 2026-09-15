@@ -180,3 +180,11 @@
 - 9 testes novos (`referenciasCruzadas.test.ts`). 541 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado em Chromium real (Playwright, build de produção): João 3 com 108 referências cruzadas renderizadas, clique abrindo a passagem certa, zero erros de console. Ver ADR-043.
 - **Item 1 do plano de UX do painel de leitura (soft-singing-haven.md) está completo** — as 3 fatias (T-048/T-049/T-050) publicadas em produção.
+
+## 2026-09-15 — Fase 1 do plano UX mobile-first: badges do grid, busca por nome, home autenticada (T-052)
+- `LivrosPage.tsx`: cartões de livro ganharam badge redondo com a sigla (`data/abreviacoesLivros.ts`, azul AT/vermelho NT, mesmas cores de "cores de fala") e ícone de categoria temática no canto superior esquerdo (novo `data/categoriasLivro.ts`, 7 categorias já existentes em `Grupo`).
+- Removidos o nome da tradução ativa e o aviso de licença do topo da tela (h1 virou `sr-only`); novo campo de busca por nome do livro (ignora acentuação, mensagem quando vazio) — pedidos avulsos na mesma rodada.
+- `HomePage.tsx`: usuário já autenticado (demo ou real) é redirecionado pra `/jornada` em vez de ver a landing pública sempre — outro pedido avulso da mesma rodada.
+- 5 testes novos (`LivrosPage.test.tsx` ×4, `HomePage.test.tsx` ×1). 547 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado em Chromium real (Playwright, build de produção) mobile 390px + desktop 1280px, zero erros de console. Ver ADR-045.
+- Deliberadamente não mexeu em `TopHud.tsx` (item 9) — já aceitável na verificação; a mudança de verdade pedida ali (avatar ilustrado + menu de contexto) fica pras Fases 2/3 do mesmo plano.

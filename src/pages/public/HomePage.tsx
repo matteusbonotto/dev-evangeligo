@@ -5,7 +5,7 @@ import {
   FiPlay,
   FiShield,
 } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { ROUTE_PATHS } from "../../app/routePaths";
 import { useAuth } from "../../features/authentication/context/AuthContext";
 import { BrandMark } from "../../shared/components/BrandMark";
@@ -38,7 +38,18 @@ const principles = [
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { signInDemo } = useAuth();
+  const { signInDemo, isAuthenticated, authStatus } = useAuth();
+
+  // Usuário já logado (demo ou conta real) nunca deve ver a landing page —
+  // pedido explícito do usuário: "o app deve iniciar na home [autenticada]".
+  // `authStatus === "loading"` evita mostrar a landing por um instante
+  // antes da sessão do Supabase resolver, na primeira carga da página.
+  if (authStatus === "loading") {
+    return <main className="loading-screen">Carregando...</main>;
+  }
+  if (isAuthenticated) {
+    return <Navigate to={ROUTE_PATHS.dashboard} replace />;
+  }
 
   function handleDemo() {
     signInDemo();

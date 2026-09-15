@@ -94,6 +94,60 @@ describe("LivrosPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("não mostra mais o nome da tradução nem o aviso de licença no topo (T-052)", () => {
+    renderLivrosPage();
+    expect(screen.queryByText(/Almeida/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/domínio público sob revisão de licença/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("cada cartão tem um badge com a sigla do testamento e um ícone de categoria", () => {
+    renderLivrosPage();
+    const genesis = screen.getByRole("link", { name: /Gênesis/ });
+    expect(genesis).toHaveTextContent("Gn");
+    expect(
+      genesis.querySelector('[aria-label="Lei (Torá)"]'),
+    ).toBeInTheDocument();
+
+    const mateus = screen.getByRole("link", { name: /Mateus/ });
+    expect(mateus).toHaveTextContent("Mt");
+    expect(
+      mateus.querySelector('[aria-label="Evangelho"]'),
+    ).toBeInTheDocument();
+  });
+
+  describe("filtro por nome do livro", () => {
+    it("digitar um nome estreita a grade só pros livros que combinam", () => {
+      renderLivrosPage();
+      fireEvent.change(screen.getByPlaceholderText("Filtrar livros pelo nome…"), {
+        target: { value: "gene" },
+      });
+      expect(screen.getByRole("link", { name: /Gênesis/ })).toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: /Êxodo/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("ignora acentuação (buscar 'genesis' acha 'Gênesis')", () => {
+      renderLivrosPage();
+      fireEvent.change(screen.getByPlaceholderText("Filtrar livros pelo nome…"), {
+        target: { value: "genesis" },
+      });
+      expect(screen.getByRole("link", { name: /Gênesis/ })).toBeInTheDocument();
+    });
+
+    it("mostra uma mensagem quando nenhum livro combina com a busca", () => {
+      renderLivrosPage();
+      fireEvent.change(screen.getByPlaceholderText("Filtrar livros pelo nome…"), {
+        target: { value: "zzz-nao-existe" },
+      });
+      expect(
+        screen.getByText(/Nenhum livro encontrado/),
+      ).toBeInTheDocument();
+    });
+  });
+
   describe("busca por versículo", () => {
     it("o link 'Ir' só aparece depois de escolher livro, capítulo e versículo", async () => {
       renderLivrosPage();

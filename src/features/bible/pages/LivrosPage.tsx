@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowRight,
-  FiBook,
   FiChevronDown,
   FiMusic,
   FiSearch,
@@ -15,11 +14,11 @@ import {
   getLivroByCodigo,
   getLivrosFiltrados,
 } from "../data/livros";
+import { obterAbreviacaoLivro } from "../data/abreviacoesLivros";
+import { CATEGORIAS_LIVRO } from "../data/categoriasLivro";
 import { getCapituloVersiculos } from "../dataLoader";
 import { buildCapitulosPath, buildLeituraPath } from "../routePaths";
 import { contarLivrosIniciados, obterProgressoLivro } from "../progresso";
-import { obterTraducaoPreferida } from "../traducaoPreferida";
-import { TRADUCOES_BIBLIA } from "../versoes";
 import { AppShell } from "../../../shared/components/AppShell";
 import type { FiltroLivros } from "../types";
 
@@ -29,31 +28,54 @@ import type { FiltroLivros } from "../types";
  * pedido explícito do usuário. Inclui filtros por testamento, grupo
  * temático e ordem cronológica ("filtros por tipos").
  */
+/** Remove acentos pra comparar nomes sem exigir digitar exatamente igual (ex. "genesis" acha "Gênesis"). */
+function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
 export function LivrosPage() {
   const [filtro, setFiltro] = useState<FiltroLivros>("canonico");
-  const traducaoAtiva = useMemo(() => obterTraducaoPreferida(), []);
-  const nomeTraducaoAtiva =
-    TRADUCOES_BIBLIA.find((v) => v.valor === traducaoAtiva)?.nome ?? "Bíblia";
+  const [buscaNome, setBuscaNome] = useState("");
 
   const todasOrdens = useMemo(() => LIVROS_BIBLIA.map((l) => l.order), []);
   const livrosIniciados = contarLivrosIniciados(todasOrdens);
-  const livrosFiltrados = getLivrosFiltrados(filtro);
+  const livrosDoFiltro = getLivrosFiltrados(filtro);
+  const buscaNormalizada = normalizar(buscaNome.trim());
+  const livrosFiltrados = buscaNormalizada
+    ? livrosDoFiltro.filter((livro) =>
+        normalizar(livro.nome).includes(buscaNormalizada),
+      )
+    : livrosDoFiltro;
 
   return (
     <AppShell>
       <div className="dashboard biblia-page">
         <section className="dash-card" aria-labelledby="biblia-title">
-          <p className="eyebrow">
-            <FiBook aria-hidden="true" /> Leitura da Bíblia
-          </p>
-          <h1 id="biblia-title">{nomeTraducaoAtiva}</h1>
-          <p className="biblia-fonte-aviso">
-            Texto de domínio público sob revisão de licença — conteúdo em fase
-            de validação antes de qualquer lançamento público (ver Termos de
-            Uso).
-          </p>
+          {/* Pedido do usuário: remover o nome da tradução ativa ("Almeida
+              Imprensa Bíblica" etc.) e o aviso de licença deste topo — só
+              busca e filtros ficam visíveis aqui. H1 continua existindo,
+              só que invisível (`sr-only`), pra não perder a heading da
+              página por acessibilidade. */}
+          <h1 id="biblia-title" className="sr-only">
+            Bíblia
+          </h1>
 
           <BuscaVersiculo />
+
+          <div className="biblia-busca-nome">
+            <FiSearch className="biblia-busca-icone" aria-hidden="true" />
+            <input
+              type="search"
+              className="biblia-busca-nome-input"
+              placeholder="Filtrar livros pelo nome…"
+              aria-label="Filtrar livros pelo nome"
+              value={buscaNome}
+              onChange={(event) => setBuscaNome(event.target.value)}
+            />
+          </div>
 
           <div
             className="biblia-filtros"
@@ -85,23 +107,44 @@ export function LivrosPage() {
           </div>
         </section>
 
+        {livrosFiltrados.length === 0 && (
+          <p className="biblia-busca-nome-vazio">
+            Nenhum livro encontrado para "{buscaNome.trim()}".
+          </p>
+        )}
+
         <div className="biblia-livro-grid">
           {livrosFiltrados.map((livro) => {
             const percentual = obterProgressoLivro(
               livro.order,
               livro.totalCapitulos,
             );
+            const categoria = CATEGORIAS_LIVRO[livro.grupo];
+            const CategoriaIcone = categoria.icone;
             return (
               <Link
                 key={livro.codigo}
-                className="biblia-livro-card"
+                className={`biblia-livro-card biblia-livro-card--${livro.testamento === "AT" ? "at" : "nt"}`}
                 to={buildCapitulosPath(livro.codigo)}
               >
+                <span
+                  className="biblia-livro-categoria"
+                  title={categoria.rotulo}
+                  aria-label={categoria.rotulo}
+                >
+                  <CategoriaIcone aria-hidden="true" />
+                </span>
                 <span className="biblia-livro-nome">{livro.nome}</span>
                 <span
                   className={`biblia-livro-percentual${percentual > 0 ? " biblia-livro-percentual--lido" : ""}`}
                 >
                   {percentual}%
+                </span>
+                <span
+                  className={`biblia-livro-sigla biblia-livro-sigla--${livro.testamento === "AT" ? "at" : "nt"}`}
+                  aria-hidden="true"
+                >
+                  {obterAbreviacaoLivro(livro.codigo)}
                 </span>
               </Link>
             );

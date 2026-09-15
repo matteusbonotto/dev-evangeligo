@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-044, T-046 a T-050; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -452,6 +452,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-038"]
+    },
+    {
+      "id": "T-052",
+      "titulo": "Fase 1 do plano UX mobile-first: badges do grid de livros, busca por nome, home sempre autenticada",
+      "descricao": "Cartões de LivrosPage.tsx ganharam badge redondo com a sigla do livro (azul AT / vermelho NT, mesmas cores de 'cores de fala') e ícone de categoria temática (lei/histórico/sabedoria/profético/evangelho/carta, novo data/categoriasLivro.ts). Removido o nome da tradução ativa e o aviso de licença do topo (h1 virou sr-only); novo campo de busca por nome do livro (ignora acentuação, mensagem quando vazio). HomePage.tsx redireciona pra /jornada quando já autenticado (demo ou real) em vez de sempre mostrar a landing pública. Ver ADR-045.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-050"]
     }
   ]
 }
