@@ -60,7 +60,16 @@ const TIMEOUT_MS = 7000;
 /** 2ª tentativa com timeout maior — bolls.life falha esporadicamente por lentidão, não só rede fora do ar. */
 const TIMEOUT_MS_RETRY = 12000;
 const CACHE_PREFIX = "evangeligo:biblia:original:";
-const CACHE_STRONG_PREFIX = `${CACHE_PREFIX}strong:`;
+/**
+ * Prefixo com versão (`strongV2`, não `strong`) de propósito: antes da
+ * tradução pro PT-BR (T-056), este cache já guardava definições em
+ * inglês há sessões — sem versionar a chave, quem já tinha uma palavra
+ * cacheada continuaria vendo o inglês antigo pra sempre (`lerCacheStrong`
+ * nunca refaz o fetch se já existe cache), mesmo depois do código
+ * traduzir tudo de novo. Bug real reportado pelo usuário: "a tradução...
+ * está em inglês" — a chave nova invalida o cache velho de uma vez.
+ */
+const CACHE_STRONG_PREFIX = `${CACHE_PREFIX}strongV2:`;
 const CACHE_VERSICULO_INDICE = `${CACHE_PREFIX}indiceVersiculo`;
 const CACHE_MAX_VERSICULOS = 60;
 
@@ -83,6 +92,26 @@ function removerTagsHtml(html: string): string {
     .replace(/<[^>]+>/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/**
+ * Remove o cabeçalho ("Original: <hebraico/grego> Transliteration: ...
+ * Phonetic: ... [BDB ]Definition:") e o rodapé ("Origin: ... TWOT/TDNT
+ * entry: ... Part(s) of speech: ...") da definição bruta do bolls.life
+ * antes de traduzir — achado real ao investigar por que a tradução
+ * continuava em inglês mesmo depois de integrar `api.mymemory.
+ * translated.net`: o cabeçalho tem caractere hebraico/grego misturado
+ * com rótulos em inglês, e o MyMemory simplesmente devolve o texto quase
+ * sem tradução nenhuma pra esse tipo de entrada "não natural" (testado ao
+ * vivo). Sem esse cabeçalho/rodapé — que já é redundante, pois
+ * lexema/transliteração/pronúncia aparecem em campos próprios — a
+ * tradução funciona perfeitamente. Nunca lança erro: se os marcadores não
+ * aparecem (formato inesperado), devolve o texto original sem cortar nada.
+ */
+function limparDefinicaoParaTraducao(textoCompleto: string): string {
+  const semCabecalho = textoCompleto.replace(/^.*?Definition:\s*/i, "");
+  const [semRodape] = semCabecalho.split(/\bOrigin:/i);
+  return semRodape.trim() || textoCompleto;
 }
 
 async function buscarJsonUmaVez(url: string, timeoutMs: number): Promise<unknown> {
@@ -165,9 +194,12 @@ async function obterDefinicaoStrong(
     }>;
     const primeira = dados?.[0];
     if (!primeira) return null;
+    const definicaoLimpa = limparDefinicaoParaTraducao(
+      removerTagsHtml(primeira.definition ?? ""),
+    );
     const [definicaoResumo, definicaoCompleta] = await Promise.all([
       traduzirParaPtBr(primeira.short_definition ?? ""),
-      traduzirParaPtBr(removerTagsHtml(primeira.definition ?? "")),
+      traduzirParaPtBr(definicaoLimpa),
     ]);
     const definicao: DefinicaoStrong = {
       strong,

@@ -226,3 +226,8 @@
 - Ícones: profetas `BsMegaphoneFill` → `GiFlame`; sabedoria `GiFeather` → `GiBrain`.
 - 1 teste novo fixando o comportamento de acordeão. 552 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo (Playwright, produção, mobile+desktop): painel centralizado com Fechar sempre visível, acordeão expande com rótulos corretos, ícones novos renderizando. Zero erros de console. Ver ADR-049.
+
+## 2026-09-15 (rodada seguinte) — Fix: léxico original ainda em inglês (T-058)
+- Usuário reportou que a tradução do léxico (T-056) continuava em inglês. 2 bugs reais encontrados: (1) cache de definição por Strong existia desde antes da tradução (T-040) — quem já tinha visto a palavra nunca via a versão traduzida (`lerCacheStrong` não refaz o fetch); corrigido versionando a chave (`strong:` → `strongV2:`). (2) mesmo sem cache, `mymemory.translated.net` não traduzia bem o texto bruto do bolls.life por causa do cabeçalho/rodapé com escrita hebraica/grega misturada ("Original: ... Transliteration: ... Definition: ... Origin: ..."); nova `limparDefinicaoParaTraducao` remove esse ruído (redundante — já mostrado em campos próprios) antes de traduzir.
+- 1 teste novo fixando que o texto enviado ao tradutor nunca contém esse cabeçalho/rodapé. 553 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo contra as APIs REAIS (não mockadas): definição completa de Gênesis 1:1 (בָּרָא) saiu 100% em português. Ver ADR-050.

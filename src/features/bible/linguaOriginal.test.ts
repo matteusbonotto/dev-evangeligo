@@ -108,6 +108,48 @@ describe("obterPalavrasOriginais — Antigo Testamento (hebraico, WLCa)", () => 
   });
 });
 
+describe("tradução remove o cabeçalho/rodapé em hebraico/grego antes de mandar pro tradutor", () => {
+  it("bug real: cabeçalho 'Original: <hebraico> Transliteration: ... Definition:' e rodapé 'Origin: ...' nunca vão pro texto traduzido", async () => {
+    const urlsTraduzidas: string[] = [];
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes("/get-verse/WLCa/1/1/1/")) {
+        return respostaJson({ text: "בְּרֵאשִׁית<S>7225</S>" });
+      }
+      if (url.includes("dictionary-definition/BDBT/H7225")) {
+        return respostaJson([
+          {
+            topic: "H7225",
+            lexeme: "רֵאשִׁית",
+            transliteration: "rêʼshîyth",
+            pronunciation: "ray-sheeth",
+            short_definition: "beginning",
+            definition:
+              "Original: <b><he>ראשית</he></b> Transliteration: <b>reshiyth</b> Phonetic: <b>ray-sheeth</b> BDB Definition:first, beginning Origin: from H7221 TWOT entry: 2097a Part(s) of speech: Noun Feminine",
+          },
+        ]);
+      }
+      if (url.includes("mymemory.translated.net")) {
+        urlsTraduzidas.push(url);
+        return respostaTraducao(url);
+      }
+      throw new Error(`URL inesperada: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const [{ definicao }] = await obterPalavrasOriginais(genesis, 1, 1);
+
+    const textosEnviados = urlsTraduzidas.map((url) =>
+      decodeURIComponent(new URL(url).searchParams.get("q") ?? ""),
+    );
+    expect(textosEnviados).toContain("first, beginning");
+    for (const texto of textosEnviados) {
+      expect(texto).not.toContain("Original:");
+      expect(texto).not.toContain("Origin:");
+    }
+    expect(definicao?.definicaoCompleta).toBe("[PT] first, beginning");
+  });
+});
+
 describe("obterPalavrasOriginais — Novo Testamento (grego, TISCH)", () => {
   it("extrai palavra e número de Strong (prefixo G)", async () => {
     const fetchMock = vi.fn((url: string) => {
