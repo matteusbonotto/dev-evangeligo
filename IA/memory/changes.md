@@ -158,3 +158,8 @@
 - 8 testes novos (`estadoReal.test.ts`, funções puras de mapeamento). 529 testes na suíte total.
 - **Verificado de ponta a ponta contra o projeto Supabase real**: conta de teste criada via Admin API (pré-confirmada, evitando gastar mais da cota de e-mail do projeto — uma tentativa de cadastro real bateu em `over_email_send_rate_limit` durante a investigação), login real pela UI, Dashboard carregando com nível 1/50 ouro/4 itens iniciais, compra de item debitando ouro e persistindo depois de reload completo da página, zero erros de console. Conta de teste apagada ao final.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Ver ADR-040.
+
+## 2026-09-14 (rodada seguinte) — "Ver texto original" na seleção (T-048)
+- Item 1.1 do plano de UX do painel de leitura. `PainelSignificadoOriginal` extraído de `PainelInfoVersiculo.tsx` para `src/features/bible/components/PainelSignificadoOriginal.tsx`, reaproveitado sem duplicação.
+- Novo `BalaoTextoOriginal` (mesma pasta) — popup/sheet ancorado acima da seleção, aberto por um novo botão "Ver texto original" em `MenuContextoBiblico`. Limitação real (sem mapeamento exato palavra-a-palavra com o trecho selecionado) explicada na própria UI.
+- `npm run typecheck`/`lint`/`test` (529 testes)/`build` limpos. Verificado em Chromium real (Playwright, build de produção) desktop + mobile: seleção → menu → balão com hebraico real de Gênesis 1:1 → fecha, zero erros de console. Ver ADR-041.

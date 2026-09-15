@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-044, T-046, T-047; T-045 anotada no backlog)",
+  "atualizado": "2026-09-14 (T-038 a T-044, T-046 a T-048; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -407,6 +407,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-043"]
+    },
+    {
+      "id": "T-048",
+      "titulo": "\"Ver texto original\" como balão a partir da seleção de texto",
+      "descricao": "Item 1.1 do plano de UX do painel de leitura (soft-singing-haven.md, Etapa C). Novo botão em MenuContextoBiblico (LeituraPage.tsx) abre um balão ancorado acima da seleção com as palavras do idioma original do versículo (hebraico/grego, via linguaOriginal.ts já existente). PainelSignificadoOriginal extraído de PainelInfoVersiculo.tsx para um módulo compartilhado, reaproveitado pelos dois. Limitação técnica (sem mapeamento exato palavra-a-palavra com a seleção) mostrada na UI. Ver ADR-041.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-040"]
     },
     {
       "id": "T-045",

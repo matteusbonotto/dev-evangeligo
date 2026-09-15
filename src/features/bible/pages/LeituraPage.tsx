@@ -44,6 +44,7 @@ import {
 } from "../traducaoPreferida";
 import { obterCapituloTraduzido, type CodigoTraducao } from "../traducoes";
 import { PainelInfoVersiculo } from "./PainelInfoVersiculo";
+import { BalaoTextoOriginal } from "../components/BalaoTextoOriginal";
 import { buildLeituraPath } from "../routePaths";
 import {
   aplicarMarcaTexto,
@@ -107,6 +108,14 @@ interface SelecaoAtivaState {
 /** Painel "quem fala"/"significado original" aberto ao tocar no número do versículo (T-041/T-040). */
 interface InfoVersiculoState {
   versiculo: number;
+  x: number;
+  y: number;
+}
+
+/** Balão "Ver texto original" aberto a partir do menu de seleção (T-048). */
+interface BalaoOriginalState {
+  versiculo: number;
+  modoSheet: boolean;
   x: number;
   y: number;
 }
@@ -284,6 +293,8 @@ export function LeituraPage() {
   const [infoVersiculo, setInfoVersiculo] = useState<InfoVersiculoState | null>(
     null,
   );
+  const [balaoOriginal, setBalaoOriginal] =
+    useState<BalaoOriginalState | null>(null);
   const [selecaoAtiva, setSelecaoAtiva] = useState<SelecaoAtivaState | null>(
     null,
   );
@@ -679,6 +690,18 @@ export function LeituraPage() {
       conteudo: "",
       corFundo,
     });
+  }
+
+  /** "Ver texto original" a partir do menu de seleção (T-048/ADR-041). */
+  function abrirBalaoOriginalDoMenu() {
+    if (!menuContexto) return;
+    setBalaoOriginal({
+      versiculo: menuContexto.pendente.versiculo,
+      modoSheet: menuContexto.modoSheet,
+      x: menuContexto.x,
+      y: menuContexto.y,
+    });
+    setMenuContexto(null);
   }
 
   function abrirPostit(nota: Anotacao) {
@@ -1226,6 +1249,7 @@ export function LeituraPage() {
           onAplicarCor={aplicarCorDoMenu}
           onRemoverMarcacao={removerMarcacaoDoMenu}
           onInserirNota={abrirNotaDoMenu}
+          onVerTextoOriginal={abrirBalaoOriginalDoMenu}
           onCopiarTexto={() => void copiarTextoDoMenu()}
           onSelecionarTudo={selecionarVersiculoInteiro}
           onFechar={fecharMenuContexto}
@@ -1258,6 +1282,18 @@ export function LeituraPage() {
           onFechar={() => setInfoVersiculo(null)}
         />
       )}
+
+      {balaoOriginal && (
+        <BalaoTextoOriginal
+          livro={livro}
+          capitulo={capitulo}
+          numero={balaoOriginal.versiculo}
+          modoSheet={balaoOriginal.modoSheet}
+          x={balaoOriginal.x}
+          y={balaoOriginal.y}
+          onFechar={() => setBalaoOriginal(null)}
+        />
+      )}
     </AppShell>
   );
 }
@@ -1267,6 +1303,7 @@ function MenuContextoBiblico({
   onAplicarCor,
   onRemoverMarcacao,
   onInserirNota,
+  onVerTextoOriginal,
   onCopiarTexto,
   onSelecionarTudo,
   onFechar,
@@ -1275,6 +1312,7 @@ function MenuContextoBiblico({
   onAplicarCor: (cor: CorMarcador) => void;
   onRemoverMarcacao: () => void;
   onInserirNota: () => void;
+  onVerTextoOriginal: () => void;
   onCopiarTexto: () => void;
   onSelecionarTudo: () => void;
   onFechar: () => void;
@@ -1348,6 +1386,18 @@ function MenuContextoBiblico({
               <BsStickyFill aria-hidden="true" />
             </span>
             <span className="bctx-acao-txt">Inserir nota</span>
+            <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className="bctx-acao"
+            onClick={onVerTextoOriginal}
+          >
+            <span className="bctx-acao-ico bctx-ico-original">
+              <BsTranslate aria-hidden="true" />
+            </span>
+            <span className="bctx-acao-txt">Ver texto original</span>
             <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
           </button>
 

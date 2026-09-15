@@ -972,6 +972,19 @@
   color: var(--color-text-muted);
 }
 
+/* Balão "Ver texto original" (T-048/ADR-041) — reaproveita `.bctx-popup`/
+   `.bctx-sheet`, só um pouco mais estreito que `PainelInfoVersiculo`. */
+.balao-original {
+  width: 300px;
+  max-width: calc(100vw - 24px);
+}
+
+.balao-original-aviso {
+  font-size: var(--font-size-12);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-10);
+}
+
 .linfo-chips {
   display: flex;
   flex-wrap: wrap;
