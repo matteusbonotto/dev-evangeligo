@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   BsBookHalf,
   BsChevronDown,
@@ -8,7 +8,6 @@ import {
   BsGlobe2,
   BsPencilSquare,
   BsPeopleFill,
-  BsTranslate,
   BsXLg,
 } from "react-icons/bs";
 import { obterBiografia, type Biografia } from "../data/biografias";
@@ -19,11 +18,6 @@ import {
   obterResumoWikipedia,
   type ResumoBiografico,
 } from "../biografiaExterna";
-import {
-  obterPalavrasOriginais,
-  type PalavraOriginal,
-} from "../linguaOriginal";
-import { PainelSignificadoOriginal } from "../components/PainelSignificadoOriginal";
 import type { Livro } from "../types";
 
 /**
@@ -38,7 +32,7 @@ import type { Livro } from "../types";
  * `bctx-overlay`/`bctx-popup`/`bctx-sheet` já usado por
  * `MenuContextoBiblico` em vez de um 4º padrão de modal.
  *
- * 4 seções sempre visíveis (sem abas — reorganizadas em T-049/ADR-042 a
+ * 3 seções sempre visíveis (sem abas — reorganizadas em T-049/ADR-042 a
  * partir do feedback "quero uma forma agrupada e organizada... onde
  * viveu, como morreu, filho de, fez oq, escreveu"):
  * - "Quem fala": só identidade — autor do livro (`data/autoresLivros.ts`,
@@ -59,9 +53,14 @@ import type { Livro } from "../types";
  *   continua vindo AO VIVO da Wikipédia em português
  *   (`biografiaExterna.ts`) — nunca escrito à mão aqui, pedido explícito
  *   do usuário por uma fonte externa validada.
- * - "Significado original": busca ao vivo em `bolls.life`
- *   (`linguaOriginal.ts`) as palavras em hebraico/grego do versículo, cada
- *   uma com transliteração e definição completa (léxico de Strong).
+ *
+ * A 4ª seção que existia aqui ("Significado original") foi REMOVIDA na
+ * Fase 4 do plano de UX — duplicava exatamente `BalaoTextoOriginal.tsx`
+ * (mesmo `obterPalavrasOriginais` + `PainelSignificadoOriginal`,
+ * T-048/ADR-041), e o usuário reportou isso como redundante. Quem quer o
+ * texto original vai direto no botão "Ver texto original" do menu de
+ * seleção, ou no novo atalho "Quem fala e contexto" desse mesmo menu (ver
+ * `MenuContextoBiblico` em `LeituraPage.tsx`) — que abre ESTE painel.
  */
 
 export interface PainelInfoVersiculoProps {
@@ -93,19 +92,6 @@ export function PainelInfoVersiculo({
     : undefined;
   const mostrarFalanteSeparado =
     biografiaFalante && biografiaFalante.id !== biografiaAutor?.id;
-
-  const [palavras, setPalavras] = useState<PalavraOriginal[] | null>(null);
-
-  useEffect(() => {
-    let ativo = true;
-    setPalavras(null);
-    obterPalavrasOriginais(livro, capitulo, numero).then((resultado) => {
-      if (ativo) setPalavras(resultado);
-    });
-    return () => {
-      ativo = false;
-    };
-  }, [livro, capitulo, numero]);
 
   const LARGURA_POPUP = 320;
   const MARGEM = 12;
@@ -213,13 +199,6 @@ export function PainelInfoVersiculo({
             <BiografiaExpandivel biografia={biografiaFalante} />
           </section>
         )}
-
-        <section aria-labelledby="linfo-original">
-          <p className="bctx-section-label" id="linfo-original">
-            <BsTranslate aria-hidden="true" /> Significado original
-          </p>
-          <PainelSignificadoOriginal palavras={palavras} />
-        </section>
 
         <button type="button" className="bctx-btn-fechar" onClick={onFechar}>
           <BsXLg aria-hidden="true" /> Fechar

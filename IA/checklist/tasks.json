@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-055; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-056; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -488,6 +488,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": []
+    },
+    {
+      "id": "T-056",
+      "titulo": "Fase 4 do plano de UX: painel de leitura sem redundância, léxico em PT-BR, atalho no menu de seleção",
+      "descricao": "`PainelInfoVersiculo.tsx` perde a seção 'Significado original' (duplicava exatamente `BalaoTextoOriginal.tsx`, mesma fonte `linguaOriginal.ts` — usuário reportou como redundante). `MenuContextoBiblico` ganha o botão 'Quem fala e contexto' (abre o mesmo PainelInfoVersiculo direto do menu de seleção, sem precisar fechar e tocar no número do versículo — item 8 do feedback original). `.bctx-sheet` (base do bottom sheet mobile, usado por 3 modais diferentes) não tinha `max-height`/`overflow-y` nenhum — corrigido, mais scrollbar visível (`scrollbar-width`/`-webkit-scrollbar`) nos 3 modais que rolam. `linguaOriginal.ts`: definições do léxico de Strong (antes só em inglês) traduzidas pro PT-BR via `api.mymemory.translated.net`, cacheadas junto da definição (tradução só acontece 1x por número de Strong); fetch de `bolls.life` ganhou 1 retry automático com timeout maior (7s → 12s) antes de desistir.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-052"]
     }
   ]
 }

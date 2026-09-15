@@ -209,3 +209,12 @@
 - `desafios.ts`: hash de seleção do dia trocado de soma simples de code points pra djb2 — a soma antiga variava só +1 entre datas consecutivas, fazendo o ciclo por poucos itens (9 versículos) parecer sempre no mesmo padrão em vez de embaralhado (percepção do usuário: "não está aleatório").
 - Sem testes novos (comportamento já coberto por `desafios.test.ts`, que não fixa valores de hash). 550 testes na suíte, sem mudança.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo (Playwright, build de produção, modo demonstração): texto do card na Home bate com o texto renderizado na página de leitura pro mesmo versículo. Ver T-055.
+
+## 2026-09-15 (rodada seguinte) — Fase 4 do plano de UX: painel de leitura, léxico em PT-BR (T-056)
+- `PainelInfoVersiculo.tsx` perde a seção "Significado original" — duplicava exatamente `BalaoTextoOriginal.tsx` (mesma fonte, mesmo componente), reportado como redundante. Painel fica só com Quem fala / Contexto / Biografia.
+- `MenuContextoBiblico` ganha o botão "Quem fala e contexto" — abre o mesmo painel direto do menu de seleção de texto, sem precisar tocar no número do versículo (item 8 do feedback original).
+- **Bug real de layout encontrado na auditoria**: `.bctx-sheet` (base do bottom sheet mobile, compartilhada por 3 modais) nunca teve `max-height`/`overflow-y` — corrigido na classe base, mais scrollbar visível nos 3 modais que rolam.
+- `linguaOriginal.ts`: definições do léxico de Strong (só em inglês na fonte) agora traduzidas pro PT-BR via `api.mymemory.translated.net`, cacheadas junto da definição (custo de tradução só na 1ª vez por número de Strong). `bolls.life` ganhou 1 retry automático com timeout maior (7s → 12s).
+- Testes atualizados/novos em `linguaOriginal.test.ts` e `LeituraPage.test.tsx`. 551 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo (Playwright, produção, mobile 390px + desktop 1280px): painel em bottom sheet com altura contida e botão Fechar sempre visível, zero erros de console. Ver ADR-048.
+- **Fase 4 de 7 do plano de UX concluída.**

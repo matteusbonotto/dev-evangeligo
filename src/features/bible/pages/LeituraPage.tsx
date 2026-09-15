@@ -23,6 +23,7 @@ import {
   BsPaletteFill,
   BsPatchQuestionFill,
   BsPenFill,
+  BsPeopleFill,
   BsPlayFill,
   BsPlusLg,
   BsStickyFill,
@@ -745,6 +746,22 @@ export function LeituraPage() {
     setMenuContexto(null);
   }
 
+  /**
+   * "Quem fala e contexto" a partir do menu de seleção (Fase 4 do plano de
+   * UX, item 8 do feedback original: "biografia do autor etc. também
+   * acessível a partir do menu de seleção de texto"). Abre o MESMO painel
+   * já aberto ao tocar no número do versículo — não duplica nada.
+   */
+  function abrirInfoVersiculoDoMenu() {
+    if (!menuContexto) return;
+    setInfoVersiculo({
+      versiculo: menuContexto.pendente.versiculo,
+      x: menuContexto.x,
+      y: menuContexto.y,
+    });
+    setMenuContexto(null);
+  }
+
   function abrirPostit(nota: Anotacao) {
     setMenuContexto(null);
     setPostit({
@@ -1116,8 +1133,8 @@ export function LeituraPage() {
 
               <p className="biblia-dica-selecao">
                 Toque em qualquer palavra · arraste os pinos · pressione OK.
-                Toque no número do versículo para ver quem fala e o significado
-                original.
+                Toque no número do versículo para ver quem fala e o contexto;
+                selecione um trecho para ver o texto original.
               </p>
             </>
           )}
@@ -1310,6 +1327,7 @@ export function LeituraPage() {
           onRemoverMarcacao={removerMarcacaoDoMenu}
           onInserirNota={abrirNotaDoMenu}
           onVerTextoOriginal={abrirBalaoOriginalDoMenu}
+          onVerQuemFala={abrirInfoVersiculoDoMenu}
           onCopiarTexto={() => void copiarTextoDoMenu()}
           onSelecionarTudo={selecionarVersiculoInteiro}
           onFechar={fecharMenuContexto}
@@ -1371,6 +1389,7 @@ function MenuContextoBiblico({
   onRemoverMarcacao,
   onInserirNota,
   onVerTextoOriginal,
+  onVerQuemFala,
   onCopiarTexto,
   onSelecionarTudo,
   onFechar,
@@ -1380,6 +1399,7 @@ function MenuContextoBiblico({
   onRemoverMarcacao: () => void;
   onInserirNota: () => void;
   onVerTextoOriginal: () => void;
+  onVerQuemFala: () => void;
   onCopiarTexto: () => void;
   onSelecionarTudo: () => void;
   onFechar: () => void;
@@ -1465,6 +1485,14 @@ function MenuContextoBiblico({
               <BsTranslate aria-hidden="true" />
             </span>
             <span className="bctx-acao-txt">Ver texto original</span>
+            <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
+          </button>
+
+          <button type="button" className="bctx-acao" onClick={onVerQuemFala}>
+            <span className="bctx-acao-ico bctx-ico-quemfala">
+              <BsPeopleFill aria-hidden="true" />
+            </span>
+            <span className="bctx-acao-txt">Quem fala e contexto</span>
             <BsChevronRight className="bctx-acao-seta" aria-hidden="true" />
           </button>
 

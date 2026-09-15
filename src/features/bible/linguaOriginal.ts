@@ -26,6 +26,14 @@ import type { Livro } from "./types";
  * palavra original não é confiável (traduções reordenam e reformulam a
  * frase) — em vez disso, mostra-se todo o versículo no idioma original,
  * palavra por palavra, para a pessoa encontrar a que procura.
+ *
+ * Definições traduzidas pro PT-BR (Fase 4 do plano de UX, item 2/7 do
+ * feedback: "os significados... devem estar em português, não em
+ * inglês") via `api.mymemory.translated.net` — gratuita, sem chave,
+ * testada ao vivo antes de usar. Falha de tradução nunca quebra a tela:
+ * devolve o texto original em inglês em vez de lançar erro. Traduzido
+ * uma vez e cacheado junto da definição (Strong nunca muda), então o
+ * custo de tradução só existe na primeira vez que cada número aparece.
  */
 
 export interface DefinicaoStrong {
@@ -47,7 +55,10 @@ export interface PalavraOriginal {
 }
 
 const URL_BOLLS = "https://bolls.life";
+const URL_MYMEMORY = "https://api.mymemory.translated.net/get";
 const TIMEOUT_MS = 7000;
+/** 2ª tentativa com timeout maior — bolls.life falha esporadicamente por lentidão, não só rede fora do ar. */
+const TIMEOUT_MS_RETRY = 12000;
 const CACHE_PREFIX = "evangeligo:biblia:original:";
 const CACHE_STRONG_PREFIX = `${CACHE_PREFIX}strong:`;
 const CACHE_VERSICULO_INDICE = `${CACHE_PREFIX}indiceVersiculo`;
@@ -74,9 +85,9 @@ function removerTagsHtml(html: string): string {
     .trim();
 }
 
-async function buscarJson(url: string): Promise<unknown> {
+async function buscarJsonUmaVez(url: string, timeoutMs: number): Promise<unknown> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const resposta = await fetch(url, {
       signal: controller.signal,
@@ -86,6 +97,31 @@ async function buscarJson(url: string): Promise<unknown> {
     return await resposta.json();
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+/** 1 nova tentativa com timeout maior antes de desistir — só lança erro se as duas falharem. */
+async function buscarJson(url: string): Promise<unknown> {
+  try {
+    return await buscarJsonUmaVez(url, TIMEOUT_MS);
+  } catch {
+    return buscarJsonUmaVez(url, TIMEOUT_MS_RETRY);
+  }
+}
+
+/** Traduz um texto curto do inglês pro português — nunca lança erro: falha vira o texto original em inglês. */
+async function traduzirParaPtBr(textoIngles: string): Promise<string> {
+  const texto = textoIngles.trim();
+  if (!texto) return texto;
+  try {
+    const url = `${URL_MYMEMORY}?q=${encodeURIComponent(texto.slice(0, 480))}&langpair=en|pt-BR`;
+    const dados = (await buscarJson(url)) as {
+      responseData?: { translatedText?: string };
+    };
+    const traduzido = dados?.responseData?.translatedText?.trim();
+    return traduzido || texto;
+  } catch {
+    return texto;
   }
 }
 
@@ -129,13 +165,17 @@ async function obterDefinicaoStrong(
     }>;
     const primeira = dados?.[0];
     if (!primeira) return null;
+    const [definicaoResumo, definicaoCompleta] = await Promise.all([
+      traduzirParaPtBr(primeira.short_definition ?? ""),
+      traduzirParaPtBr(removerTagsHtml(primeira.definition ?? "")),
+    ]);
     const definicao: DefinicaoStrong = {
       strong,
       lexema: primeira.lexeme ?? "",
       transliteracao: primeira.transliteration ?? "",
       pronuncia: primeira.pronunciation ?? "",
-      definicaoResumo: primeira.short_definition ?? "",
-      definicaoCompleta: removerTagsHtml(primeira.definition ?? ""),
+      definicaoResumo,
+      definicaoCompleta,
     };
     salvarCacheStrong(definicao);
     return definicao;

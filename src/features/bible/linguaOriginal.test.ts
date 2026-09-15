@@ -24,6 +24,12 @@ function respostaJson(corpo: unknown, ok = true) {
   return Promise.resolve({ ok, json: () => Promise.resolve(corpo) });
 }
 
+/** Mock da tradução: devolve o texto original prefixado, só pra provar que passou pela tradução. */
+function respostaTraducao(url: string) {
+  const q = decodeURIComponent(new URL(url).searchParams.get("q") ?? "");
+  return respostaJson({ responseData: { translatedText: `[PT] ${q}` } });
+}
+
 beforeEach(() => {
   localStorage.clear();
 });
@@ -65,6 +71,9 @@ describe("obterPalavrasOriginais — Antigo Testamento (hebraico, WLCa)", () => 
           },
         ]);
       }
+      if (url.includes("mymemory.translated.net")) {
+        return respostaTraducao(url);
+      }
       throw new Error(`URL inesperada: ${url}`);
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -79,8 +88,8 @@ describe("obterPalavrasOriginais — Antigo Testamento (hebraico, WLCa)", () => 
           lexema: "רֵאשִׁית",
           transliteracao: "rêʼshîyth",
           pronuncia: "ray-sheeth",
-          definicaoResumo: "beginning",
-          definicaoCompleta: "first, beginning",
+          definicaoResumo: "[PT] beginning",
+          definicaoCompleta: "[PT] first, beginning",
         },
       },
       {
@@ -91,8 +100,8 @@ describe("obterPalavrasOriginais — Antigo Testamento (hebraico, WLCa)", () => 
           lexema: "בָּרָא",
           transliteracao: "bârâʼ",
           pronuncia: "baw-raw",
-          definicaoResumo: "create",
-          definicaoCompleta: "to create",
+          definicaoResumo: "[PT] create",
+          definicaoCompleta: "[PT] to create",
         },
       },
     ]);
@@ -105,6 +114,9 @@ describe("obterPalavrasOriginais — Novo Testamento (grego, TISCH)", () => {
       if (url.includes("/get-verse/TISCH/43/3/16/")) {
         expect(url).toBe("https://bolls.life/get-verse/TISCH/43/3/16/");
         return respostaJson({ text: "οὕτως<S>3779</S> γὰρ<S>1063</S>" });
+      }
+      if (url.includes("mymemory.translated.net")) {
+        return respostaTraducao(url);
       }
       return respostaJson([
         {

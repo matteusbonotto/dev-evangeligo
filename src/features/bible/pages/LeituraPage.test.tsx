@@ -108,10 +108,30 @@ describe("LeituraPage", () => {
     expect(within(menu).getByText("Verde")).toBeInTheDocument();
     expect(within(menu).getByText("Azul")).toBeInTheDocument();
     expect(within(menu).getByText("Inserir nota")).toBeInTheDocument();
+    expect(within(menu).getByText("Ver texto original")).toBeInTheDocument();
+    expect(
+      within(menu).getByText("Quem fala e contexto"),
+    ).toBeInTheDocument();
     expect(within(menu).getByText("Copiar texto")).toBeInTheDocument();
     expect(
       within(menu).queryByText("Remover marcação"),
     ).not.toBeInTheDocument();
+  });
+
+  it("'Quem fala e contexto' no menu de seleção abre o mesmo painel do toque no número (Fase 4 do plano de UX)", async () => {
+    renderLeituraPage("/biblia/jhn/1");
+    await screen.findByText(/No princípio era o Verbo\./);
+    selecionarPalavraNoVersiculo(1, 0); // "No"
+
+    fireEvent.click(screen.getByText("Quem fala e contexto"));
+
+    expect(
+      screen.queryByRole("dialog", { name: "Marcar trecho selecionado" }),
+    ).not.toBeInTheDocument();
+    const painel = screen.getByRole("dialog", {
+      name: "Informações do versículo 1",
+    });
+    expect(within(painel).getByText(/João \(o apóstolo/)).toBeInTheDocument();
   });
 
   it("tocar numa palavra mostra a barra Cancelar/Tudo/OK antes de abrir o menu", async () => {
@@ -435,7 +455,7 @@ describe("LeituraPage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("tocar no número do versículo abre o painel com o autor do livro e o significado original", async () => {
+  it("tocar no número do versículo abre o painel com o autor do livro (sem 'significado original', removido por ser redundante com o balão de seleção)", async () => {
     renderLeituraPage("/biblia/jhn/1");
     await screen.findByText(/No princípio era o Verbo\./);
 
@@ -448,13 +468,8 @@ describe("LeituraPage", () => {
     });
     expect(within(painel).getByText(/João \(o apóstolo/)).toBeInTheDocument();
     expect(
-      within(painel).getByText(/Significado original/),
-    ).toBeInTheDocument();
-    expect(
-      await within(painel).findByText(
-        /Não foi possível carregar o texto original/,
-      ),
-    ).toBeInTheDocument();
+      within(painel).queryByText(/Significado original/),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(within(painel).getByRole("button", { name: "Fechar" }));
     expect(
@@ -471,8 +486,9 @@ describe("LeituraPage", () => {
     );
 
     expect(document.querySelector(".biblia-pin")).not.toBeInTheDocument();
-    // Espera o fetch assíncrono do painel assentar antes do teste terminar.
-    await screen.findByText(/Não foi possível carregar o texto original/);
+    expect(
+      screen.getByRole("dialog", { name: "Informações do versículo 1" }),
+    ).toBeInTheDocument();
   });
 
   it("o botão Narrar fica desabilitado quando o navegador não suporta síntese de voz", async () => {

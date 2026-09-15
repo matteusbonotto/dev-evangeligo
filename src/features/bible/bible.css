@@ -813,8 +813,38 @@
   right: 0;
   bottom: 0;
   top: auto !important;
+  /* Sem isso, um sheet com conteúdo grande (menu de seleção com "Quem fala
+     e contexto", biografia expandida, etc.) crescia sem limite no mobile —
+     ficava cortado pela borda da tela sem nenhuma forma de rolar até o
+     botão "Fechar". Reportado pelo usuário como "modal mobile feio, sem
+     scrollbar" (item 1 do feedback original). */
+  max-height: min(80vh, calc(100vh - 24px));
+  overflow-y: auto;
   border-radius: 20px 20px 0 0;
   padding-bottom: calc(var(--space-16) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Barra de rolagem sempre visível (fina, discreta) nos 3 modais que
+   rolam — sem isso o overlay padrão do navegador fica invisível até o
+   toque no mobile, e a pessoa não percebe que dá pra rolar mais. */
+.bctx-popup,
+.bctx-sheet,
+.linfo-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.bctx-popup::-webkit-scrollbar,
+.bctx-sheet::-webkit-scrollbar,
+.linfo-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bctx-popup::-webkit-scrollbar-thumb,
+.bctx-sheet::-webkit-scrollbar-thumb,
+.linfo-container::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
 }
 
 .bctx-handle {
