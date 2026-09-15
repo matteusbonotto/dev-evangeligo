@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-043)",
+  "atualizado": "2026-09-14 (T-038 a T-044)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -389,6 +389,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-005", "T-006", "T-016"]
+    },
+    {
+      "id": "T-044",
+      "titulo": "Corrigir cadastro/login não funcionando em produção (CI sem credenciais Supabase)",
+      "descricao": "`.github/workflows/deploy-pages.yml` nunca passava `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` para o passo de build — `.env.local` é gitignored (correto), então o build do GitHub Pages sempre rodava com `isSupabaseConfigured = false`, fazendo cadastro/login por e-mail e Google falharem sempre em produção (só funcionava em localhost). Corrigido registrando as duas variáveis como secrets do repositório (`gh secret set`, valores lidos de `.env.local`, nunca impressos) e referenciando-as via `env:` no passo \"Build\" do workflow. `VITE_SUPABASE_ANON_KEY` é a chave pública/publishable (protegida por RLS, já embutida no bundle do frontend de qualquer forma) — guardá-la como secret do GitHub é higiene de não hardcodar no YAML versionado, não sigilo real.",
+      "agente": "backend-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-043"]
     }
   ]
 }
