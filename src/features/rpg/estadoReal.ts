@@ -12,6 +12,8 @@ import {
   type DemoUser,
   type InventoryItem,
 } from "../authentication/demo/demoUser";
+import { CONFIG_AVATAR_PADRAO, montarUrlAvatar } from "../avatar/avatarUrl";
+import type { AvatarConfig } from "../avatar/types";
 
 /**
  * Ponte entre uma conta REAL do Supabase e o formato `DemoUser` que
@@ -146,9 +148,16 @@ export function montarConquistas(linhas: LinhaConquista[]) {
  * aqui. Nunca lança — em caso de falha de rede, devolve um estado inicial
  * em memória (não persistido) pra não travar o Dashboard.
  */
+export interface PerfilBasico {
+  nome: string;
+  sobrenome: string;
+  /** `null` até a pessoa customizar o avatar pela 1ª vez (T-053/ADR-046). */
+  avatar_config: AvatarConfig | null;
+}
+
 export async function carregarOuCriarEstadoReal(
   supabaseUser: User,
-  perfil: { nome: string; sobrenome: string } | null,
+  perfil: PerfilBasico | null,
 ): Promise<DemoUser> {
   const nomeCompleto = perfil
     ? [perfil.nome, perfil.sobrenome].filter(Boolean).join(" ")
@@ -163,6 +172,7 @@ export async function carregarOuCriarEstadoReal(
     name: nomeExibicao,
     email: supabaseUser.email ?? "",
     avatarInitial: nomeExibicao.charAt(0).toUpperCase() || "P",
+    avatarConfig: perfil?.avatar_config ?? CONFIG_AVATAR_PADRAO,
     isDemo: false,
     level: 1,
     xp: 0,
@@ -285,6 +295,22 @@ export async function persistirEstadoRpgReal(
       streak_days: proximo.streakDays,
       best_streak: proximo.bestStreak,
     });
+
+    // Avatar (T-053/ADR-046) — só grava de novo se realmente mudou, pra não
+    // fazer um UPDATE de profiles a cada compra/equipar (que nunca mexe no
+    // avatar).
+    if (
+      JSON.stringify(anterior?.avatarConfig) !==
+      JSON.stringify(proximo.avatarConfig)
+    ) {
+      await supabaseClient
+        .from("profiles")
+        .update({
+          avatar_config: proximo.avatarConfig,
+          avatar_url: montarUrlAvatar(proximo.avatarConfig),
+        })
+        .eq("id", userId);
+    }
 
     await supabaseClient.from("rpg_inventario").delete().eq("user_id", userId);
     if (proximo.inventory.length > 0) {

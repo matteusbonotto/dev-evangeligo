@@ -25,6 +25,7 @@ import {
 import {
   carregarOuCriarEstadoReal,
   persistirEstadoRpgReal,
+  type PerfilBasico,
 } from "../../rpg/estadoReal";
 
 /**
@@ -215,11 +216,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     Promise.resolve(
       supabaseClient
         .from("profiles")
-        .select("nome, sobrenome")
+        .select("nome, sobrenome, avatar_config")
         .eq("id", supaUser.id)
         .maybeSingle(),
     )
-      .then(({ data }) => (data as { nome: string; sobrenome: string } | null))
+      .then(({ data }) => (data as PerfilBasico | null))
       .catch(() => null)
       .then((perfil) => carregarOuCriarEstadoReal(supaUser, perfil))
       .then((real) => {
@@ -254,6 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           armor: proximo.armor,
           achievements: proximo.achievements,
           effects: proximo.effects,
+          avatarConfig: proximo.avatarConfig,
         });
       } else {
         void persistirEstadoRpgReal(proximo.id, user, proximo);

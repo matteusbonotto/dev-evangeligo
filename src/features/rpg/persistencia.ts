@@ -4,15 +4,17 @@ import type {
   ArmorSlot,
   InventoryItem,
 } from "../authentication/demo/demoUser";
+import type { AvatarConfig } from "../avatar/types";
 
 const CHAVE = "evangeligo:rpg:estado";
 
 /**
  * Fatia mutável do `DemoUser` que este módulo controla (loja/armadura/
- * inventário/conquistas/nível) — persistida em `localStorage` pra
+ * inventário/conquistas/nível/avatar) — persistida em `localStorage` pra
  * sobreviver a um recarregamento de página, mesmo padrão já usado por
- * `marcacoes.ts`/`avatarConfig.ts` nesta fase do projeto (sem backend
- * próprio pra gamificação ainda).
+ * `marcacoes.ts` nesta fase do projeto (sem backend próprio pra
+ * gamificação de demonstração — contas reais usam `rpg/estadoReal.ts`,
+ * T-047/T-053).
  */
 export interface EstadoRpgPersistido {
   level: number;
@@ -23,6 +25,7 @@ export interface EstadoRpgPersistido {
   armor: ArmorSlot[];
   achievements: Achievement[];
   effects: ActiveEffect[];
+  avatarConfig: AvatarConfig;
 }
 
 export function carregarEstadoRpg(): EstadoRpgPersistido | null {

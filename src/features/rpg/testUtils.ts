@@ -1,4 +1,5 @@
 import type { DemoUser } from "../authentication/demo/demoUser";
+import { CONFIG_AVATAR_PADRAO } from "../avatar/avatarUrl";
 
 /**
  * Fábrica de um `DemoUser` mínimo pros testes do RPG — deliberadamente SEM
@@ -12,6 +13,7 @@ export function criarUsuarioDeTeste(overrides: Partial<DemoUser> = {}): DemoUser
     name: "Teste",
     email: "teste@evangeligo.app",
     avatarInitial: "T",
+    avatarConfig: CONFIG_AVATAR_PADRAO,
     level: 1,
     xp: 0,
     xpToNextLevel: 100,

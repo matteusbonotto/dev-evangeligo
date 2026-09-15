@@ -188,3 +188,11 @@
 - 5 testes novos (`LivrosPage.test.tsx` ×4, `HomePage.test.tsx` ×1). 547 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado em Chromium real (Playwright, build de produção) mobile 390px + desktop 1280px, zero erros de console. Ver ADR-045.
 - Deliberadamente não mexeu em `TopHud.tsx` (item 9) — já aceitável na verificação; a mudança de verdade pedida ali (avatar ilustrado + menu de contexto) fica pras Fases 2/3 do mesmo plano.
+
+## 2026-09-15 (rodada seguinte) — Avatar ilustrado real, persiste no Supabase (T-053)
+- `profiles.avatar_config jsonb` novo (`avatar_url text` já existia, nunca usado). `DemoUser` ganhou `avatarConfig`, persistido pelo MESMO canal único (`AuthContext.updateUser`) que já persiste RPG/inventário/armadura — demo em `localStorage`, conta real em `profiles`.
+- `avatar/avatarConfig.ts` (módulo antigo, só `localStorage`, sem uso real após a migração) deletado por completo, junto com seu teste próprio. `AvatarEditorPage.tsx`/`AvatarRPG.tsx` agora leem/escrevem `user.avatarConfig`/`updateUser`.
+- `TopHud.tsx`: a letra (`avatarInitial`) virou a imagem ilustrada de verdade — resolve os itens 4 e 5 do feedback original (mesmo gap).
+- **Bug real de corrida encontrado e corrigido durante a verificação ao vivo**: `AvatarEditorPage.tsx` reproduziu o mesmo bug já corrigido em T-047 (redirecionar pra home antes do `user` real carregar) — corrigido com o mesmo padrão de tela de carregamento. Varredura confirmou nenhuma outra rota tem o gap.
+- `AvatarEditorPage.test.tsx` reescrito (agora entra em modo demonstração antes de renderizar); `rpg/testUtils.ts` ganhou `avatarConfig`. 543 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real (Admin API, pré-confirmada, apagada ao final): trocar cabelo → reload completo da página → escolha preservada, avatar aparecendo no anel do Dashboard E no TopHud. Ver ADR-046.

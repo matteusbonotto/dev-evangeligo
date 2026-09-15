@@ -1,3 +1,6 @@
+import { CONFIG_AVATAR_PADRAO } from "../../avatar/avatarUrl";
+import type { AvatarConfig } from "../../avatar/types";
+
 export type Rarity = "comum" | "raro" | "epico" | "lendario";
 
 export interface Achievement {
@@ -65,6 +68,8 @@ export interface DemoUser {
   name: string;
   email: string;
   avatarInitial: string;
+  /** Configuração do avatar ilustrado (T-053/ADR-046) — mesmo formato usado pelo editor (`avatar/types.ts`). */
+  avatarConfig: AvatarConfig;
   level: number;
   xp: number;
   xpToNextLevel: number;
@@ -91,6 +96,7 @@ export const demoUser: DemoUser = {
   name: "Visitante",
   email: "demo@evangeligo.app",
   avatarInitial: "V",
+  avatarConfig: CONFIG_AVATAR_PADRAO,
   level: 7,
   xp: 1240,
   xpToNextLevel: 1500,

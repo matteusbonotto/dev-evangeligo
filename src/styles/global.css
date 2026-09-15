@@ -720,22 +720,16 @@ textarea:focus-visible,
   justify-content: flex-end;
 }
 
-.avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--verde-600);
-  color: var(--branco);
-  font-weight: 800;
-}
-
-.avatar--sm {
+/* Avatar ilustrado na barra de topo (T-053/ADR-046) — antes era uma letra
+   (`.avatar`/`.avatar--sm`), removidas por ficarem sem uso depois que o
+   avatar de verdade passou a aparecer aqui também (itens 4/5 do feedback). */
+.top-hud-avatar-img {
   width: 30px;
   height: 30px;
-  font-size: var(--font-size-13);
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--verde-100);
+  border: 1px solid var(--color-border);
 }
 
 /* --- App Shell: HUD superior + navegação inferior persistentes (ADR-018) --- */

@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052, T-053; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -461,6 +461,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-050"]
+    },
+    {
+      "id": "T-053",
+      "titulo": "Avatar ilustrado real: persiste no Supabase e aparece em toda a experiência",
+      "descricao": "Fase 2 do plano de UX (itens 4/5/6). profiles.avatar_config jsonb novo (avatar_url já existia, nunca usado). DemoUser ganhou avatarConfig, persistido pelo mesmo canal único (AuthContext.updateUser) que já persiste RPG — demo em localStorage, conta real em profiles. avatar/avatarConfig.ts (código morto após a migração) deletado por completo. TopHud.tsx troca a letra pela imagem ilustrada de verdade. Bug real de corrida (mesmo padrão de T-047) encontrado e corrigido em AvatarEditorPage.tsx durante a verificação ao vivo. Ver ADR-046.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-047"]
     }
   ]
 }

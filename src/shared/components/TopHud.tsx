@@ -1,5 +1,6 @@
 import { FiDollarSign, FiHeart, FiLogOut, FiZap } from "react-icons/fi";
 import type { DemoUser } from "../../features/authentication/demo/demoUser";
+import { montarUrlAvatar } from "../../features/avatar/avatarUrl";
 
 /**
  * Barra de status persistente (T-011/T-012, feedback do usuário: "sinto
@@ -57,7 +58,11 @@ export function TopHud({
 
         <div className="top-hud-user">
           {user.isDemo && <span className="demo-badge">Demonstração</span>}
-          <span className="avatar avatar--sm">{user.avatarInitial}</span>
+          <img
+            className="top-hud-avatar-img"
+            src={montarUrlAvatar(user.avatarConfig)}
+            alt={`Avatar de ${user.name}`}
+          />
           <button
             className="icon-button"
             type="button"

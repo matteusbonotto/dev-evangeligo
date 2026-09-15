@@ -2,7 +2,6 @@ import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
 import type { ArmorSlot, DemoUser } from "../../authentication/demo/demoUser";
-import { obterConfigAvatar } from "../../avatar/avatarConfig";
 import { montarUrlAvatar } from "../../avatar/avatarUrl";
 import { ROUTE_PATHS } from "../../../app/routePaths";
 import { raridadeDoConjuntoCompleto } from "../../rpg/bonus";
@@ -121,7 +120,7 @@ export function AvatarRPG({ user, onSelecionarSlot }: AvatarRPGProps) {
         <div className="hud-avatar" aria-label={`Avatar de ${user.name}`}>
           <img
             className="hud-avatar-img"
-            src={montarUrlAvatar(obterConfigAvatar())}
+            src={montarUrlAvatar(user.avatarConfig)}
             alt=""
           />
           <span className="hud-level" aria-label={`Nível ${user.level}`}>

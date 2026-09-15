@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { FiArrowLeft, FiUser } from "react-icons/fi";
 import "../avatar.css";
 import {
@@ -7,40 +6,56 @@ import {
   FUNDOS_AVATAR,
   getFundoByValor,
 } from "../data/opcoesAvatar";
-import { obterConfigAvatar, salvarConfigAvatar } from "../avatarConfig";
 import { montarUrlAvatar } from "../avatarUrl";
 import { AppShell } from "../../../shared/components/AppShell";
 import { ROUTE_PATHS } from "../../../app/routePaths";
+import { useAuth } from "../../authentication/context/AuthContext";
 import type { AvatarConfig } from "../types";
 
 /**
  * Criação/edição de personagem (T-033) — pedido explícito do usuário,
  * comparando com o app legado. Usa a mesma biblioteca do legado
  * ("Avataaars", `avatarUrl.ts`) e as mesmas categorias
- * (`data/opcoesAvatar.ts`). Salva a cada escolha (`avatarConfig.ts`,
- * localStorage) — ver limitação de persistência no cabeçalho daquele
- * arquivo.
+ * (`data/opcoesAvatar.ts`). Salva a cada escolha via `updateUser`
+ * (T-053/ADR-046) — o MESMO canal que já persiste RPG/inventário/
+ * armadura, então demo vira `localStorage` e conta real vira
+ * `profiles.avatar_config`/`avatar_url` automaticamente, sem lógica
+ * própria de persistência aqui.
  */
 export function AvatarEditorPage() {
-  const [config, setConfig] = useState<AvatarConfig>(() => obterConfigAvatar());
+  const { user, authStatus, updateUser } = useAuth();
+
+  if (!user) {
+    // Conta real ainda carregando o estado (T-047/T-053) — não redirecionar
+    // antes da busca terminar (senão um F5/navegação direta pra cá manda a
+    // pessoa de volta pra home antes do `user` existir).
+    if (authStatus === "authenticated") {
+      return (
+        <AppShell>
+          <main className="loading-screen">Carregando...</main>
+        </AppShell>
+      );
+    }
+    return <Navigate to={ROUTE_PATHS.home} replace />;
+  }
+
+  const config = user.avatarConfig;
 
   function handleEscolher(
     campo: keyof Omit<AvatarConfig, "fundo">,
     valor: string,
   ) {
-    setConfig((atual) => {
-      const proximo = { ...atual, [campo]: valor };
-      salvarConfigAvatar(proximo);
-      return proximo;
-    });
+    updateUser((atual) => ({
+      ...atual,
+      avatarConfig: { ...atual.avatarConfig, [campo]: valor },
+    }));
   }
 
   function handleEscolherFundo(valor: string) {
-    setConfig((atual) => {
-      const proximo = { ...atual, fundo: valor };
-      salvarConfigAvatar(proximo);
-      return proximo;
-    });
+    updateUser((atual) => ({
+      ...atual,
+      avatarConfig: { ...atual.avatarConfig, fundo: valor },
+    }));
   }
 
   const fundoAtual = getFundoByValor(config.fundo);
