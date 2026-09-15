@@ -23,7 +23,9 @@ enabled = true
 # quer gerenciar).
 additional_redirect_urls = [
   "http://localhost:5173/auth/retorno",
+  "http://localhost:5173/redefinir-senha",
   "https://matteusbonotto.github.io/dev-evangeligo/auth/retorno",
+  "https://matteusbonotto.github.io/dev-evangeligo/redefinir-senha",
 ]
 
 [auth.rate_limit]

@@ -28,6 +28,17 @@ import {
 } from "../../rpg/estadoReal";
 
 /**
+ * Retorna uma URL absoluta preservando o `base` do Vite. Em produção o
+ * GitHub Pages hospeda o app em `/dev-evangeligo/`, não na raiz do domínio.
+ */
+function criarUrlDeRetorno(path: string): string {
+  return new URL(
+    path.replace(/^\//, ""),
+    new URL(import.meta.env.BASE_URL, window.location.origin),
+  ).toString();
+}
+
+/**
  * Grava o consentimento de Termos/Privacidade em `consentimentos`
  * (T-043/ADR-037 fecha um gap real: nenhum caminho de cadastro gravava
  * essa tabela antes, apesar de existir desde ADR-014/T-016). Idempotente
@@ -339,7 +350,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin + ROUTE_PATHS.authCallback,
+        redirectTo: criarUrlDeRetorno(ROUTE_PATHS.authCallback),
       },
     });
     if (error) {
@@ -395,7 +406,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: false, message: authUnavailableMessage() };
       }
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + AUTH_ROUTE_PATHS.resetPassword,
+        redirectTo: criarUrlDeRetorno(AUTH_ROUTE_PATHS.resetPassword),
       });
       if (error) {
         return { ok: false, message: translateAuthError(error) };

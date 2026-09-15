@@ -34,6 +34,16 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - name: SPA fallback for GitHub Pages
+        # GitHub Pages só serve arquivo estático — uma navegação de PÁGINA
+        # INTEIRA pra uma rota do React Router (ex.: refresh em /biblia/gen/1,
+        # ou o redirect do Google OAuth pra /auth/retorno) não bate em nenhum
+        # arquivo real e vira 404 antes do app carregar. Cópia de index.html
+        # pra 404.html é o fallback padrão pra SPA em GitHub Pages: o
+        # navegador ainda renderiza o app (ignora o status HTTP 404 da
+        # navegação), e o React Router resolve a rota certa a partir da URL
+        # de verdade assim que o bundle carrega.
+        run: cp dist/index.html dist/404.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
