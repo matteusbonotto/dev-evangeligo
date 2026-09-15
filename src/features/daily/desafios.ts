@@ -23,11 +23,21 @@ export function obterChaveDoDia(agora: Date = new Date()): string {
   return `${ano}-${mes}-${dia}`;
 }
 
-/** Hash simples e estável (soma de code points) — só precisa ser determinístico, não criptográfico. */
+/**
+ * Hash simples e estável — só precisa ser determinístico, não
+ * criptográfico. Uma soma pura de code points foi trocada por esta
+ * variante (djb2) porque duas datas consecutivas ("...:versiculo" só muda
+ * 1 dígito) somavam quase o mesmo valor, então `% tamanho` andava sempre
+ * +1 e o resultado parecia "sempre o mesmo ciclo" em vez de embaralhado
+ * (feedback do usuário: "não está aleatório"). O djb2 espalha até
+ * diferenças de 1 caractere pelo range inteiro do hash.
+ */
 function hashTexto(texto: string): number {
-  let soma = 0;
-  for (const caractere of texto) soma += caractere.codePointAt(0) ?? 0;
-  return soma;
+  let hash = 5381;
+  for (const caractere of texto) {
+    hash = (hash * 33 + (caractere.codePointAt(0) ?? 0)) >>> 0;
+  }
+  return hash;
 }
 
 export interface VersiculoDoDia {

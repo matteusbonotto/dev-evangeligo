@@ -7,8 +7,10 @@ import {
   FiSun,
   FiType,
 } from "react-icons/fi";
-import { getVersiculoTexto } from "../../bible/dataLoader";
+import { getLivroByOrder } from "../../bible/data/livros";
 import { buildLeituraPath } from "../../bible/routePaths";
+import { obterCapituloTraduzido } from "../../bible/traducoes";
+import { obterTraducaoPreferida } from "../../bible/traducaoPreferida";
 import { useAuth } from "../../authentication/context/AuthContext";
 import { buildTermoPath } from "../../study/termo/routePaths";
 import { buildQuebraCabecaPath } from "../../study/quebracabeca/routePaths";
@@ -51,9 +53,14 @@ export function DestaquesDoDia() {
 
   useEffect(() => {
     let ativo = true;
-    getVersiculoTexto(versiculo.livroOrder, versiculo.capitulo, versiculo.versiculo)
-      .then((texto) => {
-        if (ativo) setTextoVersiculo(texto);
+    const livro = getLivroByOrder(versiculo.livroOrder);
+    if (!livro) {
+      setTextoVersiculo(null);
+      return;
+    }
+    obterCapituloTraduzido(livro, versiculo.capitulo, obterTraducaoPreferida())
+      .then((versiculos) => {
+        if (ativo) setTextoVersiculo(versiculos[versiculo.versiculo - 1] ?? null);
       })
       .catch(() => {
         if (ativo) setTextoVersiculo(null);

@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-054; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-055; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -479,6 +479,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-053"]
+    },
+    {
+      "id": "T-055",
+      "titulo": "Fix: versículo do dia usa a tradução ativa e roda menos previsível",
+      "descricao": "Bug real reportado pelo usuário com exemplo (Home mostrava 'Deus criou' enquanto Bíblia, na tradução ativa, escreve diferente): `DestaquesDoDia.tsx` buscava o texto do 'Versículo do dia' sempre via `getVersiculoTexto` (arquivo local, sempre Almeida), ignorando a tradução escolhida pelo usuário em Bíblia (`traducaoPreferida.ts`). Trocado para `obterCapituloTraduzido` (mesmo cliente multi-tradução com fallback já usado por LeituraPage), lendo a preferência salva. Também: hash de seleção do dia em `desafios.ts` trocado de soma simples de code points pra djb2 — a soma antiga variava só +1 entre dias consecutivos (só 1 dígito muda na data), fazendo o ciclo por poucos itens (9 versículos) parecer sequencial/previsível ('não está aleatório'). Verificado ao vivo (Playwright, build de produção): texto do card na Home bate com o texto renderizado na página de leitura pro mesmo versículo/tradução.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": []
     }
   ]
 }

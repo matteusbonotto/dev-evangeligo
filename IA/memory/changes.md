@@ -203,3 +203,9 @@
 - `ProfilePage.test.tsx` e `TopHud.test.tsx` (primeiro teste do componente) novos. 550 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real (Admin API, apagada ao final): login → menu → /perfil mostra avatar/stats/consentimento reais corretos → "Sair" funciona a partir do menu. Ver ADR-047.
 - **Fase 3 de 7 do plano de UX concluída e publicada.** Pedido novo registrado pra uma fase futura da Bíblia (ainda não planejado em detalhe): alternância lista/grid/compacto em `LivrosPage.tsx`, aplicável a mobile e desktop.
+
+## 2026-09-15 (rodada seguinte) — Fix: versículo do dia na tradução errada e ciclo previsível (T-055)
+- Bug relatado com exemplo real: Home mostrava "Deus criou" enquanto a Bíblia (tradução ativa) escreve diferente pro mesmo versículo. Causa: `DestaquesDoDia.tsx` buscava o texto sempre do arquivo local (`getVersiculoTexto`, sempre Almeida), ignorando `traducaoPreferida.ts`. Trocado por `obterCapituloTraduzido` — mesmo cliente multi-tradução com fallback já usado em `LeituraPage.tsx`.
+- `desafios.ts`: hash de seleção do dia trocado de soma simples de code points pra djb2 — a soma antiga variava só +1 entre datas consecutivas, fazendo o ciclo por poucos itens (9 versículos) parecer sempre no mesmo padrão em vez de embaralhado (percepção do usuário: "não está aleatório").
+- Sem testes novos (comportamento já coberto por `desafios.test.ts`, que não fixa valores de hash). 550 testes na suíte, sem mudança.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo (Playwright, build de produção, modo demonstração): texto do card na Home bate com o texto renderizado na página de leitura pro mesmo versículo. Ver T-055.
