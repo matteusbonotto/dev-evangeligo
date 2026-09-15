@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiBook, FiMusic, FiSearch } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiBook,
+  FiChevronDown,
+  FiMusic,
+  FiSearch,
+} from "react-icons/fi";
 import "../bible.css";
 import { ROUTE_PATHS } from "../../../app/routePaths";
 import {
@@ -134,6 +140,7 @@ function BuscaVersiculo() {
   const [versiculo, setVersiculo] = useState<number | null>(null);
   const [totalVersiculos, setTotalVersiculos] = useState<number | null>(null);
   const [erroContagem, setErroContagem] = useState(false);
+  const [aberto, setAberto] = useState(false);
 
   const livro = livroCodigo ? getLivroByCodigo(livroCodigo) : undefined;
 
@@ -174,15 +181,47 @@ function BuscaVersiculo() {
       ? buildLeituraPath(livro.codigo, capitulo, versiculo)
       : null;
 
+  const resumo = !livro
+    ? "Buscar versículo"
+    : !capitulo
+      ? livro.nome
+      : !versiculo
+        ? `${livro.nome} ${capitulo}`
+        : `${livro.nome} ${capitulo}:${versiculo}`;
+
   return (
     <div
       className="biblia-busca-versiculo"
-      role="group"
-      aria-label="Buscar um versículo específico"
+      data-aberto={aberto ? "true" : "false"}
     >
-      <FiSearch className="biblia-busca-icone" aria-hidden="true" />
+      {/* Cabeçalho em accordion — só existe visualmente no mobile
+       * (`bible.css`, `@media (max-width: 639px)`); no desktop o corpo
+       * abaixo já fica sempre visível, como antes (T-038). Pedido do
+       * usuário: filtro ocupava espaço demais na tela pequena. */}
+      <button
+        type="button"
+        className="biblia-busca-cabecalho"
+        aria-expanded={aberto}
+        aria-controls="biblia-busca-corpo"
+        onClick={() => setAberto((atual) => !atual)}
+      >
+        <FiSearch className="biblia-busca-icone" aria-hidden="true" />
+        <span className="biblia-busca-resumo">{resumo}</span>
+        <FiChevronDown
+          className="biblia-busca-chevron"
+          aria-hidden="true"
+        />
+      </button>
 
-      <select
+      <div
+        id="biblia-busca-corpo"
+        className="biblia-busca-corpo"
+        role="group"
+        aria-label="Buscar um versículo específico"
+      >
+        <FiSearch className="biblia-busca-icone biblia-busca-icone--desktop" aria-hidden="true" />
+
+        <select
         className="biblia-busca-select"
         aria-label="Livro"
         value={livroCodigo}
@@ -264,6 +303,7 @@ function BuscaVersiculo() {
           Ir <FiArrowRight aria-hidden="true" />
         </span>
       )}
+      </div>
     </div>
   );
 }

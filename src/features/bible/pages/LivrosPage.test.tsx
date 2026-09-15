@@ -130,6 +130,26 @@ describe("LivrosPage", () => {
       );
     });
 
+    it("o cabeçalho do accordion (mobile) resume a seleção e alterna aria-expanded", () => {
+      renderLivrosPage();
+      const cabecalho = screen.getByRole("button", {
+        name: "Buscar versículo",
+      });
+      expect(cabecalho).toHaveAttribute("aria-expanded", "false");
+
+      fireEvent.change(screen.getByLabelText("Livro"), {
+        target: { value: "JHN" },
+      });
+      expect(
+        screen.getByRole("button", { name: /João/ }),
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: /João/ }));
+      expect(
+        screen.getByRole("button", { name: /João/ }),
+      ).toHaveAttribute("aria-expanded", "true");
+    });
+
     it("trocar o livro reinicia capítulo e versículo escolhidos", async () => {
       renderLivrosPage();
       fireEvent.change(screen.getByLabelText("Livro"), {

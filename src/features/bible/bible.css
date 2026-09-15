@@ -9,20 +9,78 @@
 /* --- Busca por referência (livro/capítulo/versículo), T-038/ADR-033 --- */
 
 .biblia-busca-versiculo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-8);
   margin-top: var(--space-16);
-  padding: var(--space-12);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
 
+.biblia-busca-corpo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12);
+}
+
 .biblia-busca-icone {
   color: var(--color-text-muted);
   flex-shrink: 0;
+}
+
+/* Cabeçalho do accordion — só aparece no mobile (ver media query abaixo).
+   No desktop fica oculto e o corpo do filtro é sempre visível, como antes
+   de existir o accordion (T-038/ADR-033). */
+.biblia-busca-cabecalho {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .biblia-busca-cabecalho {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    width: 100%;
+    padding: var(--space-12);
+    cursor: pointer;
+  }
+
+  .biblia-busca-resumo {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .biblia-busca-chevron {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    transition: transform 0.15s ease;
+  }
+
+  .biblia-busca-versiculo[data-aberto="true"] .biblia-busca-chevron {
+    transform: rotate(180deg);
+  }
+
+  .biblia-busca-corpo {
+    display: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .biblia-busca-versiculo[data-aberto="true"] .biblia-busca-corpo {
+    display: flex;
+  }
+
+  /* O ícone de busca já aparece no cabeçalho no mobile — evita duplicar
+     dentro do corpo quando ele abre. */
+  .biblia-busca-icone--desktop {
+    display: none;
+  }
 }
 
 .biblia-busca-select {
@@ -437,24 +495,27 @@
 
 /* Número do versículo agora é um botão de verdade (T-041/T-040) — toque
    nele abre "quem fala"/"significado original", separado do toque nas
-   PALAVRAS do texto (que continua abrindo marca-texto/nota). Sublinhado
-   pontilhado reaproveita a linguagem visual já usada em
-   `.biblia-nota-link` para "isto é tocável", sem precisar de um ícone
-   fixo em cada versículo. `padding`/`margin` negativos abrem uma área de
-   toque real de ~44×44px sem mudar o layout visual do número pequeno. */
+   PALAVRAS do texto (que continua abrindo marca-texto/nota). O próprio
+   número já é colorido/negrito (`.biblia-versiculo-num`), então isso já
+   basta como sinal visual de "isto é diferente do texto ao redor" — um
+   sublinhado pontilhado por cima ficava com aparência poluída (feedback
+   direto do usuário), removido em favor de um leve realce só no
+   hover/foco. `padding`/`margin` negativos abrem uma área de toque real
+   de ~44×44px sem mudar o layout visual do número pequeno. */
 .biblia-versiculo-num-btn {
   all: unset;
   color: inherit;
   font: inherit;
   font-weight: inherit;
   cursor: pointer;
-  border-bottom: 1px dotted currentColor;
+  border-radius: 4px;
   padding: 12px;
   margin: -12px;
 }
 
-.biblia-page--contraste .biblia-versiculo-num-btn {
-  border-bottom-color: #000000;
+.biblia-versiculo-num-btn:hover,
+.biblia-versiculo-num-btn:focus-visible {
+  background: var(--color-primary-surface);
 }
 
 .biblia-dica-selecao {

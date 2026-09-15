@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-044; T-045 anotada no backlog)",
+  "atualizado": "2026-09-14 (T-038 a T-044, T-046; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -407,6 +407,15 @@
       "prioridade": "baixa",
       "status": "backlog",
       "dependencias": ["T-041", "T-043"]
+    },
+    {
+      "id": "T-046",
+      "titulo": "Filtro de busca por versículo em accordion no mobile + remover sublinhado do número do versículo",
+      "descricao": "Usuário achou o filtro (LivrosPage) grande demais no mobile e o sublinhado pontilhado do número do versículo (T-040/T-041) feio. Abaixo de 640px, BuscaVersiculo vira accordion fechado por padrão (cabeçalho com resumo da seleção + chevron); acima de 640px, comportamento inalterado. `.biblia-versiculo-num-btn` perdeu o border-bottom, ganhou realce sutil só no hover/foco. Ver ADR-039.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-038"]
     }
   ]
 }

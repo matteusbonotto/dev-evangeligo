@@ -142,3 +142,10 @@
 - **Achado de processo evitado a tempo**: `supabase config push` sincroniza TODA propriedade declarada em `config.toml` — o arquivo recém-gerado por `supabase init` continha dezenas de defaults de template que divergiam dos valores já corretos no projeto hospedado. Confirmado via `supabase config diff` antes de qualquer push real; `config.toml` final reescrito para declarar só as 3 propriedades pretendidas. Ver ADR-037.
 - Fase 2 (Comunidade/Ranking/Chat/Missões colaborativas, pedida na mesma mensagem) deliberadamente **não** incluída nesta rodada — fica para um plano próprio dedicado, ver `project-memory.md`.
 - `npm run typecheck`/`lint`/`test`/`build` limpos.
+
+## 2026-09-14 (rodada seguinte) — Fix de CI (T-044), filtro mobile em accordion + sublinhado removido (T-046)
+- **T-044**: `.github/workflows/deploy-pages.yml` não passava `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` pro passo de build — site publicado sempre caía no aviso "use o modo de demonstração". Corrigido com secrets do GitHub Actions + `env:` no passo Build. Ver ADR-038.
+- **T-046**: `BuscaVersiculo` (`LivrosPage.tsx`) virou accordion fechado por padrão abaixo de 640px (100% CSS via `data-aberto`, sem detecção de largura em JS); `.biblia-versiculo-num-btn` perdeu o `border-bottom` pontilhado (achado feio pelo usuário), ganhou realce só em hover/foco. Ver ADR-039.
+- **Achado crítico**: nenhuma conta REAL (e-mail/senha ou Google) consegue abrir o Dashboard hoje — `user` de `useAuth()` só é populado pelo modo demonstração; uma sessão Supabase real nunca chama `setUser`, e `DashboardPage` redireciona pra home quando `user` é `null`. Plano aprovado (`soft-singing-haven.md`) pra resolver isso junto com o pedido de "mais tabelas no banco" (Etapa B: `rpg_progresso`/`rpg_inventario`/`rpg_armadura` + ponte real no `AuthContext`), em andamento.
+- 1 teste novo em `LivrosPage.test.tsx` (accordion `aria-expanded`). 521 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado em Chromium real (Playwright contra `vite preview`, build de produção): desktop sem accordion, mobile fechado por padrão e abrindo ao clicar, número do versículo sem sublinhado.
