@@ -45,6 +45,12 @@ import {
 import { obterCapituloTraduzido, type CodigoTraducao } from "../traducoes";
 import { PainelInfoVersiculo } from "./PainelInfoVersiculo";
 import { BalaoTextoOriginal } from "../components/BalaoTextoOriginal";
+import { ReferenciaCruzadaModal } from "../components/ReferenciaCruzadaModal";
+import {
+  formatarReferenciaCruzada,
+  obterReferenciasCruzadas,
+  type ReferenciaCruzada,
+} from "../referenciasCruzadas";
 import { buildLeituraPath } from "../routePaths";
 import {
   aplicarMarcaTexto,
@@ -295,6 +301,11 @@ export function LeituraPage() {
   );
   const [balaoOriginal, setBalaoOriginal] =
     useState<BalaoOriginalState | null>(null);
+  const [refsCruzadasPorVerso, setRefsCruzadasPorVerso] = useState<
+    Record<number, ReferenciaCruzada[]>
+  >({});
+  const [refCruzadaAberta, setRefCruzadaAberta] =
+    useState<ReferenciaCruzada | null>(null);
   const [selecaoAtiva, setSelecaoAtiva] = useState<SelecaoAtivaState | null>(
     null,
   );
@@ -358,6 +369,36 @@ export function LeituraPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [livro?.order, capitulo, traducao]);
+
+  /**
+   * Referências cruzadas do capítulo (T-050/ADR-042) — buscadas à parte do
+   * texto principal (dataset próprio, `referenciasCruzadas.ts`), uma
+   * consulta por versículo depois que o texto carrega. A primeira consulta
+   * de uma sessão busca o arquivo inteiro (~1.9MB, cacheado depois); as
+   * seguintes são só leitura de memória.
+   */
+  useEffect(() => {
+    if (!livro || versiculos.length === 0) return;
+    let ativo = true;
+    setRefsCruzadasPorVerso({});
+    Promise.all(
+      versiculos.map((_, index) =>
+        obterReferenciasCruzadas(livro.codigo, capitulo, index + 1).then(
+          (refs) => [index + 1, refs] as const,
+        ),
+      ),
+    ).then((pares) => {
+      if (!ativo) return;
+      const mapa: Record<number, ReferenciaCruzada[]> = {};
+      for (const [numero, refs] of pares) {
+        if (refs.length > 0) mapa[numero] = refs;
+      }
+      setRefsCruzadasPorVerso(mapa);
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [livro, capitulo, versiculos]);
 
   useEffect(() => {
     if (status !== "pronto" || !livro) return;
@@ -1100,6 +1141,7 @@ export function LeituraPage() {
                   numero === versiculoDestacado
                     ? " biblia-versiculo-destaque"
                     : "";
+                const referenciasCruzadas = refsCruzadasPorVerso[numero];
                 return (
                   <p
                     key={numero}
@@ -1121,6 +1163,24 @@ export function LeituraPage() {
                     <span className={`biblia-versiculo-texto${classeFala}`}>
                       {renderizarVersiculo(numero, texto)}
                     </span>
+                    {referenciasCruzadas && referenciasCruzadas.length > 0 && (
+                      <span className="biblia-refs-cruzadas">
+                        {" ("}
+                        {referenciasCruzadas.map((ref, i) => (
+                          <span key={i}>
+                            {i > 0 && ", "}
+                            <button
+                              type="button"
+                              className="biblia-ref-cruzada-link"
+                              onClick={() => setRefCruzadaAberta(ref)}
+                            >
+                              {formatarReferenciaCruzada(ref)}
+                            </button>
+                          </span>
+                        ))}
+                        {")"}
+                      </span>
+                    )}
                   </p>
                 );
               })}
@@ -1292,6 +1352,13 @@ export function LeituraPage() {
           x={balaoOriginal.x}
           y={balaoOriginal.y}
           onFechar={() => setBalaoOriginal(null)}
+        />
+      )}
+
+      {refCruzadaAberta && (
+        <ReferenciaCruzadaModal
+          referencia={refCruzadaAberta}
+          onFechar={() => setRefCruzadaAberta(null)}
         />
       )}
     </AppShell>

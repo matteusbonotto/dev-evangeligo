@@ -456,6 +456,25 @@
   margin-bottom: 0;
 }
 
+/* Referências cruzadas entre parênteses após o versículo (T-050/ADR-042) —
+   discretas de propósito ("não pode poluir o texto"): menores, cor
+   diferente do corpo do texto, sem parecer parte da própria Escritura. */
+.biblia-refs-cruzadas {
+  font-size: 0.78em;
+  color: var(--color-text-muted);
+}
+
+.biblia-ref-cruzada-link {
+  all: unset;
+  color: var(--verde-700);
+  text-decoration: underline dotted;
+  cursor: pointer;
+}
+
+.biblia-ref-cruzada-link:hover {
+  text-decoration-style: solid;
+}
+
 /* Destaque temporário de uma busca por versículo bem-sucedida (T-038/
    ADR-033) — anel pulsante que desaparece sozinho, nunca um preenchimento
    sólido, para não ser confundido com as cores de marca-texto permanentes
@@ -1194,6 +1213,28 @@
 
 .postit-textarea::placeholder {
   color: rgba(0, 0, 0, 0.32);
+}
+
+/* Corpo do post-it somente-leitura de referência cruzada (T-050/ADR-042) —
+   mesma tipografia de `.postit-textarea`, sem ser editável. */
+.postit-corpo-referencia {
+  padding: 10px 14px;
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  font-size: var(--font-size-14);
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.78);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.postit-corpo-referencia p {
+  margin: 0 0 var(--space-6);
+}
+
+.postit-corpo-referencia sup {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.45);
+  margin-right: 2px;
 }
 
 .postit-footer {

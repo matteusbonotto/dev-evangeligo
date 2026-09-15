@@ -104,6 +104,9 @@ const TERMS_SECTIONS: LegalSection[] = [
       p(
         "O texto bíblico disponibilizado no EvangeliGO tem como base a tradução Almeida (edição a confirmar) e os hinos têm como base a Harpa Cristã. Esse conteúdo é disponibilizado para seu uso pessoal e não comercial dentro da plataforma, conforme os termos de licenciamento aplicáveis à edição utilizada — que serão formalmente validados antes da publicação pública de cada conteúdo (ver riscos registrados em `IA/memory/project-memory.md`). É proibido copiar, redistribuir, sublicenciar ou comercializar esse conteúdo fora do EvangeliGO.",
       ),
+      p(
+        "As referências cruzadas exibidas na leitura bíblica usam dados derivados do Treasury of Scripture Knowledge (domínio público), compilados e disponibilizados por openbible.info sob licença Creative Commons Atribuição (CC BY) — https://www.openbible.info/labs/cross-references/.",
+      ),
     ],
   },
   {

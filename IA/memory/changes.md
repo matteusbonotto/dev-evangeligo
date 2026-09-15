@@ -170,3 +170,13 @@
 - Novo `GradeFatosBiografia` — grade ícone+rótulo+valor, só com os campos que a pessoa realmente tem, sempre antes da prosa da Wikipédia (ao vivo, inalterada).
 - 3 testes novos em `biografias.test.ts`. 532 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado em Chromium real (Playwright, build de produção) com 1 Coríntios 11:24 (autor Paulo + falante Jesus): as 4 seções aparecem separadas e corretas, grades de fatos distintas pras duas biografias. Ver ADR-042.
+
+## 2026-09-14 (rodada seguinte) — Referências cruzadas clicáveis (T-050) — item 1 concluído
+- Texto bíblico local confirmado sem referências cruzadas embutidas (lido diretamente antes de assumir) — dataset novo: `openbible.info` (Treasury of Scripture Knowledge, domínio público, CC-BY), baixado e inspecionado ao vivo (~344.799 linhas TSV) antes de decidir usá-lo.
+- Processado uma vez (script fora do repositório, documentado em `referenciasCruzadas.ts`): top-3 referências por voto/versículo, 66/66 livros mapeados sem perdas → `public/data/referencias-cruzadas.json` (~1.9MB, 29.319 versículos cobertos).
+- Novos `data/abreviacoesLivros.ts` (66 abreviações padrão ARA/NVI), `referenciasCruzadas.ts` (loader + formatação), `components/ReferenciaCruzadaModal.tsx` (post-it somente-leitura, reaproveita visual do post-it de nota).
+- `LeituraPage.tsx`: badges discretos "(Mt 1:1-5)" após cada versículo, clicáveis, abrindo o modal com a passagem (sempre na Almeida local, independente da tradução ativa).
+- Crédito CC-BY adicionado em `LegalPage.tsx` (seção "Conteúdo bíblico e hinário") — não considerado mudança material dos Termos, versão não incrementada.
+- 9 testes novos (`referenciasCruzadas.test.ts`). 541 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado em Chromium real (Playwright, build de produção): João 3 com 108 referências cruzadas renderizadas, clique abrindo a passagem certa, zero erros de console. Ver ADR-043.
+- **Item 1 do plano de UX do painel de leitura (soft-singing-haven.md) está completo** — as 3 fatias (T-048/T-049/T-050) publicadas em produção.

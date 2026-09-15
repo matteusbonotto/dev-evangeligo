@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-044, T-046 a T-049; T-045 anotada no backlog)",
+  "atualizado": "2026-09-14 (T-038 a T-044, T-046 a T-050; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -425,6 +425,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-041", "T-042"]
+    },
+    {
+      "id": "T-050",
+      "titulo": "Referências cruzadas clicáveis com modal post-it (item 1.4, última fatia do item 1)",
+      "descricao": "Texto bíblico local não tem referências cruzadas embutidas (confirmado lendo o arquivo) — dataset novo baixado do openbible.info (Treasury of Scripture Knowledge, domínio público, CC-BY), processado uma vez (script fora do repo) filtrando top-3 por voto/versículo, mapeado pros codigo de LIVROS_BIBLIA (66/66, zero perdas). public/data/referencias-cruzadas.json (~1.9MB, 29319 versículos). Badges discretos '(Mt 1:1-5)' após cada versículo (novo data/abreviacoesLivros.ts), clicar abre ReferenciaCruzadaModal (post-it somente-leitura reaproveitando estilo visual existente). Crédito CC-BY adicionado em LegalPage.tsx. Ver ADR-043.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-038"]
     },
     {
       "id": "T-045",
