@@ -3,7 +3,8 @@ export type TipoDesafioDiario =
   | "termo"
   | "quebra"
   | "cacaPalavras"
-  | "leitura";
+  | "leitura"
+  | "vidaInterior";
 
 interface EstadoDiarioPersistido {
   chave: string;

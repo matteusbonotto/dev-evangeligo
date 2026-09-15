@@ -1,5 +1,6 @@
 import { CONFIG_AVATAR_PADRAO } from "../../avatar/avatarUrl";
 import type { AvatarConfig } from "../../avatar/types";
+import { PARES_VIDA_INTERIOR } from "../../dashboard/data/paresVidaInterior";
 
 export type Rarity = "comum" | "raro" | "epico" | "lendario";
 
@@ -90,6 +91,22 @@ export interface DemoUser {
   maxHearts: number;
   spiritBattle: SpiritBattleEntry[];
 }
+
+/** Contagens fixas só pra ilustrar o recurso no modo demonstração — conta real usa check-ins de verdade (`dashboard/vidaInterior.ts`). */
+const VALORES_DEMO_VIDA_INTERIOR: Record<
+  string,
+  { fruitValue: number; fleshValue: number }
+> = {
+  amor: { fruitValue: 78, fleshValue: 22 },
+  alegria: { fruitValue: 70, fleshValue: 18 },
+  paz: { fruitValue: 74, fleshValue: 20 },
+  longanimidade: { fruitValue: 60, fleshValue: 30 },
+  benignidade: { fruitValue: 68, fleshValue: 25 },
+  bondade: { fruitValue: 72, fleshValue: 15 },
+  fidelidade: { fruitValue: 80, fleshValue: 10 },
+  mansidao: { fruitValue: 64, fleshValue: 12 },
+  "dominio-proprio": { fruitValue: 58, fleshValue: 28 },
+};
 
 export const demoUser: DemoUser = {
   id: "demo-user",
@@ -270,105 +287,12 @@ export const demoUser: DemoUser = {
   totalQuizzes: 35,
   hearts: 5,
   maxHearts: 5,
-  spiritBattle: [
-    {
-      id: "amor",
-      fruitLabel: "Amor",
-      fruitValue: 78,
-      fleshLabel: "Inimizade",
-      fleshValue: 22,
-      explicacao:
-        "Amor é buscar o bem do outro mesmo quando custa algo a você (1 Coríntios 13:4-7). Inimizade é o oposto: tratar o outro como adversário, guardando mágoa em vez de buscar reconciliação.",
-      exemploDoDia:
-        "Um colega de trabalho leva o crédito por algo que você fez. Amor responde com paciência e busca resolver a conversa diretamente; inimizade responde espalhando fofoca ou tratando a pessoa com frieza depois disso.",
-    },
-    {
-      id: "alegria",
-      fruitLabel: "Alegria",
-      fruitValue: 70,
-      fleshLabel: "Divisão",
-      fleshValue: 18,
-      explicacao:
-        "Alegria no Espírito é uma firmeza interior que não depende das circunstâncias (Filipenses 4:4). Divisão nasce de comparação e competição, fragmentando relacionamentos em vez de celebrar o bem do outro.",
-      exemploDoDia:
-        "Um amigo da igreja recebe uma conquista que você também queria. Alegria comemora com ele de coração; divisão puxa o grupo pra «time contra time», comentando por trás quem «merecia mais».",
-    },
-    {
-      id: "paz",
-      fruitLabel: "Paz",
-      fruitValue: 74,
-      fleshLabel: "Contenda",
-      fleshValue: 20,
-      explicacao:
-        "Paz é a disposição de buscar reconciliação e não alimentar conflito (Romanos 12:18). Contenda é o impulso de discutir, vencer a discussão e provar que o outro está errado, mesmo em assuntos pequenos.",
-      exemploDoDia:
-        "Uma discussão em família sobre algo bobo (qual caminho pegar, o que assistir) esquenta. Paz cede ou muda de assunto sem precisar «ganhar»; contenda insiste no ponto até a conversa virar briga.",
-    },
-    {
-      id: "longanimidade",
-      fruitLabel: "Longanimidade",
-      fruitValue: 60,
-      fleshLabel: "Ira",
-      fleshValue: 30,
-      explicacao:
-        "Longanimidade (paciência de longo prazo) é suportar uma situação difícil ou uma pessoa irritante sem explodir (Efésios 4:2). Ira é a reação imediata e descontrolada à frustração.",
-      exemploDoDia:
-        "Alguém te interrompe pela terceira vez numa reunião. Longanimidade respira e continua ouvindo com paciência; ira levanta a voz ou responde de forma ríspida na hora.",
-    },
-    {
-      id: "benignidade",
-      fruitLabel: "Benignidade",
-      fruitValue: 68,
-      fleshLabel: "Inveja",
-      fleshValue: 25,
-      explicacao:
-        "Benignidade é bondade ativa — fazer o bem de propósito a quem talvez nem mereça (Lucas 6:35). Inveja é ressentir o bem que o outro recebeu, como se isso te tirasse algo.",
-      exemploDoDia:
-        "Um irmão na fé compra um carro novo ou consegue um emprego melhor. Benignidade se alegra e talvez até ajude ele a comemorar; inveja fica remoendo «por que ele e não eu».",
-    },
-    {
-      id: "bondade",
-      fruitLabel: "Bondade",
-      fruitValue: 72,
-      fleshLabel: "Impureza",
-      fleshValue: 15,
-      explicacao:
-        "Bondade é integridade de caráter — ser genuinamente bom, não só parecer bom (Gálatas 6:9-10). Impureza é permitir pensamentos, palavras ou ações que corrompem esse caráter por dentro, mesmo escondidas dos outros.",
-      exemploDoDia:
-        "Ninguém está olhando e você poderia levar vantagem numa situação (troco a mais, informação que não é sua). Bondade age certo mesmo sem plateia; impureza aproveita a brecha porque «ninguém vai saber».",
-    },
-    {
-      id: "fidelidade",
-      fruitLabel: "Fidelidade",
-      fruitValue: 80,
-      fleshLabel: "Idolatria",
-      fleshValue: 10,
-      explicacao:
-        "Fidelidade é lealdade constante a Deus e aos compromissos assumidos, mesmo quando ninguém cobra (Provérbios 3:3-4). Idolatria é colocar qualquer outra coisa — dinheiro, aprovação, conforto — no lugar que pertence a Deus.",
-      exemploDoDia:
-        "Uma semana corrida deixa pouco tempo livre. Fidelidade ainda reserva um tempo pra oração/leitura mesmo que curto; idolatria enche esse mesmo tempo de trabalho ou redes sociais e empurra Deus pro que sobrar.",
-    },
-    {
-      id: "mansidao",
-      fruitLabel: "Mansidão",
-      fruitValue: 64,
-      fleshLabel: "Feitiçaria",
-      fleshValue: 12,
-      explicacao:
-        "Mansidão é força sob controle — poder de resposta contido por escolha, não fraqueza (Mateus 5:5). Feitiçaria (no sentido amplo de Gálatas 5:20, buscar controlar pessoas ou circunstâncias por meios indevidos) é a tentativa de manipular pra conseguir o que quer, em vez de confiar e ceder.",
-      exemploDoDia:
-        "Você quer convencer alguém de algo importante. Mansidão apresenta o argumento com respeito e aceita um «não»; manipulação usa culpa, pressão ou meias-verdades pra forçar o resultado que quer.",
-    },
-    {
-      id: "dominio-proprio",
-      fruitLabel: "Domínio Próprio",
-      fruitValue: 58,
-      fleshLabel: "Embriaguez",
-      fleshValue: 28,
-      explicacao:
-        "Domínio próprio é a capacidade de dizer não a um impulso mesmo quando ele é forte (1 Coríntios 9:25-27). Embriaguez (e todo excesso que tira o controle sobre si mesmo) é ceder ao impulso até perder esse controle.",
-      exemploDoDia:
-        "Depois de um dia difícil, bate vontade de exagerar em alguma coisa — comida, bebida, gastos, tempo de tela. Domínio próprio reconhece o impulso e escolhe um limite; embriaguez/excesso deixa o impulso decidir por você.",
-    },
-  ],
+  // Valores fixos da conta demonstração (Fase 5/T-059/ADR-051) — a
+  // metadata dos 9 pares (rótulos/explicação/exemplo) mora em
+  // `dashboard/data/paresVidaInterior.ts`, única fonte compartilhada com o
+  // cálculo REAL de conta autenticada (`dashboard/vidaInterior.ts`).
+  spiritBattle: PARES_VIDA_INTERIOR.map((par) => ({
+    ...par,
+    ...VALORES_DEMO_VIDA_INTERIOR[par.id],
+  })),
 };

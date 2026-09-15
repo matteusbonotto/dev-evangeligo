@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-058; T-045 anotada no backlog)",
+  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-059; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -515,6 +515,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-056"]
+    },
+    {
+      "id": "T-059",
+      "titulo": "Fase 5 do plano de UX: Vida Interior real (check-in diário substitui números fixos)",
+      "descricao": "'Vida Interior' (Fruto do Espírito × Obra da Carne, Gl 5:16-23) no Dashboard mostrava percentuais 100% ESTÁTICOS pra toda conta, demo ou real. Nova tabela `vida_interior_checkins` (append-only, RLS+grants) guarda um check-in diário rápido — 2 dos 9 pares por dia, revezando deterministicamente (`obterParesDoCheckinHoje`, mesmo espírito de `daily/desafios.ts`); nova `CheckinVidaInterior.tsx` no Dashboard pergunta 'o que você viveu mais hoje?' só pra conta real (demo continua com os números fixos, sem sessão pra registrar nada). `dashboard/vidaInterior.ts` calcula os percentuais reais numa janela móvel de 30 dias (`calcularEntradasVidaInterior`, pura/testável); `rpg/estadoReal.ts` usa isso pra popular `spiritBattle` de conta autenticada (conta nova sem check-in mostra 0×0 honesto, nunca os números da demo). Recompensa de check-in (+5 XP/+2 ouro) reaproveita `marcarDestaquePassivoVisto` já existente. Metadata dos 9 pares extraída pra `dashboard/data/paresVidaInterior.ts`, única fonte compartilhada entre demo e conta real.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-047"]
     }
   ]
 }

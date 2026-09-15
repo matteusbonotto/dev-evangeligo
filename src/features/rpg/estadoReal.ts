@@ -14,6 +14,10 @@ import {
 } from "../authentication/demo/demoUser";
 import { CONFIG_AVATAR_PADRAO, montarUrlAvatar } from "../avatar/avatarUrl";
 import type { AvatarConfig } from "../avatar/types";
+import {
+  calcularEntradasVidaInterior,
+  carregarVidaInteriorReal,
+} from "../dashboard/vidaInterior";
 
 /**
  * Ponte entre uma conta REAL do Supabase e o formato `DemoUser` que
@@ -25,12 +29,17 @@ import type { AvatarConfig } from "../avatar/types";
  * toda conta — só a POSSE por usuário mora nas tabelas `rpg_*`
  * (`supabase/migrations/20260914180000_rpg_estado_real.sql`).
  *
- * Trilhas/aulas/quizzes/corações/vida-interior ainda NÃO são reais para
- * contas autenticadas — ficam com valores honestos porém estáticos
+ * Trilhas/aulas/quizzes/corações ainda NÃO são reais para contas
+ * autenticadas — ficam com valores honestos porém estáticos
  * (`totalLessons`/`totalQuizzes` vêm da contagem real de `AULAS`, mas
- * `completedLessons`/`completedQuizzes` ficam em 0; `hearts`/`spiritBattle`
- * usam o mesmo conteúdo temático que todo mundo já vê) até uma próxima
- * rodada de banco de dados dedicada a estudo/progresso (ver ADR-040).
+ * `completedLessons`/`completedQuizzes` ficam em 0) até uma próxima rodada
+ * de banco de dados dedicada a estudo/progresso (ver ADR-040).
+ *
+ * `spiritBattle` (Vida Interior) VIROU real em T-059/ADR-051 — calculado a
+ * partir de check-ins de verdade em `vida_interior_checkins`
+ * (`dashboard/vidaInterior.ts`), janela móvel de 30 dias. Conta nova sem
+ * nenhum check-in ainda mostra 0×0 em todo par (honesto — "sem dados
+ * ainda"), nunca os números fixos da demo.
  */
 
 const XP_PARA_PROXIMO_NIVEL_INICIAL = 500;
@@ -190,10 +199,9 @@ export async function carregarOuCriarEstadoReal(
     totalQuizzes,
     hearts: 5,
     maxHearts: 5,
-    // `spiritBattle` (Fruto do Espírito × Obra da Carne) é conteúdo
-    // temático/didático, igual pra toda conta — ainda não é progresso real
-    // rastreado por usuário (mesma limitação de trilhas/aulas acima).
-    spiritBattle: demoUser.spiritBattle,
+    // Honesto "sem dados ainda" (0×0 em todo par) até o fetch real abaixo
+    // resolver — nunca os números fixos da demo (T-059/ADR-051).
+    spiritBattle: calcularEntradasVidaInterior([]),
   };
 
   if (!supabaseClient) return base;
@@ -216,26 +224,32 @@ export async function carregarOuCriarEstadoReal(
       };
     }
 
-    const [inventarioResp, armaduraResp, efeitosResp, conquistasResp] =
-      await Promise.all([
-        supabaseClient
-          .from("rpg_inventario")
-          .select("item_id, quantity")
-          .eq("user_id", supabaseUser.id),
-        supabaseClient
-          .from("rpg_armadura")
-          .select("slot, item_id, equipped, level")
-          .eq("user_id", supabaseUser.id),
-        supabaseClient
-          .from("rpg_efeitos_ativos")
-          .select("item_id, nome, inicia_em, termina_em")
-          .eq("user_id", supabaseUser.id)
-          .gt("termina_em", new Date().toISOString()),
-        supabaseClient
-          .from("rpg_conquistas_usuario")
-          .select("achievement_id, unlocked_at")
-          .eq("user_id", supabaseUser.id),
-      ]);
+    const [
+      inventarioResp,
+      armaduraResp,
+      efeitosResp,
+      conquistasResp,
+      spiritBattle,
+    ] = await Promise.all([
+      supabaseClient
+        .from("rpg_inventario")
+        .select("item_id, quantity")
+        .eq("user_id", supabaseUser.id),
+      supabaseClient
+        .from("rpg_armadura")
+        .select("slot, item_id, equipped, level")
+        .eq("user_id", supabaseUser.id),
+      supabaseClient
+        .from("rpg_efeitos_ativos")
+        .select("item_id, nome, inicia_em, termina_em")
+        .eq("user_id", supabaseUser.id)
+        .gt("termina_em", new Date().toISOString()),
+      supabaseClient
+        .from("rpg_conquistas_usuario")
+        .select("achievement_id, unlocked_at")
+        .eq("user_id", supabaseUser.id),
+      carregarVidaInteriorReal(supabaseUser.id),
+    ]);
 
     const efeitos = (efeitosResp.data as LinhaEfeito[] | null) ?? [];
 
@@ -263,6 +277,7 @@ export async function carregarOuCriarEstadoReal(
       achievements: montarConquistas(
         (conquistasResp.data as LinhaConquista[] | null) ?? [],
       ),
+      spiritBattle,
     };
   } catch {
     return base;

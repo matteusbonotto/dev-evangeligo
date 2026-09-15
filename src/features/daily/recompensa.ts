@@ -49,10 +49,10 @@ export function creditarRecompensaDeJogo(params: {
   return aplicarRecompensaAoUsuario(usuario, reward);
 }
 
-/** Marca um destaque "passivo" (versículo/leitura do dia) como visto, creditando uma recompensa pequena de check-in — só na primeira vez do dia. */
+/** Marca um destaque "passivo" (versículo/leitura/vida interior do dia) como visto, creditando uma recompensa pequena de check-in — só na primeira vez do dia. */
 export function marcarDestaquePassivoVisto(
   usuario: DemoUser,
-  tipo: Extract<TipoDesafioDiario, "versiculo" | "leitura">,
+  tipo: Extract<TipoDesafioDiario, "versiculo" | "leitura" | "vidaInterior">,
   reward: Reward,
   agora: Date = new Date(),
 ): DemoUser {

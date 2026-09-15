@@ -231,3 +231,11 @@
 - Usuário reportou que a tradução do léxico (T-056) continuava em inglês. 2 bugs reais encontrados: (1) cache de definição por Strong existia desde antes da tradução (T-040) — quem já tinha visto a palavra nunca via a versão traduzida (`lerCacheStrong` não refaz o fetch); corrigido versionando a chave (`strong:` → `strongV2:`). (2) mesmo sem cache, `mymemory.translated.net` não traduzia bem o texto bruto do bolls.life por causa do cabeçalho/rodapé com escrita hebraica/grega misturada ("Original: ... Transliteration: ... Definition: ... Origin: ..."); nova `limparDefinicaoParaTraducao` remove esse ruído (redundante — já mostrado em campos próprios) antes de traduzir.
 - 1 teste novo fixando que o texto enviado ao tradutor nunca contém esse cabeçalho/rodapé. 553 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado ao vivo contra as APIs REAIS (não mockadas): definição completa de Gênesis 1:1 (בָּרָא) saiu 100% em português. Ver ADR-050.
+
+## 2026-09-15 (rodada seguinte) — Fase 5 do plano de UX: Vida Interior real (T-059)
+- "Vida Interior" (Fruto do Espírito × Obra da Carne) mostrava percentuais 100% estáticos pra toda conta. Nova tabela `vida_interior_checkins` (append-only) guarda um check-in diário rápido — 2 dos 9 pares por dia, revezando deterministicamente.
+- Nova `CheckinVidaInterior.tsx` no Dashboard pergunta "o que você viveu mais hoje?" só pra conta real (demo mantém os números fixos). `dashboard/vidaInterior.ts` calcula os percentuais reais numa janela móvel de 30 dias. Conta nova sem check-in mostra 0×0 honesto, nunca os números da demo.
+- Recompensa de check-in (+5 XP/+2 ouro) reaproveita `marcarDestaquePassivoVisto` já existente. Metadata dos 9 pares extraída pra `dashboard/data/paresVidaInterior.ts`, única fonte compartilhada entre demo e conta real (demo continua com os MESMOS números/textos de antes — refatoração sem mudança de comportamento).
+- 7 testes novos (`vidaInterior.test.ts` ×6, `CheckinVidaInterior.test.tsx` ×1). 560 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado de ponta a ponta com conta real (Admin API, apagada ao final): 50%/50% inicial → respondeu 2 pares → resumo atualizado + ouro creditado → reload completo confirma que persistiu no Supabase. Ver ADR-051.
+- **Fase 5 de 7 do plano de UX concluída.**

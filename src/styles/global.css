@@ -1801,6 +1801,103 @@ textarea:focus-visible,
   gap: var(--space-16);
 }
 
+/* Check-in diário de Vida Interior (T-059/ADR-051) — pergunta rápida
+   antes do resumo Fruto×Carne, só pra conta real. */
+.civ-checkin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-bottom: var(--space-16);
+  padding-bottom: var(--space-16);
+  border-bottom: 1px dashed var(--borda);
+}
+
+.civ-titulo {
+  font-size: var(--font-size-13);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.civ-erro {
+  font-size: var(--font-size-12);
+  color: var(--erro);
+}
+
+.civ-pares {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.civ-par {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--verde-50);
+}
+
+.civ-pergunta {
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.civ-botoes {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.civ-btn {
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: var(--space-6) var(--space-14);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--color-surface);
+}
+
+.civ-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.civ-btn--fruto {
+  border-color: var(--verde-700);
+  color: var(--verde-700);
+}
+
+.civ-btn--fruto:hover:not(:disabled) {
+  background: var(--verde-700);
+  color: var(--branco);
+}
+
+.civ-btn--carne {
+  border-color: var(--carne-600);
+  color: var(--carne-600);
+}
+
+.civ-btn--carne:hover:not(:disabled) {
+  background: var(--carne-600);
+  color: var(--branco);
+}
+
+.civ-feito {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--font-size-13);
+  color: var(--sucesso);
+  font-weight: 600;
+  margin-bottom: var(--space-16);
+  padding-bottom: var(--space-16);
+  border-bottom: 1px dashed var(--borda);
+}
+
 .sb-summary {
   display: flex;
   align-items: center;
