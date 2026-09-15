@@ -163,3 +163,10 @@
 - Item 1.1 do plano de UX do painel de leitura. `PainelSignificadoOriginal` extraído de `PainelInfoVersiculo.tsx` para `src/features/bible/components/PainelSignificadoOriginal.tsx`, reaproveitado sem duplicação.
 - Novo `BalaoTextoOriginal` (mesma pasta) — popup/sheet ancorado acima da seleção, aberto por um novo botão "Ver texto original" em `MenuContextoBiblico`. Limitação real (sem mapeamento exato palavra-a-palavra com o trecho selecionado) explicada na própria UI.
 - `npm run typecheck`/`lint`/`test` (529 testes)/`build` limpos. Verificado em Chromium real (Playwright, build de produção) desktop + mobile: seleção → menu → balão com hebraico real de Gênesis 1:1 → fecha, zero erros de console. Ver ADR-041.
+
+## 2026-09-14 (rodada seguinte) — Painel do versículo em 4 seções + biografia estruturada (T-049)
+- `PainelInfoVersiculo.tsx`: de 2 para 4 seções — "Quem fala" (só identidade), "Contexto da passagem" (período/idioma/gênero/contexto histórico, promovidos daqui de dentro de "Quem fala"), "Biografia do autor", "Biografia de quem fala" (quando diferente), "Significado original" (inalterado).
+- `data/biografias.ts`: `Biografia` ganhou `ondeViveu`/`comoMorreu`/`filhoDe`/`escreveu` (opcionais), preenchidos para as 35 pessoas já cadastradas. Cuidado doutrinário deliberado: tradição extra-bíblica de martírio (Pedro, Paulo, Tiago, etc.) sempre rotulada como tal, nunca como fato bíblico — só Estêvão (Atos 7) e Moisés (Deuteronômio 34) têm morte narrada na própria Bíblia. `deus` (Deus Pai) não recebeu esses campos — não se aplicam teologicamente.
+- Novo `GradeFatosBiografia` — grade ícone+rótulo+valor, só com os campos que a pessoa realmente tem, sempre antes da prosa da Wikipédia (ao vivo, inalterada).
+- 3 testes novos em `biografias.test.ts`. 532 testes na suíte total.
+- `npm run typecheck`/`lint`/`test`/`build` limpos. Verificado em Chromium real (Playwright, build de produção) com 1 Coríntios 11:24 (autor Paulo + falante Jesus): as 4 seções aparecem separadas e corretas, grades de fatos distintas pras duas biografias. Ver ADR-042.

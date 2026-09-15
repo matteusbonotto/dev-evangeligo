@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-14 (T-038 a T-044, T-046 a T-048; T-045 anotada no backlog)",
+  "atualizado": "2026-09-14 (T-038 a T-044, T-046 a T-049; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -416,6 +416,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-040"]
+    },
+    {
+      "id": "T-049",
+      "titulo": "Painel do versículo em 4 seções + biografia estruturada (onde viveu/como morreu/filho de/escreveu)",
+      "descricao": "Item 1.2/1.3 do plano de UX do painel de leitura. PainelInfoVersiculo.tsx reorganizado de 2 para 4 seções: Quem fala (só identidade), Contexto da passagem (período/idioma/gênero/contexto histórico, antes misturado em Quem fala), Biografia do autor, Biografia de quem fala (quando diferente do autor). data/biografias.ts ganhou 4 campos opcionais (ondeViveu/comoMorreu/filhoDe/escreveu) preenchidos pras 35 pessoas, com tradição extra-bíblica sempre rotulada como tal (nunca apresentada como fato bíblico). Novo GradeFatosBiografia renderiza só os campos preenchidos, antes da prosa da Wikipédia (inalterada). Ver ADR-042.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-041", "T-042"]
     },
     {
       "id": "T-045",

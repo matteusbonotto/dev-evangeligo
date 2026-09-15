@@ -931,6 +931,33 @@
   font-style: italic;
 }
 
+/* Grade de fatos ("onde viveu"/"como morreu"/"filho de"/"escreveu",
+   T-049/ADR-042) — escaneável de propósito: ícone + rótulo numa linha,
+   valor embaixo, sem exigir abrir nada. */
+.linfo-fatos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0 0 var(--space-8);
+}
+
+.linfo-fatos-linha dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--font-size-11);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+.linfo-fatos-linha dd {
+  margin: 2px 0 0;
+  font-size: var(--font-size-13);
+  line-height: 1.4;
+}
+
 .linfo-biografia {
   margin-top: var(--space-4);
 }

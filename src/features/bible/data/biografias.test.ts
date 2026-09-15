@@ -30,4 +30,29 @@ describe("obterBiografia", () => {
   it("retorna undefined para um id inexistente", () => {
     expect(obterBiografia("nao-existe")).toBeUndefined();
   });
+
+  it("todo autor de livro (autorId de autoresLivros.ts) tem o campo 'escreveu' preenchido (T-049)", () => {
+    for (const livro of LIVROS_BIBLIA) {
+      const info = obterInfoLivro(livro.codigo)!;
+      if (!info.autorId) continue;
+      const bio = obterBiografia(info.autorId)!;
+      expect(bio.escreveu, `${bio.id} deveria ter 'escreveu'`).toBeTruthy();
+    }
+  });
+
+  it("Deus Pai não tem ondeViveu/comoMorreu/filhoDe (não se aplicam teologicamente)", () => {
+    const deus = obterBiografia("deus")!;
+    expect(deus.ondeViveu).toBeUndefined();
+    expect(deus.comoMorreu).toBeUndefined();
+    expect(deus.filhoDe).toBeUndefined();
+  });
+
+  it("distingue morte narrada na própria Bíblia (Estêvão) de tradição extra-bíblica (Pedro)", () => {
+    const estevao = obterBiografia("estevao")!;
+    expect(estevao.comoMorreu).toMatch(/Atos 7/);
+    expect(estevao.comoMorreu).not.toMatch(/tradição diz|Tradição:/);
+
+    const pedro = obterBiografia("pedro")!;
+    expect(pedro.comoMorreu).toMatch(/tradição/);
+  });
 });

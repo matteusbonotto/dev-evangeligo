@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   BsBookHalf,
   BsChevronDown,
   BsChevronUp,
+  BsClockHistory,
+  BsGeoAltFill,
   BsGlobe2,
+  BsPencilSquare,
+  BsPeopleFill,
   BsTranslate,
   BsXLg,
 } from "react-icons/bs";
@@ -34,16 +38,27 @@ import type { Livro } from "../types";
  * `bctx-overlay`/`bctx-popup`/`bctx-sheet` já usado por
  * `MenuContextoBiblico` em vez de um 4º padrão de modal.
  *
- * Duas seções sempre visíveis (sem abas):
- * - "Quem fala": autor do livro (`data/autoresLivros.ts`, sempre
- *   disponível para qualquer versículo) + o falante específico daquele
- *   versículo quando coberto por `data/falasEspeciais.ts` (Jesus/Deus) ou
+ * 4 seções sempre visíveis (sem abas — reorganizadas em T-049/ADR-042 a
+ * partir do feedback "quero uma forma agrupada e organizada... onde
+ * viveu, como morreu, filho de, fez oq, escreveu"):
+ * - "Quem fala": só identidade — autor do livro (`data/autoresLivros.ts`,
+ *   sempre disponível) + o falante específico daquele versículo quando
+ *   coberto por `data/falasEspeciais.ts` (Jesus/Deus) ou
  *   `data/falasNomeadas.ts` (outras pessoas nomeadas, ex. Pedro, Paulo) —
  *   as duas coisas podem aparecer juntas (ex. 1 Coríntios 11:24: autor
  *   Paulo + falante Jesus, exatamente o exemplo do usuário "Paulo
- *   escreveu que Jesus falou"). Biografia expandida vem AO VIVO da
- *   Wikipédia em português (`biografiaExterna.ts`) — nunca escrita à mão
- *   aqui, pedido explícito do usuário por uma fonte externa validada.
+ *   escreveu que Jesus falou").
+ * - "Contexto da passagem": período/idioma original/gênero literário e o
+ *   contexto histórico-cultural do livro (antes misturado dentro de "Quem
+ *   fala"; promovido a seção própria pra ficar escaneável).
+ * - "Biografia do autor" (e "Biografia de quem fala", quando os dois
+ *   aparecem separados): grade compacta de fatos ("bater o olho e
+ *   identificar" pedido pelo usuário) — onde viveu, como morreu, filho de,
+ *   o que escreveu (`data/biografias.ts`, T-049) — só as linhas que a
+ *   pessoa realmente tem preenchidas, ANTES do parágrafo de prosa que
+ *   continua vindo AO VIVO da Wikipédia em português
+ *   (`biografiaExterna.ts`) — nunca escrito à mão aqui, pedido explícito
+ *   do usuário por uma fonte externa validada.
  * - "Significado original": busca ao vivo em `bolls.life`
  *   (`linguaOriginal.ts`) as palavras em hebraico/grego do versículo, cada
  *   uma com transliteração e definição completa (léxico de Strong).
@@ -145,15 +160,8 @@ export function PainelInfoVersiculo({
               <p className="linfo-linha">
                 <strong>Escritor do livro:</strong> {infoLivro.autor}
               </p>
-              <p className="linfo-meta">
-                {infoLivro.periodoAproximado} · {infoLivro.idiomaOriginal} ·{" "}
-                {infoLivro.genero}
-              </p>
-              <p className="linfo-contexto">
-                {infoLivro.contextoHistoricoCultural}
-              </p>
               {biografiaAutor && (
-                <BiografiaExpandivel biografia={biografiaAutor} />
+                <p className="linfo-contexto">{biografiaAutor.papel}</p>
               )}
             </div>
           )}
@@ -169,10 +177,42 @@ export function PainelInfoVersiculo({
                 Confirme em:{" "}
                 {biografiaFalante.referenciasBiblicasChave.join(", ")}
               </p>
-              <BiografiaExpandivel biografia={biografiaFalante} />
             </div>
           )}
         </section>
+
+        {infoLivro && (
+          <section aria-labelledby="linfo-contexto">
+            <p className="bctx-section-label" id="linfo-contexto">
+              <BsGlobe2 aria-hidden="true" /> Contexto da passagem
+            </p>
+            <p className="linfo-meta">
+              {infoLivro.periodoAproximado} · {infoLivro.idiomaOriginal} ·{" "}
+              {infoLivro.genero}
+            </p>
+            <p className="linfo-contexto">
+              {infoLivro.contextoHistoricoCultural}
+            </p>
+          </section>
+        )}
+
+        {biografiaAutor && (
+          <section aria-labelledby="linfo-bio-autor">
+            <p className="bctx-section-label" id="linfo-bio-autor">
+              <BsPeopleFill aria-hidden="true" /> Biografia do autor
+            </p>
+            <BiografiaExpandivel biografia={biografiaAutor} />
+          </section>
+        )}
+
+        {mostrarFalanteSeparado && biografiaFalante && (
+          <section aria-labelledby="linfo-bio-falante">
+            <p className="bctx-section-label" id="linfo-bio-falante">
+              <BsPeopleFill aria-hidden="true" /> Biografia de quem fala
+            </p>
+            <BiografiaExpandivel biografia={biografiaFalante} />
+          </section>
+        )}
 
         <section aria-labelledby="linfo-original">
           <p className="bctx-section-label" id="linfo-original">
@@ -186,6 +226,59 @@ export function PainelInfoVersiculo({
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * Grade compacta de fatos ("bater o olho e identificar" pedido pelo
+ * usuário, T-049) — só as linhas que a pessoa realmente tem preenchidas em
+ * `data/biografias.ts`. Vem ANTES da prosa da Wikipédia, não substitui.
+ */
+function GradeFatosBiografia({ biografia }: { biografia: Biografia }) {
+  const linhas: { icone: ReactNode; rotulo: string; valor: string }[] = [];
+  if (biografia.ondeViveu) {
+    linhas.push({
+      icone: <BsGeoAltFill aria-hidden="true" />,
+      rotulo: "Onde viveu",
+      valor: biografia.ondeViveu,
+    });
+  }
+  if (biografia.filhoDe) {
+    linhas.push({
+      icone: <BsPeopleFill aria-hidden="true" />,
+      rotulo: "Filho de",
+      valor: biografia.filhoDe,
+    });
+  }
+  if (biografia.comoMorreu) {
+    linhas.push({
+      icone: <BsClockHistory aria-hidden="true" />,
+      rotulo: "Como morreu",
+      valor: biografia.comoMorreu,
+    });
+  }
+  if (biografia.escreveu) {
+    linhas.push({
+      icone: <BsPencilSquare aria-hidden="true" />,
+      rotulo: "Escreveu",
+      valor: biografia.escreveu,
+    });
+  }
+
+  if (linhas.length === 0) return null;
+
+  return (
+    <dl className="linfo-fatos">
+      {linhas.map((linha) => (
+        <div key={linha.rotulo} className="linfo-fatos-linha">
+          <dt>
+            {linha.icone}
+            {linha.rotulo}
+          </dt>
+          <dd>{linha.valor}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -209,6 +302,7 @@ function BiografiaExpandivel({ biografia }: { biografia: Biografia }) {
 
   return (
     <div className="linfo-biografia">
+      <GradeFatosBiografia biografia={biografia} />
       <button type="button" className="linfo-ver-biografia" onClick={alternar}>
         {aberta ? "Ocultar biografia" : "Ver biografia"}{" "}
         {aberta ? (
