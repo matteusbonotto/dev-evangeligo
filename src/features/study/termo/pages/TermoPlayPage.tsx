@@ -137,6 +137,21 @@ export function TermoPlayPage() {
 
           {session.status === "em_andamento" ? (
             <>
+              <ul className="termo-legenda" aria-label="Como ler as cores das tentativas">
+                <li>
+                  <span className="termo-legenda-cor termo-legenda-cor--correta" aria-hidden="true" />
+                  Letra certa, no lugar certo
+                </li>
+                <li>
+                  <span className="termo-legenda-cor termo-legenda-cor--presente" aria-hidden="true" />
+                  Letra existe, lugar errado
+                </li>
+                <li>
+                  <span className="termo-legenda-cor termo-legenda-cor--ausente" aria-hidden="true" />
+                  Letra não está na palavra
+                </li>
+              </ul>
+
               <div className="termo-grade">
                 {linhas.map((linha, indexLinha) => (
                   <div className="termo-linha" key={indexLinha}>

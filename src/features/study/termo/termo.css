@@ -15,6 +15,49 @@
   margin-bottom: var(--space-12);
 }
 
+/* Legenda das cores (T-062) — sem isso não dava pra saber o que "dourado"
+   ou "cinza" significavam na primeira vez que alguém jogava. */
+.termo-legenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  list-style: none;
+  margin: 0 auto var(--space-16);
+  padding: var(--space-10) var(--space-12);
+  max-width: 360px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.termo-legenda li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--font-size-12);
+  color: var(--color-text-muted);
+}
+
+.termo-legenda-cor {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.termo-legenda-cor--correta {
+  background: var(--verde-600);
+}
+
+.termo-legenda-cor--presente {
+  background: var(--dourado);
+}
+
+.termo-legenda-cor--ausente {
+  background: var(--color-text-muted);
+}
+
 .termo-grade {
   display: flex;
   flex-direction: column;

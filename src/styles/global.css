@@ -2009,6 +2009,74 @@ textarea:focus-visible,
   color: var(--color-text-muted);
 }
 
+/* Guia de Fruto do Espírito / Obra da Carne (T-062) — 2 accordions gerais
+   dentro da seção de Vida Interior, conteúdo do app legado. */
+.gfc-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-top: var(--space-16);
+}
+
+.gfc-acordeao {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.gfc-acordeao-cabecalho {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-10) var(--space-12);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: var(--font-size-13);
+  color: var(--color-text);
+}
+
+.gfc-acordeao-corpo {
+  padding: 0 var(--space-12) var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.gfc-item {
+  padding-top: var(--space-10);
+  border-top: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.gfc-item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.gfc-item-titulo {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.gfc-item-versiculo {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+}
+
+.gfc-item-linha {
+  font-size: var(--font-size-13);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
 .sb-summary {
   display: flex;
   align-items: center;

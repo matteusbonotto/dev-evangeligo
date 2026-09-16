@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-15 (T-038 a T-044, T-046 a T-050, T-052 a T-061; T-045 anotada no backlog)",
+  "atualizado": "2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-062; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -542,6 +542,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-060"]
+    },
+    {
+      "id": "T-062",
+      "titulo": "Termo Bíblico com 5 letras fixas + legenda de cores; guia Fruto/Carne do legado; VLibras arrastável",
+      "descricao": "3 pedidos diretos do usuário (2026-09-16): (1) Termo Bíblico tinha palavras de tamanho variável (4-8 letras) — motor sempre suportou qualquer tamanho, mas isso quebrava a expectativa do formato clássico. Fixado em 5 letras: removidas Pastor/Aliança/Oração/Salvador/Perdão/Templo/Maná (tamanho errado), adicionadas Pacto/Verbo/Rocha/Reino/Corpo/Noiva/Santo/Anjos/Monte (11 palavras no total). Nova legenda (`.termo-legenda`) explica as 3 cores (verde/dourado/cinza) — antes não dava pra saber o que cada uma significava. (2) Novo `dashboard/data/guiaCultivoEspiritual.ts` porta o `GUIA_CULTIVO_ESPIRITUAL` do app legado (prática/pergunta/oração por fruto, sinal/resposta por obra da carne) em 2 accordions gerais (`GuiaFrutoCarne.tsx`) dentro da seção Vida Interior — conteúdo puramente educacional, sem relação com os par_id do check-in real (evita invalidar dados já registrados). (3) `shared/vlibrasArrastavel.ts`: botão de acesso do VLibras (widget de Libras) agora é arrastável e ancora no canto mais próximo ao soltar (4 cantos), posição persistida em localStorage — testadores reportaram que o ícone fixo atrapalhava o uso. Verificação ao vivo do VLibras limitada pelo ambiente de teste (CSS externo de vlibras.gov.br não carregou no sandbox), mas os estilos inline (position/cursor/ancoragem) confirmados aplicados corretamente.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": []
     }
   ]
 }

@@ -16,7 +16,9 @@
     <!-- VLibras (T-017, acessibilidade — Libras), mesma integração do app
          legado (dev-pwa-biblia-game/public/game/index.html): widget oficial
          do governo, fora de #root para não ser gerenciado/removido pelo
-         React. -->
+         React. Arrastável/ancorável nos 4 cantos via
+         `src/shared/vlibrasArrastavel.ts` (T-062 — testadores reportaram
+         que o ícone fixo atrapalhava o uso). -->
     <div vw class="enabled">
       <div vw-access-button class="active"></div>
       <div vw-plugin-wrapper>

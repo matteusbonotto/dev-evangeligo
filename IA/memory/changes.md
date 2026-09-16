@@ -255,3 +255,9 @@
 - Nova `calcularSequenciaVidaInterior`: streak real ("🔥 N dias seguidos refletindo") derivado só do histórico de check-ins — não reaproveita o streak geral de RPG (esse já estava sem uso real pra contas autenticadas).
 - Testes reescritos (13 casos: determinismo, viés de recência, garantia de cobertura, streak). 567 testes na suíte total.
 - `npm run typecheck`/`lint`/`test`/`build` limpos; migração de índice aplicada. Conexão com missões/oração continua fora do escopo (mesma decisão do T-060).
+
+## 2026-09-16 — Termo com 5 letras + legenda, guia Fruto/Carne do legado, VLibras arrastável (T-062)
+- Termo Bíblico fixado em 5 letras (removidas as palavras de outro tamanho, adicionadas 9 novas de 5 letras incluindo "Pacto" a pedido do usuário) + nova legenda explicando as 3 cores do feedback (antes não dava pra saber o que verde/dourado/cinza significavam).
+- Novo `dashboard/data/guiaCultivoEspiritual.ts` porta o conteúdo do app legado (prática/pergunta/oração por fruto do Espírito, sinal/resposta por obra da carne — inclusive "o que é feitiçaria hoje em dia") em 2 accordions gerais na seção Vida Interior (`GuiaFrutoCarne.tsx`), separado do check-in real pra não mexer em dados já registrados.
+- `shared/vlibrasArrastavel.ts`: botão do VLibras agora arrasta e ancora no canto mais próximo ao soltar, posição salva — testadores reportaram que o ícone fixo atrapalhava.
+- `npm run typecheck`/`lint`/`test`/`build` limpos, 567 testes. Verificado ao vivo: Termo (5 letras + legenda) e guia Fruto/Carne confirmados; VLibras com os estilos corretos aplicados, mas o CSS externo do governo não carregou no sandbox de teste — comportamento real em produção não pôde ser 100% confirmado visualmente.

@@ -4,7 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./App";
 import { AuthProvider } from "./features/authentication/context/AuthContext";
+import { iniciarVLibrasArrastavel } from "./shared/vlibrasArrastavel";
 import "./styles/global.css";
+
+iniciarVLibrasArrastavel();
 
 const queryClient = new QueryClient({
   defaultOptions: {
