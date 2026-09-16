@@ -317,3 +317,8 @@
 - Cabeçalho da leitura recentralizado de verdade (`position:absolute; left:50%` em vez de só `flex:1`, que ficava enviesado com "← Livro" e "BL ▾" de larguras diferentes).
 - Pin de posição cortava perto de 0%/100% (print real) — `calcularEsquerdaDoPin` usa `clamp()` CSS garantindo margem mínima nos dois lados.
 - `npm run typecheck`/`lint`/`test`/`build` limpos, 591 testes. Verificado ao vivo (Playwright, simulando o widget real criando `#vlibras-access`): nosso script agora corrige O ELEMENTO CERTO; cabeçalho centralizado; pin "v.31" totalmente visível perto de 100%.
+
+## 2026-09-16 (rodada seguinte) — VLibras: posição garantida via CSS puro, isolamento de falhas (T-072)
+- Usuário reportou que mesmo depois do T-071 (confirmado no bundle de produção via `curl`, o código estava mesmo lá) o VLibras continuava sem mudar nada no aparelho dele. Sem acesso ao dispositivo real pra achar a causa exata, a resposta foi parar de depender só de JS: nova regra em `global.css` (`#vlibras-access, [vw-access-button] { position:fixed!important; bottom:16px!important; right:16px!important; ... }`) aplica a posição padrão via folha de estilo comum, que o navegador aplica sozinho assim que o elemento existir — sem depender de nenhum script rodar a tempo. Verificado ao vivo que isso funciona com ZERO JavaScript do app carregado (só a CSS compilada).
+- `main.tsx`: as 2 inicializações (atualização automática do PWA / arrasto do VLibras) isoladas em try/catch separados — antes, uma exceção síncrona numa impedia a outra de sequer rodar.
+- `npm run typecheck`/`lint`/`test`/`build` limpos, 591 testes.

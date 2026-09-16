@@ -173,6 +173,33 @@ body {
   line-height: 1.6;
 }
 
+/**
+ * Posição padrão do botão do VLibras via STYLESHEET, não só via JS
+ * (T-072) — reforço depois de 4 rodadas (T-062/065/067/070/071) tentando
+ * corrigir isso só com `shared/vlibrasArrastavel.ts`: aquele script
+ * depende de `main.tsx` executar sem erro, de um `MutationObserver`
+ * disparar a tempo e de encontrar o elemento certo — qualquer falha
+ * silenciosa nesse caminho (num navegador/dispositivo específico que eu
+ * não consigo depurar remotamente) deixa o ícone inteiramente sem
+ * correção. Uma regra de CSS comum aplica sozinha assim que o elemento
+ * existir, sem depender de JavaScript rodar. O CSS do próprio widget
+ * (inspecionado ao vivo com o usuário) é baseado em STYLESHEET sem
+ * `!important` — uma regra nossa com `!important` já vence isso sozinha,
+ * então esta regra garante pelo menos a POSIÇÃO padrão correta mesmo se
+ * o script de arrastar falhar por completo. O script continua sendo
+ * responsável só pelo arrasto em si (inline `!important` sempre vence
+ * uma regra externa `!important`, então arrastar continua funcionando
+ * normalmente por cima disso).
+ */
+#vlibras-access,
+[vw-access-button] {
+  position: fixed !important;
+  top: auto !important;
+  bottom: 16px !important;
+  left: auto !important;
+  right: 16px !important;
+}
+
 a {
   color: var(--verde-600);
   text-decoration: none;

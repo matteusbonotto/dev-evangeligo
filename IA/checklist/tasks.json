@@ -632,6 +632,15 @@
       "prioridade": "critica",
       "status": "done",
       "dependencias": ["T-070"]
+    },
+    {
+      "id": "T-072",
+      "titulo": "VLibras: posição padrão garantida via CSS puro (não só JS) + isolamento de falhas em main.tsx",
+      "descricao": "Usuário reportou, mesmo depois de T-071 (confirmado no bundle de produção via curl, o código estava mesmo lá): 'o vlibras não mudou nada, não é drag and drop, não tá na posição que pedi'. Sem acesso ao aparelho real do usuário pra depurar a causa exata (possíveis candidatas: falha silenciosa em algum ponto de `main.tsx` antes do script do VLibras rodar, versão cacheada antiga do `vlibras-plugin.js` de terceiro — fora do controle do nosso PWA — usando outra estrutura de DOM, ou qualquer outra falha específica do navegador/dispositivo), a resposta correta é parar de depender só de JavaScript rodar sem erro e no tempo certo. Nova regra em `global.css` (`#vlibras-access, [vw-access-button] { position: fixed !important; bottom: 16px !important; right: 16px !important; ... }`) aplica a posição padrão via FOLHA DE ESTILO comum — o navegador aplica sozinho assim que o elemento existir, sem depender de nenhum script rodar, disparar a tempo ou encontrar o elemento certo. Verificado ao vivo (Playwright) que isso funciona com ZERO JavaScript do app carregado. O CSS do próprio widget (inspecionado ao vivo com o usuário) não usa `!important`, então nossa regra já vence sozinha; o script de arrasto (`vlibrasArrastavel.ts`) continua responsável só pelo arrasto em si por cima disso (inline `!important` sempre vence uma regra externa `!important`). Também isoladas as 2 chamadas de inicialização em `main.tsx` (`iniciarAtualizacaoAutomatica`/`iniciarVLibrasArrastavel`) em try/catch separados — antes, uma exceção síncrona numa impediria a outra de sequer rodar.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "critica",
+      "status": "done",
+      "dependencias": ["T-071"]
     }
   ]
 }
