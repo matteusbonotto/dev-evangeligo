@@ -89,6 +89,25 @@ export function obterProgressoLivro(
   return Math.round(soma / totalCapitulos);
 }
 
+/**
+ * Estima em qual capítulo o leitor está a partir do % médio do livro —
+ * pedido explícito do usuário: "quero que a barra de progresso da leitura
+ * mostre um pin com o versículo/capítulo a qual o usuário está... se
+ * rolei até o Gn6 mostra Gn6". Não existe rastreio separado de "capítulo
+ * mais avançado" — reaproveita `obterProgressoLivro` (a mesma % já usada
+ * pra desenhar a barra), então o pin sempre fica exatamente na borda do
+ * preenchimento, nunca dessincronizado dele. Sempre ao menos 1 (nunca
+ * "capítulo 0").
+ */
+export function estimarCapituloAtual(
+  percentualLivro: number,
+  totalCapitulos: number,
+): number {
+  if (totalCapitulos <= 0) return 1;
+  const estimado = Math.round((percentualLivro / 100) * totalCapitulos);
+  return Math.min(totalCapitulos, Math.max(1, estimado));
+}
+
 /** Quantos dos livros informados (por `order`) têm ao menos 1 capítulo com progresso > 0. */
 export function contarLivrosIniciados(ordens: readonly number[]): number {
   const todos = lerTodos();

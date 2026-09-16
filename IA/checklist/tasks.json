@@ -605,6 +605,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": []
+    },
+    {
+      "id": "T-069",
+      "titulo": "Bíblia: pin com o capítulo estimado na barra de progresso do livro + efeito de preenchimento também nos cartões de livro",
+      "descricao": "2 pedidos do usuário. (1) 'quero que a barra de progresso da leitura mostre um pin com o versículo a qual o usuário está... se rolei até o Gn6 mostra Gn6, se ler tudo finaliza no último capítulo': nova função pura `estimarCapituloAtual(percentualLivro, totalCapitulos)` em `progresso.ts` (arredonda a % média do livro pro capítulo mais próximo — reaproveita o mesmo `obterProgressoLivro` já usado pra desenhar a barra, então o pin nunca fica dessincronizado do preenchimento). `CapitulosPage.tsx` ganhou um pin (`.biblia-progresso-pin`) posicionado exatamente na borda do preenchimento, mostrando abreviação+capítulo (ex. 'Gn6', via `obterAbreviacaoLivro` já existente). (2) 'o efeito de preenchimento dos capítulos, quero que seja aplicado nos livros também': o mesmo efeito conic-gradient usado nos círculos de capítulo (`.biblia-capitulo-btn--parcial`) foi replicado nos cartões de livro de `LivrosPage.tsx` (`.biblia-livro-card--parcial`/`--lido`, variável `--progresso-livro`) — cada cartão agora mostra visualmente o próprio % de leitura, não só o número.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": []
     }
   ]
 }

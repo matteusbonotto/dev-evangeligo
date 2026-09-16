@@ -3,8 +3,13 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
 import "../bible.css";
 import { getLivroByCodigo } from "../data/livros";
+import { obterAbreviacaoLivro } from "../data/abreviacoesLivros";
 import { buildLeituraPath } from "../routePaths";
-import { obterProgressoCapitulo, obterProgressoLivro } from "../progresso";
+import {
+  estimarCapituloAtual,
+  obterProgressoCapitulo,
+  obterProgressoLivro,
+} from "../progresso";
 import { AppShell } from "../../../shared/components/AppShell";
 import { ROUTE_PATHS } from "../../../app/routePaths";
 
@@ -21,6 +26,7 @@ export function CapitulosPage() {
     livro.order,
     livro.totalCapitulos,
   );
+  const capituloDoPin = estimarCapituloAtual(percentualLivro, livro.totalCapitulos);
 
   return (
     <AppShell>
@@ -39,11 +45,24 @@ export function CapitulosPage() {
           <p className="biblia-capitulos-resumo">
             {livro.totalCapitulos} capítulos · {percentualLivro}% lido
           </p>
-          <div className="biblia-progresso-track">
-            <div
-              className="biblia-progresso-fill"
-              style={{ width: `${percentualLivro}%` }}
-            />
+          {/* Pin com o capítulo estimado onde a leitura parou (T-069) —
+              pedido explícito do usuário: "lembrar onde parou caso queira
+              ler depois". Fica sempre na mesma posição horizontal da borda
+              do preenchimento, nunca dessincronizado da barra. */}
+          <div className="biblia-progresso-com-pin">
+            <span
+              className="biblia-progresso-pin"
+              style={{ left: `${percentualLivro}%` }}
+            >
+              {obterAbreviacaoLivro(livro.codigo)}
+              {capituloDoPin}
+            </span>
+            <div className="biblia-progresso-track">
+              <div
+                className="biblia-progresso-fill"
+                style={{ width: `${percentualLivro}%` }}
+              />
+            </div>
           </div>
 
           <div className="biblia-capitulo-grid">

@@ -226,6 +226,42 @@
   transition: width 0.3s ease;
 }
 
+/* Pin com o capítulo estimado (T-069) — margem no topo pra caber a
+   bolinha, e no eixo X pra ela nunca vazar da borda esquerda/direita do
+   cartão quando a leitura está em 0% ou 100%. */
+.biblia-progresso-com-pin {
+  position: relative;
+  margin-top: var(--space-20);
+  padding: 0 var(--space-16);
+}
+
+.biblia-progresso-pin {
+  position: absolute;
+  top: -22px;
+  transform: translateX(-50%);
+  min-width: 34px;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--verde-600);
+  color: var(--branco);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  transition: left 0.3s ease;
+}
+
+.biblia-progresso-pin::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--verde-600);
+  border-bottom: 0;
+}
+
 .biblia-capitulos-resumo {
   color: var(--color-text-muted);
   font-size: var(--font-size-13);
@@ -271,6 +307,21 @@
 
 .biblia-livro-card--nt {
   border-color: color-mix(in srgb, var(--coracao-texto) 35%, var(--color-border));
+}
+
+/* Mesmo efeito de preenchimento (conic-gradient) dos círculos de capítulo
+   (`.biblia-capitulo-btn--parcial`), aplicado ao cartão do livro (T-069) —
+   pedido explícito do usuário pra ter o mesmo efeito nos dois lugares. */
+.biblia-livro-card--parcial {
+  background: conic-gradient(
+    var(--verde-100) calc(var(--progresso-livro, 0%)),
+    var(--color-surface) 0
+  );
+}
+
+.biblia-livro-card--lido {
+  border-color: var(--verde-600);
+  background: var(--color-primary-surface);
 }
 
 .biblia-livro-nome {

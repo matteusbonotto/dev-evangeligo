@@ -299,3 +299,8 @@
 - Bug real: selecionar 1 palavra sempre devolvia TODAS as palavras do versículo original — o app descartava `inicio`/`fim`/`texto` da seleção antes de abrir o balão, só passando o número do versículo.
 - Novas funções puras em `linguaOriginal.ts`: `calcularIntervaloDePalavras` (posição por ÍNDICE DE PALAVRA do trecho selecionado dentro do versículo em português) + `filtrarPalavrasPelaSelecao` (mesma posição proporcional na lista de palavras originais, sempre ≥1 palavra). `LeituraPage.tsx`/`BalaoTextoOriginal.tsx` passam a usar isso; link "ver o versículo inteiro" continua disponível pra quando o recorte erra (tradução às vezes reordena a frase).
 - `npm run typecheck`/`lint`/`test`/`build` limpos, 580 testes (14 novos cobrindo palavra única, frase e casos degenerados).
+
+## 2026-09-16 (rodada seguinte) — Pin de capítulo na barra de progresso + efeito de preenchimento nos livros (T-069)
+- Pedido: "a barra de progresso da leitura... mostre um pin com o capítulo a qual o usuário está" (ex. 0% → Gn1, ~12% de um livro de 50 capítulos → Gn6). Nova `estimarCapituloAtual` em `progresso.ts` arredonda a % média do livro (já usada pra desenhar a barra) pro capítulo mais próximo — pin sempre sincronizado com o preenchimento, sem rastreio novo. `CapitulosPage.tsx` ganhou o pin visual.
+- Pedido: "o efeito de preenchimento dos capítulos... aplicado nos livros também" — o mesmo conic-gradient dos círculos de capítulo (`--parcial`/`--lido`) replicado nos cartões de `LivrosPage.tsx`.
+- `npm run typecheck`/`lint`/`test`/`build` limpos, 585 testes. Verificado ao vivo (Playwright): progresso de Gn1-5 completos + Gn6 pela metade (11% do livro) → pin mostra "Gn6" na posição certa; cartão de Gênesis com o preenchimento conic-gradient visível.

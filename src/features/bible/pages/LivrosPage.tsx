@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowRight,
@@ -121,10 +121,25 @@ export function LivrosPage() {
             );
             const categoria = CATEGORIAS_LIVRO[livro.grupo];
             const CategoriaIcone = categoria.icone;
+            const concluido = percentual >= 95;
+            // Mesmo efeito de preenchimento (conic-gradient) já usado nos
+            // círculos de capítulo — pedido explícito do usuário: "quero
+            // que o efeito de preenchimento dos capítulos seja aplicado
+            // nos livros também" (T-069).
+            const classeProgresso = concluido
+              ? " biblia-livro-card--lido"
+              : percentual > 0
+                ? " biblia-livro-card--parcial"
+                : "";
             return (
               <Link
                 key={livro.codigo}
-                className={`biblia-livro-card biblia-livro-card--${livro.testamento === "AT" ? "at" : "nt"}`}
+                className={`biblia-livro-card biblia-livro-card--${livro.testamento === "AT" ? "at" : "nt"}${classeProgresso}`}
+                style={
+                  percentual > 0 && !concluido
+                    ? ({ "--progresso-livro": `${percentual}%` } as CSSProperties)
+                    : undefined
+                }
                 to={buildCapitulosPath(livro.codigo)}
               >
                 <span
