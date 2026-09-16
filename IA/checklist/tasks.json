@@ -560,6 +560,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-062"]
+    },
+    {
+      "id": "T-064",
+      "titulo": "Itens permanentes não vendáveis + slot próprio; balanceamento anti-farming de XP nos jogos de palavras",
+      "descricao": "Refinamento dos 2 pontos que T-063 deixou como 'exige decisão' (usuário respondeu diretamente, item 3/Dragon Ball ignorado por ser mensagem acidental, bônus de leitura bíblica adiado pra quando houver comunidade). (1) Itens permanentes (Bíblia de Estudo, Harpa Cristã, Catecismo, Comentário de Calvino): bug real encontrado — `venderItemInventario` (rpg/inventario.ts) não distinguia tipo e permitia vender um item gratuito-por-design; corrigido com guarda explícita (`type === \"permanente\"` recusa a venda). `RpgItemModal.tsx` esconde o botão 'Vender' e mostra aviso pra itens permanentes. `InventarioPage.tsx` agora separa a grade em 'Itens permanentes da jornada' (cartão com borda dourada, `.rpg-loja-card--permanente`, sem contagem de quantidade) e 'Itens' (consumíveis, inalterado) — não ocupam mais o mesmo espaço visual, conforme pedido do usuário. (2) Balanceamento de XP: `creditarRecompensaDeJogo` (daily/recompensa.ts) reescrito — o limite antigo era só sobre o desafio 'destaque do dia' específico, então qualquer replay de Termo/Quebra-cabeça/Caça-palavras de OUTRO desafio do mesmo tipo dava a recompensa cheia (50 XP/25 ouro) sem limite, mecanismo real de farming. Agora o limite é por TIPO de jogo por dia: 1ª vitória do dia daquele tipo dá a recompensa cheia, vitórias extras do mesmo tipo no mesmo dia dão só 5 XP/2 ouro (mesmo patamar dos check-ins passivos). As 3 páginas de jogo (TermoPlayPage, QuebraCabecaPlayPage, WordSearchPlayPage) mostram a recompensa realmente creditada, com nota '(recompensa cheia já resgatada hoje)' quando reduzida. Efeito colateral corrigido: os 3 arquivos de teste dessas páginas nunca chamavam `signInDemo()` (usuário sempre null), então a recompensa nunca era creditada de fato — lacuna preexistente mascarada pela exibição incondicional antiga; adicionado wrapper `ComDemoAtivo` + `localStorage.clear()` em `beforeEach` nos 3.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-063"]
     }
   ]
 }

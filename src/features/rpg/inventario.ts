@@ -73,7 +73,14 @@ export function venderArmadura(
   return { usuario: usuarioSemPeca, sucesso: true };
 }
 
-/** Vende 1 unidade de um item de inventário (consumível ou permanente). */
+/**
+ * Vende 1 unidade de um item de inventário CONSUMÍVEL. Itens permanentes
+ * (Bíblia de Estudo, Harpa Cristã, Catecismo, Comentário de Calvino) nunca
+ * podem ser vendidos — bug real encontrado na auditoria (2026-09-16): o
+ * modal de item sempre mostrava "Vender" pra qualquer item de inventário,
+ * sem checar o tipo, então dava pra vender por engano um item que é
+ * gratuito e permanente por design (não devia nem ter preço de revenda).
+ */
 export function venderItemInventario(
   usuario: DemoUser,
   itemId: string,
@@ -81,6 +88,13 @@ export function venderItemInventario(
   const linha = usuario.inventory.find((i) => i.id === itemId);
   if (!linha) {
     return { usuario, sucesso: false, erro: "Você não possui este item." };
+  }
+  if (linha.type === "permanente") {
+    return {
+      usuario,
+      sucesso: false,
+      erro: "Itens permanentes fazem parte da sua jornada e não podem ser vendidos.",
+    };
   }
   const item = obterItemDoCatalogo(itemId);
   const precoBase = item ? calcularValorVenda(item) : 0;

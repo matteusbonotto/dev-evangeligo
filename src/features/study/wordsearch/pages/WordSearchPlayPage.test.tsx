@@ -1,12 +1,20 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { useEffect } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { AuthProvider } from "../../../authentication/context/AuthContext";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthProvider, useAuth } from "../../../authentication/context/AuthContext";
 import { WORDSEARCH_PUZZLES } from "../content";
 import { celulasDaLinha, iniciarWordSearch } from "../engine";
 import { WordSearchPlayPage } from "./WordSearchPlayPage";
 
 const puzzle = WORDSEARCH_PUZZLES[0];
+
+/** Cada teste começa um "dia" novo — sem isso, a recompensa cheia de um
+ * teste anterior deixaria o próximo teste do mesmo tipo de jogo com a
+ * recompensa reduzida (T-063: limite de recompensa cheia é 1x/dia). */
+beforeEach(() => {
+  localStorage.clear();
+});
 
 /** LCG simples e determinístico — mesma semente sempre gera a mesma sequência. */
 function criarRandomDeterministico(seed = 42): () => number {
@@ -17,20 +25,32 @@ function criarRandomDeterministico(seed = 42): () => number {
   };
 }
 
+/** Entra em modo demonstração assim que monta — sem `user`, a recompensa não é creditada (mesmo gate de `!user` já existia antes do T-063, só a exibição do texto não checava isso). */
+function ComDemoAtivo({ children }: { children: React.ReactNode }) {
+  const { signInDemo, user } = useAuth();
+  useEffect(() => {
+    if (!user) signInDemo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+  return <>{children}</>;
+}
+
 function renderPage(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
-        <Routes>
-          <Route
-            path="/exercicios/caca-palavras/:id"
-            element={<WordSearchPlayPage />}
-          />
-          <Route
-            path="/exercicios/caca-palavras"
-            element={<p>Lista de caça-palavras</p>}
-          />
-        </Routes>
+        <ComDemoAtivo>
+          <Routes>
+            <Route
+              path="/exercicios/caca-palavras/:id"
+              element={<WordSearchPlayPage />}
+            />
+            <Route
+              path="/exercicios/caca-palavras"
+              element={<p>Lista de caça-palavras</p>}
+            />
+          </Routes>
+        </ComDemoAtivo>
       </AuthProvider>
     </MemoryRouter>,
   );

@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import { useEffect } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthProvider } from "../../../authentication/context/AuthContext";
+import { AuthProvider, useAuth } from "../../../authentication/context/AuthContext";
 import { _resetCacheParaTeste } from "../../../bible/dataLoader";
 import { QuebraCabecaPlayPage } from "./QuebraCabecaPlayPage";
 import type { BibliaData } from "../../../bible/types";
@@ -21,26 +22,39 @@ const bibliaFake: BibliaData = {
   },
 };
 
+/** Entra em modo demonstração assim que monta — sem `user`, a recompensa não é creditada (mesmo gate de `!user` já existia antes do T-063, só a exibição do texto não checava isso). */
+function ComDemoAtivo({ children }: { children: React.ReactNode }) {
+  const { signInDemo, user } = useAuth();
+  useEffect(() => {
+    if (!user) signInDemo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+  return <>{children}</>;
+}
+
 function renderPage(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
-        <Routes>
-          <Route
-            path="/exercicios/quebra-cabeca/:id"
-            element={<QuebraCabecaPlayPage />}
-          />
-          <Route
-            path="/exercicios/quebra-cabeca"
-            element={<p>Lista de quebra-cabeças</p>}
-          />
-        </Routes>
+        <ComDemoAtivo>
+          <Routes>
+            <Route
+              path="/exercicios/quebra-cabeca/:id"
+              element={<QuebraCabecaPlayPage />}
+            />
+            <Route
+              path="/exercicios/quebra-cabeca"
+              element={<p>Lista de quebra-cabeças</p>}
+            />
+          </Routes>
+        </ComDemoAtivo>
       </AuthProvider>
     </MemoryRouter>,
   );
 }
 
 beforeEach(() => {
+  localStorage.clear();
   _resetCacheParaTeste();
   vi.stubGlobal(
     "fetch",

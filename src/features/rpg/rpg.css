@@ -108,6 +108,13 @@
   margin-top: var(--space-8);
 }
 
+.rpg-modal-permanente-aviso {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12, 12px);
+  font-style: italic;
+  margin: 0;
+}
+
 .rpg-modal-acoes .primary-button,
 .rpg-modal-acoes .secondary-button {
   flex: 1;
@@ -158,6 +165,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: var(--space-12);
+}
+
+/* Itens permanentes (Bíblia/Harpa/Catecismo/Calvino) ganham uma borda
+   dourada discreta — visualmente distintos dos consumíveis, sinal de "isso
+   é parte da sua jornada, não se gasta" (auditoria 2026-09-16, item 2). */
+.rpg-loja-card--permanente {
+  border-color: var(--dourado);
+  background: var(--dourado-claro);
 }
 
 .rpg-loja-card {

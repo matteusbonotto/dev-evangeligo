@@ -173,20 +173,28 @@ export function RpgItemModal({ selecao, onClose }: RpgItemModalProps) {
         {selecao.tipo === "inventario" && item && (
           <div className="rpg-modal-corpo">
             <p className="rpg-modal-descricao">{item.description}</p>
-            <p className="rpg-modal-quantidade">Quantidade: {item.quantity}</p>
+            {item.type === "permanente" ? (
+              <p className="rpg-modal-permanente-aviso">
+                Item permanente da sua jornada — não pode ser vendido.
+              </p>
+            ) : (
+              <p className="rpg-modal-quantidade">Quantidade: {item.quantity}</p>
+            )}
             <div className="rpg-modal-acoes">
               {item.type === "consumivel" && (
                 <button type="button" className="primary-button small" onClick={handleUsar}>
                   Usar agora
                 </button>
               )}
-              <button
-                type="button"
-                className="secondary-button small"
-                onClick={handleVenderItem}
-              >
-                Vender 1
-              </button>
+              {item.type !== "permanente" && (
+                <button
+                  type="button"
+                  className="secondary-button small"
+                  onClick={handleVenderItem}
+                >
+                  Vender 1
+                </button>
+              )}
             </div>
           </div>
         )}

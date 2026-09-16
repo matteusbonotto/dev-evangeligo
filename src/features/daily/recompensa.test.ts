@@ -9,53 +9,78 @@ beforeEach(() => {
 const AGORA = new Date("2026-09-08T10:00:00.000Z");
 
 describe("creditarRecompensaDeJogo", () => {
-  it("credita a recompensa normalmente quando não é o desafio de hoje", () => {
+  it("credita a recompensa cheia na 1ª vitória do dia pra aquele tipo de jogo", () => {
     const usuario = criarUsuarioDeTeste({ gold: 0, xp: 0 });
     const resultado = creditarRecompensaDeJogo({
       usuario,
       reward: { xp: 50, gold: 25 },
+      tipo: "termo",
       agora: AGORA,
     });
-    expect(resultado.gold).toBe(25);
+    expect(resultado.recompensaCheia).toBe(true);
+    expect(resultado.recompensa).toEqual({ xp: 50, gold: 25 });
+    expect(resultado.usuario.gold).toBe(25);
   });
 
-  it("quando o id jogado bate com o de hoje, credita e marca o desafio concluído", () => {
-    const usuario = criarUsuarioDeTeste({ gold: 0, xp: 0 });
-    const resultado = creditarRecompensaDeJogo({
+  it("achado real da auditoria: uma 2ª vitória do MESMO tipo no MESMO dia dá só a recompensa reduzida, não farma o valor cheio de novo", () => {
+    let usuario = criarUsuarioDeTeste({ gold: 0, xp: 0 });
+    const primeira = creditarRecompensaDeJogo({
       usuario,
       reward: { xp: 50, gold: 25 },
-      desafioDiario: { tipo: "termo", idJogado: "termo-graca", idDeHoje: "termo-graca" },
+      tipo: "termo",
       agora: AGORA,
     });
-    expect(resultado.gold).toBe(25);
+    usuario = primeira.usuario;
+
+    const segunda = creditarRecompensaDeJogo({
+      usuario,
+      reward: { xp: 50, gold: 25 },
+      tipo: "termo",
+      agora: AGORA,
+    });
+    expect(segunda.recompensaCheia).toBe(false);
+    expect(segunda.recompensa).toEqual({ xp: 5, gold: 2 });
+    expect(segunda.usuario.gold).toBe(27); // 25 (1ª) + 2 (2ª, reduzida) — nunca 50
   });
 
-  it("não credita de novo se o desafio de hoje já foi concluído (evita duplicar)", () => {
+  it("um tipo de jogo diferente no mesmo dia ainda ganha a recompensa cheia (o limite é por tipo, não geral)", () => {
     let usuario = criarUsuarioDeTeste({ gold: 0, xp: 0 });
     usuario = creditarRecompensaDeJogo({
       usuario,
       reward: { xp: 50, gold: 25 },
-      desafioDiario: { tipo: "termo", idJogado: "termo-graca", idDeHoje: "termo-graca" },
+      tipo: "termo",
       agora: AGORA,
-    });
-    const segunda = creditarRecompensaDeJogo({
+    }).usuario;
+
+    const quebra = creditarRecompensaDeJogo({
       usuario,
       reward: { xp: 50, gold: 25 },
-      desafioDiario: { tipo: "termo", idJogado: "termo-graca", idDeHoje: "termo-graca" },
+      tipo: "quebra",
       agora: AGORA,
     });
-    expect(segunda.gold).toBe(25); // não subiu pra 50
+    expect(quebra.recompensaCheia).toBe(true);
+    expect(quebra.usuario.gold).toBe(50);
   });
 
-  it("jogar um desafio diferente do de hoje credita normalmente (sem marcar o dia)", () => {
-    const usuario = criarUsuarioDeTeste({ gold: 0, xp: 0 });
+  it("no dia seguinte, volta a dar a recompensa cheia (o limite reseta por dia)", () => {
+    let usuario = criarUsuarioDeTeste({ gold: 0, xp: 0 });
+    usuario = creditarRecompensaDeJogo({
+      usuario,
+      reward: { xp: 50, gold: 25 },
+      tipo: "termo",
+      agora: AGORA,
+    }).usuario;
+
+    const amanha = new Date(AGORA);
+    amanha.setDate(amanha.getDate() + 1);
     const resultado = creditarRecompensaDeJogo({
       usuario,
       reward: { xp: 50, gold: 25 },
-      desafioDiario: { tipo: "termo", idJogado: "termo-pastor", idDeHoje: "termo-graca" },
-      agora: AGORA,
+      tipo: "termo",
+      agora: amanha,
     });
-    expect(resultado.gold).toBe(25);
+    expect(resultado.recompensaCheia).toBe(true);
+    expect(resultado.recompensa).toEqual({ xp: 50, gold: 25 });
   });
 });
 

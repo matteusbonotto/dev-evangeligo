@@ -41,6 +41,8 @@ export function InventarioPage() {
   }
 
   const armorBySlot = new Map(user.armor.map((peca) => [peca.slot, peca]));
+  const itensPermanentes = user.inventory.filter((item) => item.type === "permanente");
+  const itensConsumiveis = user.inventory.filter((item) => item.type !== "permanente");
 
   return (
     <AppShell>
@@ -86,12 +88,33 @@ export function InventarioPage() {
             })}
           </div>
 
+          <h2 className="rpg-loja-secao-titulo">
+            Itens permanentes da jornada
+          </h2>
+          {itensPermanentes.length === 0 ? (
+            <p className="rpg-modal-vazio">Você ainda não possui itens permanentes.</p>
+          ) : (
+            <div className="rpg-loja-grade">
+              {itensPermanentes.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="rpg-loja-card rpg-loja-card--permanente"
+                  onClick={() => setSelecao({ tipo: "inventario", itemId: item.id })}
+                >
+                  <p className="rpg-loja-card-nome">{item.name}</p>
+                  <p className="rpg-loja-card-efeito">{item.description}</p>
+                </button>
+              ))}
+            </div>
+          )}
+
           <h2 className="rpg-loja-secao-titulo">Itens</h2>
-          {user.inventory.length === 0 ? (
+          {itensConsumiveis.length === 0 ? (
             <p className="rpg-modal-vazio">Você ainda não possui itens.</p>
           ) : (
             <div className="rpg-loja-grade">
-              {user.inventory.map((item) => (
+              {itensConsumiveis.map((item) => (
                 <button
                   key={item.id}
                   type="button"

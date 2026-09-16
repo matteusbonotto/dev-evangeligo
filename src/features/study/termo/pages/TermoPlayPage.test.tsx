@@ -1,20 +1,40 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { useEffect } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it } from "vitest";
-import { AuthProvider } from "../../../authentication/context/AuthContext";
+import { beforeEach, describe, expect, it } from "vitest";
+import { AuthProvider, useAuth } from "../../../authentication/context/AuthContext";
 import { getTermoChallengeById } from "../content";
 import { TermoPlayPage } from "./TermoPlayPage";
 
 const challenge = getTermoChallengeById("termo-graca")!; // resposta normalizada: "GRACA"
 
+/** Cada teste começa um "dia" novo — sem isso, a recompensa cheia de um
+ * teste anterior deixaria o próximo teste com a recompensa reduzida
+ * (T-063: limite de recompensa cheia é 1x/dia por tipo de jogo). */
+beforeEach(() => {
+  localStorage.clear();
+});
+
+/** Entra em modo demonstração assim que monta — sem `user`, a recompensa não é creditada (mesmo gate de `!user` já existia antes do T-063, só a exibição do texto não checava isso). */
+function ComDemoAtivo({ children }: { children: React.ReactNode }) {
+  const { signInDemo, user } = useAuth();
+  useEffect(() => {
+    if (!user) signInDemo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+  return <>{children}</>;
+}
+
 function renderPage(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
-        <Routes>
-          <Route path="/exercicios/termo/:id" element={<TermoPlayPage />} />
-          <Route path="/exercicios/termo" element={<p>Lista de termos</p>} />
-        </Routes>
+        <ComDemoAtivo>
+          <Routes>
+            <Route path="/exercicios/termo/:id" element={<TermoPlayPage />} />
+            <Route path="/exercicios/termo" element={<p>Lista de termos</p>} />
+          </Routes>
+        </ComDemoAtivo>
       </AuthProvider>
     </MemoryRouter>,
   );

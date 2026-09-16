@@ -138,6 +138,23 @@ describe("venderItemInventario", () => {
     const vendido = venderItemInventario(comprado.usuario, "item-pao");
     expect(vendido.usuario.inventory).toHaveLength(0);
   });
+
+  it("recusa vender um item permanente (bug real da auditoria — não dá pra vender a Bíblia/Harpa)", () => {
+    const usuario = criarUsuarioDeTeste({
+      inventory: [
+        {
+          id: "item-biblia-estudo",
+          name: "Bíblia de Estudo",
+          description: "Referência permanente das Escrituras.",
+          quantity: 1,
+          type: "permanente",
+        },
+      ],
+    });
+    const resultado = venderItemInventario(usuario, "item-biblia-estudo");
+    expect(resultado.sucesso).toBe(false);
+    expect(resultado.usuario.inventory).toHaveLength(1);
+  });
 });
 
 describe("usarConsumivel", () => {

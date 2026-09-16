@@ -7,7 +7,6 @@ import { iniciarWordSearch, selecionarCelula } from "../engine";
 import { WORDSEARCH_ROUTE_PATHS } from "../routePaths";
 import { AppShell } from "../../../../shared/components/AppShell";
 import { useAuth } from "../../../authentication/context/AuthContext";
-import { obterCacaPalavrasDoDia, obterChaveDoDia } from "../../../daily/desafios";
 import { creditarRecompensaDeJogo } from "../../../daily/recompensa";
 import type { WordSearchSession } from "../types";
 
@@ -27,26 +26,34 @@ export function WordSearchPlayPage() {
 
   const [session, setSession] = useState<WordSearchSession | null>(null);
   const [aviso, setAviso] = useState("Toque na primeira e na última letra.");
+  const [recompensaGanha, setRecompensaGanha] = useState<{
+    xp: number;
+    gold: number;
+  } | null>(null);
   const recompensaCreditadaRef = useRef(false);
 
   useEffect(() => {
     if (!puzzle) return;
     setSession(iniciarWordSearch(puzzle));
     setAviso("Toque na primeira e na última letra.");
+    setRecompensaGanha(null);
     recompensaCreditadaRef.current = false;
   }, [puzzle]);
 
   useEffect(() => {
     if (!session?.concluido || !puzzle || !user || recompensaCreditadaRef.current) return;
     recompensaCreditadaRef.current = true;
-    const idDeHoje = obterCacaPalavrasDoDia(obterChaveDoDia()).id;
-    updateUser((atual) =>
-      creditarRecompensaDeJogo({
+    let recompensaAplicada = { xp: XP_POR_PUZZLE, gold: OURO_POR_PUZZLE };
+    updateUser((atual) => {
+      const resultado = creditarRecompensaDeJogo({
         usuario: atual,
         reward: { xp: XP_POR_PUZZLE, gold: OURO_POR_PUZZLE },
-        desafioDiario: { tipo: "cacaPalavras", idJogado: puzzle.id, idDeHoje },
-      }),
-    );
+        tipo: "cacaPalavras",
+      });
+      recompensaAplicada = resultado.recompensa;
+      return resultado.usuario;
+    });
+    setRecompensaGanha(recompensaAplicada);
   }, [session?.concluido, puzzle, user, updateUser]);
 
   if (!puzzle) {
@@ -129,9 +136,17 @@ export function WordSearchPlayPage() {
               <p className="quiz-results-score">
                 {puzzle.palavras.length} de {puzzle.palavras.length} palavras
               </p>
-              <p className="quiz-results-reward">
-                +{XP_POR_PUZZLE} XP · +{OURO_POR_PUZZLE} ouro
-              </p>
+              {recompensaGanha && (
+                <p className="quiz-results-reward">
+                  +{recompensaGanha.xp} XP · +{recompensaGanha.gold} ouro
+                  {recompensaGanha.xp < XP_POR_PUZZLE && (
+                    <span className="quiz-results-reward-nota">
+                      {" "}
+                      (recompensa cheia já resgatada hoje)
+                    </span>
+                  )}
+                </p>
+              )}
               <div className="quiz-results-actions">
                 <Link className="primary-button" to={WORDSEARCH_ROUTE_PATHS.lista}>
                   Ver outros desafios

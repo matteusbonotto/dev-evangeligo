@@ -3,7 +3,6 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiDelete } from "react-icons/fi";
 import "../termo.css";
 import { useAuth } from "../../../authentication/context/AuthContext";
-import { obterChaveDoDia, obterTermoDoDia } from "../../../daily/desafios";
 import { creditarRecompensaDeJogo } from "../../../daily/recompensa";
 import { getTermoChallengeById } from "../content";
 import {
@@ -37,12 +36,17 @@ export function TermoPlayPage() {
 
   const [session, setSession] = useState<TermoSession | null>(null);
   const [erro, setErro] = useState("");
+  const [recompensaGanha, setRecompensaGanha] = useState<{
+    xp: number;
+    gold: number;
+  } | null>(null);
   const recompensaCreditadaRef = useRef(false);
 
   useEffect(() => {
     if (!challenge) return;
     setSession(iniciarTermo(challenge));
     setErro("");
+    setRecompensaGanha(null);
     recompensaCreditadaRef.current = false;
   }, [challenge]);
 
@@ -50,14 +54,17 @@ export function TermoPlayPage() {
     if (session?.status !== "venceu" || !challenge || !user) return;
     if (recompensaCreditadaRef.current) return;
     recompensaCreditadaRef.current = true;
-    const idDeHoje = obterTermoDoDia(obterChaveDoDia()).id;
-    updateUser((atual) =>
-      creditarRecompensaDeJogo({
+    let recompensaAplicada = { xp: XP_POR_TERMO, gold: OURO_POR_TERMO };
+    updateUser((atual) => {
+      const resultado = creditarRecompensaDeJogo({
         usuario: atual,
         reward: { xp: XP_POR_TERMO, gold: OURO_POR_TERMO },
-        desafioDiario: { tipo: "termo", idJogado: challenge.id, idDeHoje },
-      }),
-    );
+        tipo: "termo",
+      });
+      recompensaAplicada = resultado.recompensa;
+      return resultado.usuario;
+    });
+    setRecompensaGanha(recompensaAplicada);
   }, [session?.status, challenge, user, updateUser]);
 
   useEffect(() => {
@@ -215,9 +222,15 @@ export function TermoPlayPage() {
               </h1>
               <p className="quiz-results-score">{session.resposta}</p>
               <p className="termo-explicacao">{challenge.explicacao}</p>
-              {session.status === "venceu" && (
+              {session.status === "venceu" && recompensaGanha && (
                 <p className="quiz-results-reward">
-                  +{XP_POR_TERMO} XP · +{OURO_POR_TERMO} ouro
+                  +{recompensaGanha.xp} XP · +{recompensaGanha.gold} ouro
+                  {recompensaGanha.xp < XP_POR_TERMO && (
+                    <span className="quiz-results-reward-nota">
+                      {" "}
+                      (recompensa cheia já resgatada hoje)
+                    </span>
+                  )}
                 </p>
               )}
               <div className="quiz-results-actions">

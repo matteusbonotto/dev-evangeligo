@@ -5,7 +5,6 @@ import "../quebracabeca.css";
 import { getVersiculoTexto } from "../../../bible/dataLoader";
 import { getLivroByOrder } from "../../../bible/data/livros";
 import { useAuth } from "../../../authentication/context/AuthContext";
-import { obterChaveDoDia, obterQuebraCabecaDoDia } from "../../../daily/desafios";
 import { creditarRecompensaDeJogo } from "../../../daily/recompensa";
 import { getQuebraCabecaChallengeById } from "../content";
 import {
@@ -37,6 +36,10 @@ export function QuebraCabecaPlayPage() {
   const [status, setStatus] = useState<CarregamentoStatus>("carregando");
   const [session, setSession] = useState<QuebraCabecaSession | null>(null);
   const [verificado, setVerificado] = useState(false);
+  const [recompensaGanha, setRecompensaGanha] = useState<{
+    xp: number;
+    gold: number;
+  } | null>(null);
   const recompensaCreditadaRef = useRef(false);
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export function QuebraCabecaPlayPage() {
     setStatus("carregando");
     setSession(null);
     setVerificado(false);
+    setRecompensaGanha(null);
     recompensaCreditadaRef.current = false;
     getVersiculoTexto(challenge.livroOrder, challenge.capitulo, challenge.versiculo)
       .then((texto) => {
@@ -66,14 +70,17 @@ export function QuebraCabecaPlayPage() {
     if (!challenge || !verificado || !acertou || !user) return;
     if (recompensaCreditadaRef.current) return;
     recompensaCreditadaRef.current = true;
-    const idDeHoje = obterQuebraCabecaDoDia(obterChaveDoDia()).id;
-    updateUser((atual) =>
-      creditarRecompensaDeJogo({
+    let recompensaAplicada = { xp: XP_POR_QUEBRA_CABECA, gold: OURO_POR_QUEBRA_CABECA };
+    updateUser((atual) => {
+      const resultado = creditarRecompensaDeJogo({
         usuario: atual,
         reward: { xp: XP_POR_QUEBRA_CABECA, gold: OURO_POR_QUEBRA_CABECA },
-        desafioDiario: { tipo: "quebra", idJogado: challenge.id, idDeHoje },
-      }),
-    );
+        tipo: "quebra",
+      });
+      recompensaAplicada = resultado.recompensa;
+      return resultado.usuario;
+    });
+    setRecompensaGanha(recompensaAplicada);
   }, [verificado, acertou, challenge, user, updateUser]);
 
   if (!challenge || !livro) {
@@ -196,9 +203,17 @@ export function QuebraCabecaPlayPage() {
               <p className="quiz-results-score">
                 {session.palavrasCorretas.join(" ")}
               </p>
-              <p className="quiz-results-reward">
-                +{XP_POR_QUEBRA_CABECA} XP · +{OURO_POR_QUEBRA_CABECA} ouro
-              </p>
+              {recompensaGanha && (
+                <p className="quiz-results-reward">
+                  +{recompensaGanha.xp} XP · +{recompensaGanha.gold} ouro
+                  {recompensaGanha.xp < XP_POR_QUEBRA_CABECA && (
+                    <span className="quiz-results-reward-nota">
+                      {" "}
+                      (recompensa cheia já resgatada hoje)
+                    </span>
+                  )}
+                </p>
+              )}
               <div className="quiz-results-actions">
                 <Link
                   className="primary-button"

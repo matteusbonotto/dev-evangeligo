@@ -9,16 +9,34 @@ import {
 } from "./persistencia";
 
 /**
- * Credita a recompensa de uma vitória (Termo Bíblico / Quebra-cabeça) — e,
- * quando o desafio jogado É o escolhido pra hoje (`idJogado === idDeHoje`),
- * também marca aquele destaque como concluído no dia. Chamando de novo pro
- * MESMO tipo no MESMO dia não credita duas vezes (`estado.concluidos`
- * bloqueia) — mas isso só protege o caminho "destaque do dia"; jogar o
- * MESMO desafio fora do fluxo de destaques repetidamente ainda credita a
- * cada vitória (sem trava de "1x por desafio pra sempre") — decisão
- * deliberada de manter simples nesta primeira versão, consistente com o
- * resto do app não ter nenhum mecanismo anti-farming (regra 24 do
- * projeto: não punir de forma cruel).
+ * Recompensa reduzida pra vitórias "extras" do mesmo tipo de jogo no mesmo
+ * dia — mesmo valor da recompensa de check-in passivo (`RECOMPENSA_CHECKIN`
+ * em `DestaquesDoDia.tsx`/`CheckinVidaInterior.tsx`), de propósito: se dá
+ * pra farmar (rejogar Termo/Quebra-cabeça/Caça-palavras sem limite), o
+ * valor tem que ser baixo o bastante pra não compensar.
+ */
+const RECOMPENSA_REPETIDA: Reward = { xp: 5, gold: 2 };
+
+export interface ResultadoRecompensaJogo {
+  usuario: DemoUser;
+  /** A recompensa REALMENTE aplicada — pode ser menor que a pedida em `reward`, ver `recompensaCheia`. */
+  recompensa: Reward;
+  /** `false` quando esta vitória já era a 2ª+ desse tipo de jogo hoje (recebeu `RECOMPENSA_REPETIDA` em vez do valor cheio). */
+  recompensaCheia: boolean;
+}
+
+/**
+ * Credita a recompensa de uma vitória (Termo Bíblico / Quebra-cabeça /
+ * Caça-palavras). Achado real da auditoria (2026-09-16): jogar um desafio
+ * que NÃO é o "destaque de hoje" sempre creditava o valor cheio (50 XP/25
+ * ouro), sem limite de repetição — dava pra farmar infinitamente, ~10x
+ * mais rápido que os check-ins passivos (5 XP/2 ouro, 1x/dia). Corrigido:
+ * a recompensa CHEIA só é dada 1x por dia POR TIPO de jogo (não importa
+ * qual desafio específico dentro daquele tipo); qualquer vitória extra do
+ * MESMO tipo no MESMO dia recebe só `RECOMPENSA_REPETIDA`. Isso recompensa
+ * CONSISTÊNCIA (voltar todo dia), não VOLUME (jogar muitas rodadas de
+ * uma vez) — mesmo espírito do resto do app (regra 24: não punir de forma
+ * cruel, só não vale a pena farmar).
  *
  * Antes do T-010 (RPG)/desta feature, `+XP · +ouro` no fim do Termo e do
  * Quebra-cabeça era só TEXTO — nunca creditava nada de verdade (mesmo gap
@@ -28,25 +46,27 @@ import {
 export function creditarRecompensaDeJogo(params: {
   usuario: DemoUser;
   reward: Reward;
-  desafioDiario?: {
-    tipo: TipoDesafioDiario;
-    idJogado: string;
-    idDeHoje: string;
-  };
+  tipo: TipoDesafioDiario;
   agora?: Date;
-}): DemoUser {
-  const { usuario, reward, desafioDiario, agora = new Date() } = params;
+}): ResultadoRecompensaJogo {
+  const { usuario, reward, tipo, agora = new Date() } = params;
+  const chave = obterChaveDoDia(agora);
+  const estado = carregarEstadoDiario(chave);
 
-  if (desafioDiario && desafioDiario.idJogado === desafioDiario.idDeHoje) {
-    const chave = obterChaveDoDia(agora);
-    const estado = carregarEstadoDiario(chave);
-    if (estado.concluidos[desafioDiario.tipo]) {
-      return usuario;
-    }
-    marcarDesafioConcluido(chave, desafioDiario.tipo);
+  if (estado.concluidos[tipo]) {
+    return {
+      usuario: aplicarRecompensaAoUsuario(usuario, RECOMPENSA_REPETIDA),
+      recompensa: RECOMPENSA_REPETIDA,
+      recompensaCheia: false,
+    };
   }
 
-  return aplicarRecompensaAoUsuario(usuario, reward);
+  marcarDesafioConcluido(chave, tipo);
+  return {
+    usuario: aplicarRecompensaAoUsuario(usuario, reward),
+    recompensa: reward,
+    recompensaCheia: true,
+  };
 }
 
 /** Marca um destaque "passivo" (versículo/leitura/vida interior do dia) como visto, creditando uma recompensa pequena de check-in — só na primeira vez do dia. */
