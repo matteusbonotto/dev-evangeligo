@@ -2096,26 +2096,98 @@ textarea:focus-visible,
 
 .sb-row-chevron {
   color: var(--texto-suave);
-  transition: transform 0.2s ease;
+  margin-left: auto;
 }
 
-.sb-row-chevron--aberto {
-  transform: rotate(180deg);
+/* Modal do par (T-066): mobile empilha os 2 blocos, desktop (>=720px) fica
+   lado a lado com "VS" no meio — pedido explícito do usuário. */
+.sb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 20, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16);
+  z-index: 60;
 }
 
-.sb-explicacao {
-  padding: var(--space-10) var(--space-12);
-  margin: 0 0 var(--space-6);
+.sb-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - var(--space-32));
+  overflow-y: auto;
+  background: var(--branco);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-20);
+}
+
+.sb-modal-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin-bottom: var(--space-14);
+}
+
+.sb-modal-titulo {
+  font-size: var(--font-size-18, 18px);
+  font-weight: 700;
+  margin: 0;
+}
+
+.sb-modal-vs-inline {
+  color: var(--texto-suave);
+  font-weight: 400;
+}
+
+.sb-modal-fechar {
+  border: none;
+  background: transparent;
+  color: var(--texto-suave);
+  font-size: 20px;
+  line-height: 1;
+  padding: var(--space-4);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.sb-modal-fechar:hover {
   background: var(--fundo);
-  border-radius: var(--radius-md);
+}
+
+.sb-modal-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.sb-modal-vs {
+  align-self: center;
+  font-weight: 700;
   font-size: var(--font-size-13);
-  color: var(--texto);
+  color: var(--texto-suave);
+}
+
+@media (min-width: 720px) {
+  .sb-modal-corpo {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .sb-modal-corpo .sb-bloco {
+    flex: 1;
+    margin-bottom: 0;
+  }
 }
 
 .sb-bloco {
   padding: var(--space-10) var(--space-12);
   border-radius: var(--radius-md);
   margin: 0 0 var(--space-8);
+  overflow-wrap: break-word;
 }
 
 .sb-bloco p {
@@ -2142,24 +2214,8 @@ textarea:focus-visible,
   color: var(--verde-700);
 }
 
-.sb-bloco-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-  width: 100%;
-  padding: var(--space-8) var(--space-12);
-  margin: 0 0 var(--space-6);
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--carne-100);
+.sb-bloco-titulo--flesh {
   color: var(--carne-600);
-  font-weight: 600;
-  font-size: var(--font-size-13);
-  cursor: pointer;
-}
-
-.sb-bloco-toggle .sb-row-chevron {
-  margin-left: auto;
 }
 
 .sb-icon {

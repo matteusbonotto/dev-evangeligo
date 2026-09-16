@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   GiAnchor,
   GiBeerStein,
@@ -19,7 +19,7 @@ import {
   GiSunkenEye,
   GiSunrise,
 } from "react-icons/gi";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiX } from "react-icons/fi";
 import type { SpiritBattleEntry } from "../../authentication/demo/demoUser";
 
 interface SpiritBattleProps {
@@ -50,15 +50,113 @@ const FLESH_ICONS: Record<string, typeof GiHeartWings> = {
   "dominio-proprio": GiBeerStein,
 };
 
+/**
+ * Modal centralizado com os 2 lados do par (T-066) — pedido explícito do
+ * usuário: o accordion inline empilhado ficava ruim de ler; no mobile os
+ * 2 blocos ficam um abaixo do outro, no desktop lado a lado com "VS" no
+ * meio (`sb-modal-corpo`, breakpoint em CSS). Fecha por clique no fundo,
+ * no X ou Esc.
+ */
+function SpiritBattleModal({
+  entry,
+  onClose,
+}: {
+  entry: SpiritBattleEntry;
+  onClose: () => void;
+}) {
+  const FruitIcon = FRUIT_ICONS[entry.id];
+  const FleshIcon = FLESH_ICONS[entry.id];
+
+  useEffect(() => {
+    function aoTeclar(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [onClose]);
+
+  return (
+    <div className="sb-modal-backdrop" role="presentation" onClick={onClose}>
+      <div
+        className="sb-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${entry.fruitLabel} contra ${entry.fleshLabel}`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="sb-modal-cabecalho">
+          <h2 className="sb-modal-titulo">
+            {entry.fruitLabel} <span className="sb-modal-vs-inline">×</span>{" "}
+            {entry.fleshLabel}
+          </h2>
+          <button
+            type="button"
+            className="sb-modal-fechar"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            <FiX aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="sb-modal-corpo">
+          <div className="sb-bloco sb-bloco--fruit">
+            <p className="sb-bloco-titulo">
+              <FruitIcon aria-hidden="true" /> {entry.fruitLabel} —{" "}
+              <cite>{entry.versiculo}</cite>
+            </p>
+            <p>
+              <strong>O que significa:</strong> {entry.significadoFruto}
+            </p>
+            <p>
+              <strong>Como aparece no dia a dia:</strong> {entry.exemploFruto}
+            </p>
+            <p>
+              <strong>Como praticar hoje:</strong> {entry.pratica}
+            </p>
+            <p>
+              <strong>Pergunta para se examinar:</strong> {entry.pergunta}
+            </p>
+            <p>
+              <strong>Oração:</strong> {entry.oracao}
+            </p>
+          </div>
+
+          <div className="sb-modal-vs" aria-hidden="true">
+            VS
+          </div>
+
+          <div className="sb-bloco sb-bloco--flesh">
+            <p className="sb-bloco-titulo sb-bloco-titulo--flesh">
+              <FleshIcon aria-hidden="true" /> {entry.fleshLabel}
+            </p>
+            {entry.obraTermos.map((termo) => (
+              <p key={termo.nome}>
+                <strong>{termo.nome}:</strong> {termo.significado}
+              </p>
+            ))}
+            <p>
+              <strong>Como aparece hoje em dia:</strong> {entry.sinalObra}
+            </p>
+            <p>
+              <strong>Como evitar/reagir:</strong> {entry.respostaObra}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SpiritBattle({ entries }: SpiritBattleProps) {
-  const [expandidoId, setExpandidoId] = useState<string | null>(null);
-  const [obraAbertaId, setObraAbertaId] = useState<string | null>(null);
+  const [parAbertoId, setParAbertoId] = useState<string | null>(null);
   const totalFruit = entries.reduce((sum, entry) => sum + entry.fruitValue, 0);
   const totalFlesh = entries.reduce((sum, entry) => sum + entry.fleshValue, 0);
   const total = totalFruit + totalFlesh;
   const fruitShare = total === 0 ? 50 : Math.round((totalFruit / total) * 100);
   const fleshShare = 100 - fruitShare;
   const spiritIsWinning = fruitShare >= fleshShare;
+  const parAberto = entries.find((entry) => entry.id === parAbertoId) ?? null;
 
   return (
     <div className="spirit-battle">
@@ -95,15 +193,12 @@ export function SpiritBattle({ entries }: SpiritBattleProps) {
             total === 0 ? 50 : (entry.fruitValue / total) * 100;
           const fruitAhead = entry.fruitValue >= entry.fleshValue;
 
-          const expandido = expandidoId === entry.id;
-
           return (
             <li key={entry.id} className="sb-row">
               <button
                 type="button"
                 className="sb-row-toggle"
-                onClick={() => setExpandidoId(expandido ? null : entry.id)}
-                aria-expanded={expandido}
+                onClick={() => setParAbertoId(entry.id)}
                 aria-label={`${entry.fruitLabel} contra ${entry.fleshLabel} — ver significado e exemplo`}
               >
                 <span
@@ -146,69 +241,16 @@ export function SpiritBattle({ entries }: SpiritBattleProps) {
                   <FleshIcon />
                 </span>
 
-                <FiChevronDown
-                  className={`sb-row-chevron${expandido ? " sb-row-chevron--aberto" : ""}`}
-                  aria-hidden="true"
-                />
+                <FiChevronDown className="sb-row-chevron" aria-hidden="true" />
               </button>
-
-              {expandido && (
-                <div className="sb-explicacao">
-                  <div className="sb-bloco sb-bloco--fruit">
-                    <p className="sb-bloco-titulo">
-                      <FruitIcon aria-hidden="true" /> {entry.fruitLabel} —{" "}
-                      <cite>{entry.versiculo}</cite>
-                    </p>
-                    <p>
-                      <strong>O que significa:</strong> {entry.significadoFruto}
-                    </p>
-                    <p>
-                      <strong>Como aparece no dia a dia:</strong> {entry.exemploFruto}
-                    </p>
-                    <p>
-                      <strong>Como praticar hoje:</strong> {entry.pratica}
-                    </p>
-                    <p>
-                      <strong>Pergunta para se examinar:</strong> {entry.pergunta}
-                    </p>
-                    <p>
-                      <strong>Oração:</strong> {entry.oracao}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="sb-bloco-toggle sb-bloco-toggle--flesh"
-                    onClick={() =>
-                      setObraAbertaId(obraAbertaId === entry.id ? null : entry.id)
-                    }
-                    aria-expanded={obraAbertaId === entry.id}
-                  >
-                    <FleshIcon aria-hidden="true" /> {entry.fleshLabel}
-                    <FiChevronDown
-                      className={`sb-row-chevron${obraAbertaId === entry.id ? " sb-row-chevron--aberto" : ""}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                  {obraAbertaId === entry.id && (
-                    <div className="sb-bloco sb-bloco--flesh">
-                      <p>
-                        <strong>O que significa:</strong> {entry.significadoObra}
-                      </p>
-                      <p>
-                        <strong>Como aparece hoje em dia:</strong> {entry.sinalObra}
-                      </p>
-                      <p>
-                        <strong>Como evitar/reagir:</strong> {entry.respostaObra}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
             </li>
           );
         })}
       </ul>
+
+      {parAberto && (
+        <SpiritBattleModal entry={parAberto} onClose={() => setParAbertoId(null)} />
+      )}
     </div>
   );
 }

@@ -578,6 +578,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-064"]
+    },
+    {
+      "id": "T-066",
+      "titulo": "Vida Interior: modal responsivo por par (VS lado a lado/empilhado), agrupamento explícito de termos sinônimos, textos mais claros, referências abreviadas",
+      "descricao": "Feedback ao vivo do usuário (T-065 tinha acabado de trocar o accordion inline por bloco+accordion aninhado dentro da própria linha — usuário achou ruim de ler). Substituído por um MODAL centralizado (`SpiritBattleModal` em `SpiritBattle.tsx`): mobile empilha o bloco do fruto acima do bloco da obra com 'VS' no meio; desktop (>=720px) fica lado a lado. Fecha por clique no fundo, no X ou Esc. (1) Agrupamento explícito: onde o nome rastreado (`fleshLabel`) e o nome do guia legado são sinônimos próximos de Gálatas 5, em vez de uma frase só misturando os dois nomes (T-065), `paresVidaInterior.ts` ganhou `obraTermos: {nome,significado}[]` — cada termo agrupado aparece com seu próprio 'o que significa': Inimizade+Ódio (amor), Contenda+Discórdia (paz), Impureza+Imoralidade (bondade); os demais pares (Ira, Idolatria, Inveja, Feitiçaria, Excessos, Divisão) têm 1 termo só. (2) Textos revisados pra serem mais explícitos (pedido: 'o texto de amor não ficou muito claro o que é amor') — todos os 9 `significadoFruto` reescritos pra responder diretamente 'o que é X', não só dar um exemplo. (3) Referência bíblica abreviada (pedido explícito, economia de espaço): `versiculo` agora guarda a forma abreviada (ex. '1Co 13:4-7'), mesmo padrão já usado em `bible/data/abreviacoesLivros.ts` pras referências cruzadas.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-065"]
     }
   ]
 }

@@ -1,6 +1,9 @@
 import { CONFIG_AVATAR_PADRAO } from "../../avatar/avatarUrl";
 import type { AvatarConfig } from "../../avatar/types";
-import { PARES_VIDA_INTERIOR } from "../../dashboard/data/paresVidaInterior";
+import {
+  PARES_VIDA_INTERIOR,
+  type TermoObra,
+} from "../../dashboard/data/paresVidaInterior";
 
 export type Rarity = "comum" | "raro" | "epico" | "lendario";
 
@@ -44,14 +47,14 @@ export interface SpiritBattleEntry {
   explicacao: string;
   /** Uma situação comum do dia a dia em que o contraste aparece na prática — pedido do usuário: "mostrando um exemplo do dia a dia". */
   exemploDoDia: string;
-  /** Campos ricos do guia unificado (T-065) — ver `paresVidaInterior.ts`. */
+  /** Campos ricos do guia unificado (T-065/T-066) — ver `paresVidaInterior.ts`. */
   versiculo: string;
   significadoFruto: string;
   exemploFruto: string;
   pratica: string;
   pergunta: string;
   oracao: string;
-  significadoObra: string;
+  obraTermos: TermoObra[];
   sinalObra: string;
   respostaObra: string;
 }
