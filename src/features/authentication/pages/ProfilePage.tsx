@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { FiArrowLeft, FiCheckCircle, FiUser } from "react-icons/fi";
+import { FiArrowLeft, FiCheckCircle, FiSettings, FiUser } from "react-icons/fi";
 import { ROUTE_PATHS } from "../../../app/routePaths";
 import { AppShell } from "../../../shared/components/AppShell";
+import {
+  definirPreferenciaNotificacoes,
+  definirPreferenciaVLibras,
+  obterPreferenciaNotificacoes,
+  obterPreferenciaVLibras,
+} from "../../../shared/preferencias";
 import { useAuth } from "../context/AuthContext";
 import { montarUrlAvatar } from "../../avatar/avatarUrl";
 import { supabaseClient } from "../../../infrastructure/supabase/client";
@@ -30,11 +36,74 @@ function formatarData(iso: string): string {
   });
 }
 
+function InterruptorConfig({
+  titulo,
+  descricao,
+  ligado,
+  onAlternar,
+}: {
+  titulo: string;
+  descricao: string;
+  ligado: boolean;
+  onAlternar: (novoValor: boolean) => void;
+}) {
+  return (
+    <div className="config-linha">
+      <div className="config-linha-texto">
+        <p className="config-linha-titulo">{titulo}</p>
+        <p className="config-linha-descricao">{descricao}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={ligado}
+        aria-label={titulo}
+        className={`config-switch${ligado ? " config-switch--ligado" : ""}`}
+        onClick={() => onAlternar(!ligado)}
+      >
+        <span className="config-switch-bolinha" aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const { user, authStatus, supabaseUser } = useAuth();
   const [consentimento, setConsentimento] = useState<
     ConsentimentoRecente | null | "carregando" | "indisponivel"
   >(null);
+  const [vlibrasLigado, setVlibrasLigado] = useState(() => obterPreferenciaVLibras());
+  const [notificacoesLigadas, setNotificacoesLigadas] = useState(() =>
+    obterPreferenciaNotificacoes(),
+  );
+  const [precisaRecarregar, setPrecisaRecarregar] = useState(false);
+
+  /**
+   * O VLibras só é carregado/removido de verdade num reload da página
+   * (T-073) — desmontar de forma limpa um script de terceiro já injetado,
+   * com seus próprios efeitos globais, não é confiável. Em vez de recarregar
+   * sozinho sem avisar, mostra um aviso com botão explícito.
+   */
+  function alternarVLibras(ligado: boolean) {
+    definirPreferenciaVLibras(ligado);
+    setVlibrasLigado(ligado);
+    setPrecisaRecarregar(true);
+  }
+
+  async function alternarNotificacoes(ligado: boolean) {
+    if (!ligado) {
+      definirPreferenciaNotificacoes(false);
+      setNotificacoesLigadas(false);
+      return;
+    }
+    if (typeof Notification === "undefined") {
+      return;
+    }
+    const permissao = await Notification.requestPermission();
+    const concedida = permissao === "granted";
+    definirPreferenciaNotificacoes(concedida);
+    setNotificacoesLigadas(concedida);
+  }
 
   useEffect(() => {
     if (!supabaseClient || !supabaseUser) {
@@ -161,6 +230,39 @@ export function ProfilePage() {
                 </div>
               </>
             )}
+        </section>
+
+        <section className="dash-card" aria-labelledby="profile-config-title">
+          <p className="eyebrow" id="profile-config-title">
+            <FiSettings aria-hidden="true" /> Configurações
+          </p>
+
+          <InterruptorConfig
+            titulo="VLibras (tradução em Libras)"
+            descricao="Ícone flutuante de tradução em Libras do governo. Desligue se ele estiver atrapalhando a leitura — desliga o script inteiro, não só esconde o ícone."
+            ligado={vlibrasLigado}
+            onAlternar={alternarVLibras}
+          />
+          <InterruptorConfig
+            titulo="Notificações push"
+            descricao="Permite que o app peça autorização do navegador para enviar notificações."
+            ligado={notificacoesLigadas}
+            onAlternar={alternarNotificacoes}
+          />
+
+          {precisaRecarregar && (
+            <p className="config-aviso">
+              A mudança do VLibras só faz efeito depois de recarregar a
+              página.{" "}
+              <button
+                type="button"
+                className="config-aviso-link"
+                onClick={() => window.location.reload()}
+              >
+                Recarregar agora
+              </button>
+            </p>
+          )}
         </section>
       </div>
     </AppShell>

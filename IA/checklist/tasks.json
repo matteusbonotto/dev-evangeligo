@@ -641,6 +641,15 @@
       "prioridade": "critica",
       "status": "done",
       "dependencias": ["T-071"]
+    },
+    {
+      "id": "T-073",
+      "titulo": "Switches em Perfil pra desligar o VLibras (desativa o script inteiro) e pra permitir notificações push",
+      "descricao": "Depois de 5 rodadas (T-062/065/067/070/071/072) sem conseguir confirmar a correção da posição/arrasto do VLibras no aparelho real do usuário, ele pediu diretamente: 'desisto, bota em perfil 2 switches, 1 pra permitir notificações push e outro pra permitir o VLibras... se false, desativa o javascript dessa biblioteca'. Implementado: (1) o HTML/script do VLibras (antes fixo em `index.html`, carregando sempre) foi removido de lá e agora só é injetado dinamicamente por `shared/vlibrasWidget.ts` SE a preferência (`shared/preferencias.ts`, localStorage, habilitado por padrão) permitir — quando desligado, ZERO requisição de rede pro domínio do VLibras acontece, não é só escondido via CSS. (2) Nova seção 'Configurações' em `ProfilePage.tsx` com 2 switches acessíveis (`role=switch`): VLibras (muda de efeito só depois de recarregar a página — desmontar de forma limpa um script de terceiro já carregado não é confiável, então mostra um aviso com botão 'Recarregar agora' em vez de recarregar sozinho sem avisar) e Notificações push (chama `Notification.requestPermission()` do navegador ao ligar; reflete honestamente se a permissão foi negada, sem fingir que ligou). Verificado ao vivo (Playwright): VLibras carrega por padrão; depois de desligar e recarregar, nenhum `<script>` nem elemento do VLibras existe na página.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "critica",
+      "status": "done",
+      "dependencias": ["T-072"]
     }
   ]
 }

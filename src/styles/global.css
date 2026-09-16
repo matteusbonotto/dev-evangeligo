@@ -1067,6 +1067,83 @@ textarea:focus-visible,
   color: var(--verde-700);
 }
 
+/* Configurações do perfil (T-073): switches de VLibras/notificações. */
+.config-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: var(--space-12) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.config-linha:first-of-type {
+  border-top: none;
+}
+
+.config-linha-texto {
+  min-width: 0;
+}
+
+.config-linha-titulo {
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.config-linha-descricao {
+  color: var(--texto-suave);
+  font-size: var(--font-size-13);
+  margin-top: 2px;
+}
+
+.config-switch {
+  flex-shrink: 0;
+  width: 44px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--color-border);
+  padding: 3px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.config-switch--ligado {
+  background: var(--verde-600);
+}
+
+.config-switch-bolinha {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--branco);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.config-switch--ligado .config-switch-bolinha {
+  transform: translateX(18px);
+}
+
+.config-aviso {
+  margin-top: var(--space-12);
+  padding: var(--space-10) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--dourado-claro);
+  font-size: var(--font-size-13);
+}
+
+.config-aviso-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--verde-700);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 @media (max-width: 480px) {
   .profile-header {
     flex-wrap: wrap;

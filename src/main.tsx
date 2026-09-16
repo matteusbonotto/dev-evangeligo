@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./App";
 import { AuthProvider } from "./features/authentication/context/AuthContext";
 import { iniciarAtualizacaoAutomatica } from "./shared/atualizacaoAutomatica";
-import { iniciarVLibrasArrastavel } from "./shared/vlibrasArrastavel";
+import { iniciarWidgetVLibras } from "./shared/vlibrasWidget";
 import "./styles/global.css";
 
 /**
@@ -22,9 +22,9 @@ try {
   console.error("Falha ao iniciar atualização automática do PWA:", erro);
 }
 try {
-  iniciarVLibrasArrastavel();
+  iniciarWidgetVLibras();
 } catch (erro) {
-  console.error("Falha ao iniciar o arrasto do VLibras:", erro);
+  console.error("Falha ao iniciar o widget do VLibras:", erro);
 }
 
 const queryClient = new QueryClient({

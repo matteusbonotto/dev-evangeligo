@@ -1,26 +1,31 @@
 /**
- * Torna o botão de acesso do VLibras (widget oficial de Libras, `index.html`,
- * T-017) arrastável e ancorável nos 4 cantos da tela — feedback real de
- * testadores da versão de teste: "o ícone de acessibilidade atrapalha o
- * uso" (fixo sempre no mesmo canto, sobrepondo botões do app). Continua
- * fora da árvore React de propósito (mesmo motivo já documentado em
- * `index.html`: o script do governo gerencia esse DOM sozinho) — este
- * módulo só observa o botão já renderizado pelo VLibras e adiciona
- * arrastar+ancorar por cima, sem reimplementar nem substituir o widget.
+ * Torna o botão de acesso do VLibras (widget oficial de Libras, T-017)
+ * arrastável e ancorável nos 4 cantos da tela — feedback real de
+ * testadores: "o ícone de acessibilidade atrapalha o uso" (fixo sempre no
+ * mesmo canto, sobrepondo botões do app). Continua fora da árvore React
+ * de propósito — este módulo só observa o botão já renderizado pelo
+ * VLibras (injetado condicionalmente por `vlibrasWidget.ts`, T-073) e
+ * adiciona arrastar+ancorar por cima, sem reimplementar nem substituir o
+ * widget.
  *
  * Causa raiz real (T-071, achado ao inspecionar o DOM em produção com o
  * usuário): o elemento QUE O WIDGET REALMENTE POSICIONA como flutuante é
  * `#vlibras-access` (`position: fixed; top: calc(50vh - 20px); right:
  * 10px`, CSS do próprio script) — `[vw-access-button]` é só o placeholder
- * estático de `index.html` que o widget deixa de lado depois que carrega
- * de verdade. Toda a correção de T-062/T-065/T-067/T-070 vinha sendo
- * aplicada no elemento ERRADO: funcionava nos meus testes porque o widget
- * real nunca carrega completo em ambiente headless/sandboxed (achado
- * documentado desde o T-062), então o placeholder ficava visível e
- * "parecia" corrigido — mas no celular real, com o widget carregado de
- * verdade, `#vlibras-access` nunca era tocado. Por isso `SELETORES`
- * abaixo tenta os dois IDs conhecidos, na ordem em que o widget
- * provavelmente os usa.
+ * estático que o widget deixa de lado depois que carrega de verdade. Toda
+ * a correção de T-062/T-065/T-067/T-070 vinha sendo aplicada no elemento
+ * ERRADO: funcionava nos meus testes porque o widget real nunca carrega
+ * completo em ambiente headless/sandboxed (achado documentado desde o
+ * T-062), então o placeholder ficava visível e "parecia" corrigido — mas
+ * no celular real, com o widget carregado de verdade, `#vlibras-access`
+ * nunca era tocado. Por isso `encontrarBotaoVLibras` tenta os dois IDs
+ * conhecidos, nessa ordem de preferência (nunca um seletor combinado —
+ * ver o comentário na função).
+ *
+ * T-072: além deste script, `global.css` tem uma regra `!important` fixa
+ * garantindo a posição padrão via CSS puro, independente de JS rodar.
+ * T-073: o usuário pode desligar o widget inteiro em Perfil >
+ * Configurações — quando desligado, este módulo nem chega a rodar.
  */
 
 const CHAVE_POSICAO = "evangeligo:vlibras:canto";
