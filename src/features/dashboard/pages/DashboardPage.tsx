@@ -20,7 +20,6 @@ import { AvatarRPG } from "../components/AvatarRPG";
 import { HeartsBar } from "../components/HeartsBar";
 import { ItemSlots } from "../components/ItemSlots";
 import { SpiritBattle } from "../components/SpiritBattle";
-import { GuiaFrutoCarne } from "../components/GuiaFrutoCarne";
 import { StatBar } from "../components/StatBar";
 import { StatPill } from "../components/StatPill";
 
@@ -102,7 +101,6 @@ export function DashboardPage() {
               Vida interior — Gálatas 5:16-23
             </p>
             <SpiritBattle entries={user.spiritBattle} />
-            <GuiaFrutoCarne />
           </section>
 
           <section className="dash-card" aria-labelledby="progress-title">

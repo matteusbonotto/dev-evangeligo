@@ -14,12 +14,33 @@ type Canto = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 const CANTOS: Canto[] = ["top-left", "top-right", "bottom-left", "bottom-right"];
 const MARGEM_PX = 16;
 
+/**
+ * O CSS injetado pelo próprio widget do VLibras usa `!important` em
+ * `position`/`top`/`left`/`right`/`bottom` (confirmado — é por isso que
+ * testadores reportaram o botão "não se move" mesmo com os estilos inline
+ * sendo aplicados corretamente pelo script). Um valor inline comum perde
+ * pra `!important` de qualquer stylesheet, então cada ajuste de posição
+ * precisa ser escrito também com prioridade `important` via
+ * `setProperty` — `style.top = ...` sozinho não é suficiente aqui.
+ */
+function set(botao: HTMLElement, propriedade: string, valor: string): void {
+  botao.style.setProperty(propriedade, valor, "important");
+}
+
+/**
+ * Sempre define os 4 eixos explicitamente (nunca `removeProperty`): como
+ * o CSS do próprio widget também tem `top`/`bottom`/`left`/`right` com
+ * `!important`, só "limpar" um eixo faria a regra dele reaparecer por
+ * baixo — com `position: fixed` e altura intrínseca, ter `top` e `bottom`
+ * simultaneamente ativos (um nosso, um dele) esticaria/distorceria o
+ * botão em vez de só reposicioná-lo.
+ */
 function aplicarCanto(botao: HTMLElement, canto: Canto): void {
-  botao.style.position = "fixed";
-  botao.style.top = canto.startsWith("top") ? `${MARGEM_PX}px` : "";
-  botao.style.bottom = canto.startsWith("bottom") ? `${MARGEM_PX}px` : "";
-  botao.style.left = canto.endsWith("left") ? `${MARGEM_PX}px` : "";
-  botao.style.right = canto.endsWith("right") ? `${MARGEM_PX}px` : "";
+  set(botao, "position", "fixed");
+  set(botao, "top", canto.startsWith("top") ? `${MARGEM_PX}px` : "auto");
+  set(botao, "bottom", canto.startsWith("bottom") ? `${MARGEM_PX}px` : "auto");
+  set(botao, "left", canto.endsWith("left") ? `${MARGEM_PX}px` : "auto");
+  set(botao, "right", canto.endsWith("right") ? `${MARGEM_PX}px` : "auto");
 }
 
 function cantoMaisProximo(x: number, y: number): Canto {
@@ -52,9 +73,9 @@ const LIMIAR_ARRASTO_PX = 6;
 
 function tornarArrastavel(botao: HTMLElement): void {
   aplicarCanto(botao, carregarCantoSalvo());
-  botao.style.cursor = "grab";
-  botao.style.touchAction = "none";
-  botao.style.zIndex = "2147483647";
+  set(botao, "cursor", "grab");
+  set(botao, "touch-action", "none");
+  set(botao, "z-index", "2147483647");
 
   let arrastando = false;
   let moveu = false;
@@ -78,17 +99,17 @@ function tornarArrastavel(botao: HTMLElement): void {
       return;
     }
     moveu = true;
-    botao.style.cursor = "grabbing";
-    botao.style.top = `${event.clientY - botao.offsetHeight / 2}px`;
-    botao.style.left = `${event.clientX - botao.offsetWidth / 2}px`;
-    botao.style.bottom = "";
-    botao.style.right = "";
+    set(botao, "cursor", "grabbing");
+    set(botao, "top", `${event.clientY - botao.offsetHeight / 2}px`);
+    set(botao, "left", `${event.clientX - botao.offsetWidth / 2}px`);
+    set(botao, "bottom", "auto");
+    set(botao, "right", "auto");
   }
 
   function aoSoltar(event: PointerEvent) {
     if (!arrastando) return;
     arrastando = false;
-    botao.style.cursor = "grab";
+    set(botao, "cursor", "grab");
     if (moveu) {
       const canto = cantoMaisProximo(event.clientX, event.clientY);
       aplicarCanto(botao, canto);

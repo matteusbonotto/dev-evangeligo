@@ -52,6 +52,7 @@ const FLESH_ICONS: Record<string, typeof GiHeartWings> = {
 
 export function SpiritBattle({ entries }: SpiritBattleProps) {
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
+  const [obraAbertaId, setObraAbertaId] = useState<string | null>(null);
   const totalFruit = entries.reduce((sum, entry) => sum + entry.fruitValue, 0);
   const totalFlesh = entries.reduce((sum, entry) => sum + entry.fleshValue, 0);
   const total = totalFruit + totalFlesh;
@@ -153,10 +154,55 @@ export function SpiritBattle({ entries }: SpiritBattleProps) {
 
               {expandido && (
                 <div className="sb-explicacao">
-                  <p className="sb-explicacao-texto">{entry.explicacao}</p>
-                  <p className="sb-explicacao-exemplo">
-                    <strong>No dia a dia:</strong> {entry.exemploDoDia}
-                  </p>
+                  <div className="sb-bloco sb-bloco--fruit">
+                    <p className="sb-bloco-titulo">
+                      <FruitIcon aria-hidden="true" /> {entry.fruitLabel} —{" "}
+                      <cite>{entry.versiculo}</cite>
+                    </p>
+                    <p>
+                      <strong>O que significa:</strong> {entry.significadoFruto}
+                    </p>
+                    <p>
+                      <strong>Como aparece no dia a dia:</strong> {entry.exemploFruto}
+                    </p>
+                    <p>
+                      <strong>Como praticar hoje:</strong> {entry.pratica}
+                    </p>
+                    <p>
+                      <strong>Pergunta para se examinar:</strong> {entry.pergunta}
+                    </p>
+                    <p>
+                      <strong>Oração:</strong> {entry.oracao}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="sb-bloco-toggle sb-bloco-toggle--flesh"
+                    onClick={() =>
+                      setObraAbertaId(obraAbertaId === entry.id ? null : entry.id)
+                    }
+                    aria-expanded={obraAbertaId === entry.id}
+                  >
+                    <FleshIcon aria-hidden="true" /> {entry.fleshLabel}
+                    <FiChevronDown
+                      className={`sb-row-chevron${obraAbertaId === entry.id ? " sb-row-chevron--aberto" : ""}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {obraAbertaId === entry.id && (
+                    <div className="sb-bloco sb-bloco--flesh">
+                      <p>
+                        <strong>O que significa:</strong> {entry.significadoObra}
+                      </p>
+                      <p>
+                        <strong>Como aparece hoje em dia:</strong> {entry.sinalObra}
+                      </p>
+                      <p>
+                        <strong>Como evitar/reagir:</strong> {entry.respostaObra}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </li>

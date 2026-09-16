@@ -44,6 +44,16 @@ export interface SpiritBattleEntry {
   explicacao: string;
   /** Uma situação comum do dia a dia em que o contraste aparece na prática — pedido do usuário: "mostrando um exemplo do dia a dia". */
   exemploDoDia: string;
+  /** Campos ricos do guia unificado (T-065) — ver `paresVidaInterior.ts`. */
+  versiculo: string;
+  significadoFruto: string;
+  exemploFruto: string;
+  pratica: string;
+  pergunta: string;
+  oracao: string;
+  significadoObra: string;
+  sinalObra: string;
+  respostaObra: string;
 }
 
 export interface ArmorSlot {
