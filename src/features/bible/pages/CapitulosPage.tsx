@@ -6,6 +6,7 @@ import { getLivroByCodigo } from "../data/livros";
 import { obterAbreviacaoLivro } from "../data/abreviacoesLivros";
 import { buildLeituraPath } from "../routePaths";
 import {
+  calcularEsquerdaDoPin,
   estimarPosicaoPeloPercentual,
   obterProgressoCapitulo,
   obterProgressoLivro,
@@ -52,7 +53,7 @@ export function CapitulosPage() {
           <div className="biblia-progresso-com-pin">
             <span
               className="biblia-progresso-pin"
-              style={{ left: `${percentualLivro}%` }}
+              style={{ left: calcularEsquerdaDoPin(percentualLivro) }}
             >
               {obterAbreviacaoLivro(livro.codigo)}
               {capituloDoPin}

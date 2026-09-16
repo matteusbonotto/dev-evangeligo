@@ -226,13 +226,13 @@
   transition: width 0.3s ease;
 }
 
-/* Pin com o capítulo estimado (T-069) — margem no topo pra caber a
-   bolinha, e no eixo X pra ela nunca vazar da borda esquerda/direita do
-   cartão quando a leitura está em 0% ou 100%. */
+/* Pin com o capítulo/versículo estimado (T-069) — margem no topo pra
+   caber a bolinha; o recuo no eixo X pra ela nunca vazar da tela perto de
+   0%/100% já vem de `calcularEsquerdaDoPin` (`clamp(...)`, T-071), não
+   precisa de padding aqui (isso só encolheria a barra sem necessidade). */
 .biblia-progresso-com-pin {
   position: relative;
   margin-top: var(--space-20);
-  padding: 0 var(--space-16);
 }
 
 .biblia-progresso-pin {
@@ -422,19 +422,6 @@
   margin-bottom: var(--space-16);
 }
 
-/* Barra fina fixa no topo da viewport, acima até do TopHud — feedback
-   contínuo de progresso enquanto o usuário rola a tela (pedido do
-   usuário: "barra de progresso que aumenta conforme rola a tela"). */
-.biblia-progresso-fixo {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 3px;
-  background: var(--verde-600);
-  z-index: 30;
-  transition: width 0.15s linear;
-}
-
 .biblia-status {
   color: var(--color-text-muted);
   padding: var(--space-20) 0;
@@ -450,17 +437,27 @@
    legado peça por peça (ver ADR em IA/memory/decisions.md). --- */
 
 .biblia-leitura-topo {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-12);
-  flex-wrap: wrap;
   margin-bottom: var(--space-12);
 }
 
+/* Centralizado de verdade em relação à barra inteira (não só no espaço
+   sobrando entre os dois lados, que fica torto quando "← Livro" e "BL ▾"
+   têm larguras bem diferentes) — pedido explícito do usuário. */
 .biblia-leitura-topo-titulo {
-  flex: 1;
-  min-width: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(60%, 260px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
 }
 
 .biblia-paper {

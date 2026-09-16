@@ -70,6 +70,7 @@ import {
 import { expandirParaPalavra } from "../selecaoTexto";
 import { useNarracaoBiblia } from "../useNarracaoBiblia";
 import {
+  calcularEsquerdaDoPin,
   estimarPosicaoPeloPercentual,
   obterProgressoCapitulo,
   registrarProgressoLeitura,
@@ -956,11 +957,6 @@ export function LeituraPage() {
   return (
     <AppShell>
       <div
-        className="biblia-progresso-fixo"
-        style={{ width: `${progressoAtual}%` }}
-        aria-hidden="true"
-      />
-      <div
         className={`dashboard biblia-page${altoContraste ? " biblia-page--contraste" : ""}`}
       >
         <div className="biblia-leitura-cabecalho" ref={cabecalhoRef}>
@@ -1033,7 +1029,7 @@ export function LeituraPage() {
               <div className="biblia-progresso-com-pin">
                 <span
                   className="biblia-progresso-pin"
-                  style={{ left: `${progressoAtual}%` }}
+                  style={{ left: calcularEsquerdaDoPin(progressoAtual) }}
                 >
                   v.{estimarPosicaoPeloPercentual(progressoAtual, versiculos.length)}
                 </span>

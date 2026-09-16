@@ -8,24 +8,43 @@
  * módulo só observa o botão já renderizado pelo VLibras e adiciona
  * arrastar+ancorar por cima, sem reimplementar nem substituir o widget.
  *
- * Causa raiz do "ainda atrapalha" reportado depois do T-065 (que só
- * resolvia o `!important` da posição): o `<div vw-access-button>` já vem
- * PRONTO no HTML estático (`index.html`), então nosso script (module,
- * roda antes de `DOMContentLoaded`) posiciona ele primeiro — mas o script
- * do VLibras só inicializa DEPOIS, no handler de `DOMContentLoaded`, e
- * reaplica a própria posição/estilo por cima da nossa, desfazendo o
- * ancoramento assim que a página carrega (mesmo com `!important`: se o
- * widget escreve via `elemento.style.top = "..."`, isso reseta a
- * prioridade daquela propriedade, não só o valor). Por isso agora
- * observamos mudanças no atributo `style` do próprio botão continuamente
- * e reaplicamos nosso canto sempre que algo além do nosso próprio arrasto
- * mexer nele — não é uma correção de "uma vez só".
+ * Causa raiz real (T-071, achado ao inspecionar o DOM em produção com o
+ * usuário): o elemento QUE O WIDGET REALMENTE POSICIONA como flutuante é
+ * `#vlibras-access` (`position: fixed; top: calc(50vh - 20px); right:
+ * 10px`, CSS do próprio script) — `[vw-access-button]` é só o placeholder
+ * estático de `index.html` que o widget deixa de lado depois que carrega
+ * de verdade. Toda a correção de T-062/T-065/T-067/T-070 vinha sendo
+ * aplicada no elemento ERRADO: funcionava nos meus testes porque o widget
+ * real nunca carrega completo em ambiente headless/sandboxed (achado
+ * documentado desde o T-062), então o placeholder ficava visível e
+ * "parecia" corrigido — mas no celular real, com o widget carregado de
+ * verdade, `#vlibras-access` nunca era tocado. Por isso `SELETORES`
+ * abaixo tenta os dois IDs conhecidos, na ordem em que o widget
+ * provavelmente os usa.
  */
 
 const CHAVE_POSICAO = "evangeligo:vlibras:canto";
 type Canto = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 const CANTOS: Canto[] = ["top-left", "top-right", "bottom-left", "bottom-right"];
 const MARGEM_PX = 16;
+
+/**
+ * `#vlibras-access` é o elemento real (versão atual do widget);
+ * `[vw-access-button]` é o placeholder estático de `index.html`/versões
+ * antigas do widget. CUIDADO: nunca combinar os dois num seletor só
+ * (`"#a, [b]"`) — `querySelector` com lista devolve o primeiro em ORDEM NO
+ * DOM, e o placeholder estático (declarado antes no HTML) sempre viria
+ * primeiro mesmo depois do `#vlibras-access` real existir, fazendo o
+ * código nunca "trocar" pro elemento certo. Por isso a busca abaixo tenta
+ * o real PRIMEIRO, explicitamente, e só cai pro placeholder se o real
+ * ainda não existir.
+ */
+function encontrarBotaoVLibras(): HTMLElement | null {
+  return (
+    document.querySelector<HTMLElement>("#vlibras-access") ??
+    document.querySelector<HTMLElement>("[vw-access-button]")
+  );
+}
 
 /**
  * O CSS injetado pelo próprio widget do VLibras usa `!important` em
@@ -210,23 +229,33 @@ function tornarArrastavel(botao: HTMLElement): void {
 }
 
 /**
- * O botão já existe no HTML estático (`index.html`) desde o início — mas
- * inicializamos de novo se ele for substituído por completo (o
- * `MutationObserver` de `childList` no `body` cobre esse caso extra,
- * mesmo não sendo o cenário mais comum hoje).
+ * O placeholder estático já existe desde o início, mas o `#vlibras-access`
+ * real só aparece depois que o widget termina de carregar — este
+ * observador NUNCA se desconecta sozinho (T-071: a 1ª versão desligava
+ * depois do 1º match, então quando o real substituía o placeholder, o
+ * elemento novo ficava pra sempre sem arrasto/correção nenhuma). Compara
+ * por REFERÊNCIA (`botaoAtual`) pra nunca inicializar a mesma instância
+ * duas vezes — o `MutationObserver` de `childList` no `body` dispara a
+ * cada mudança QUALQUER na página (não só no VLibras).
+ *
+ * Devolve uma função de parada só pra uso em teste (cada `it()` roda numa
+ * DOM nova e precisa desligar o observador do teste anterior — em produção
+ * a chamada em `main.tsx` é única pra vida inteira da página, então o
+ * valor de retorno é ignorado ali de propósito).
  */
-export function iniciarVLibrasArrastavel(): void {
-  const existente = document.querySelector<HTMLElement>("[vw-access-button]");
-  if (existente) {
-    tornarArrastavel(existente);
-    return;
-  }
-  const observer = new MutationObserver(() => {
-    const botao = document.querySelector<HTMLElement>("[vw-access-button]");
-    if (botao) {
+export function iniciarVLibrasArrastavel(): () => void {
+  let botaoAtual: HTMLElement | null = null;
+
+  function verificarBotao(): void {
+    const botao = encontrarBotaoVLibras();
+    if (botao && botao !== botaoAtual) {
+      botaoAtual = botao;
       tornarArrastavel(botao);
-      observer.disconnect();
     }
-  });
+  }
+
+  verificarBotao();
+  const observer = new MutationObserver(verificarBotao);
   observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
 }

@@ -111,6 +111,22 @@ export function estimarPosicaoPeloPercentual(
   return Math.min(total, Math.max(1, estimado));
 }
 
+/** Margem mínima do pin até a borda da barra, nos dois eixos — evita que ele fique cortado fora da tela perto de 0%/100% (bug real reportado com print). */
+const MARGEM_PIN_PX = 22;
+
+/**
+ * `left` do pin como CSS `clamp(...)` em vez do percentual cru — o pin usa
+ * `transform: translateX(-50%)` pra centralizar no ponto, então perto de
+ * 100% a metade direita dele vazava da tela (bug real reportado pelo
+ * usuário, com print mostrando "v.31" cortado na borda). `clamp` mantém
+ * pelo menos `MARGEM_PIN_PX` de respiro dos dois lados, sem precisar saber
+ * a largura exata do pin (que varia com o texto).
+ */
+export function calcularEsquerdaDoPin(percentual: number): string {
+  const p = Math.max(0, Math.min(100, percentual));
+  return `clamp(${MARGEM_PIN_PX}px, ${p}%, calc(100% - ${MARGEM_PIN_PX}px))`;
+}
+
 /** Quantos dos livros informados (por `order`) têm ao menos 1 capítulo com progresso > 0. */
 export function contarLivrosIniciados(ordens: readonly number[]): number {
   const todos = lerTodos();

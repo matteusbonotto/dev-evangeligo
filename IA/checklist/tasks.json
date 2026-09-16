@@ -623,6 +623,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-067", "T-069"]
+    },
+    {
+      "id": "T-071",
+      "titulo": "VLibras: causa raiz real (elemento errado sendo corrigido); barra de progresso duplicada removida; header centralizado; pin não corta mais na borda",
+      "descricao": "Achado central (inspeção do DOM em produção feita junto com o usuário): TODAS as correções de T-062/T-065/T-067/T-070 miravam `[vw-access-button]`, mas o elemento que o widget REALMENTE posiciona como flutuante é `#vlibras-access` (CSS do próprio script: `position:fixed; top:calc(50vh - 20px); right:10px`) — `[vw-access-button]` é só o placeholder estático de `index.html`. As correções 'funcionavam' em teste/preview porque o widget real nunca carrega completo em ambiente headless (achado documentado desde T-062), deixando o placeholder sozinho e 'parecendo' corrigido — no celular real, com o widget carregado de verdade, `#vlibras-access` nunca era tocado. Corrigido: `encontrarBotaoVLibras()` busca `#vlibras-access` primeiro, explicitamente (nunca um seletor combinado tipo `'#a, [b]'`, que devolveria o placeholder por ordem no DOM mesmo depois do real existir). Também corrigido um vazamento de memória real nos testes (o `MutationObserver` de `childList` agora nunca desliga sozinho, T-070 — cada `it()` do arquivo de teste criava um novo pra sempre, travando o worker; `iniciarVLibrasArrastavel` agora devolve uma função de parada usada só nos testes). Além disso: (1) removida a barra de progresso fina fixa no topo da viewport (`.biblia-progresso-fixo`) — pedido explícito do usuário, redundante com a barra já visível dentro do cabeçalho, e possivelmente contribuindo pro cabeçalho 'aparecer e sumir' no mobile real (2 elementos position:fixed competindo pelo mesmo canto superior). (2) Cabeçalho da leitura (`.biblia-leitura-topo`) recentralizado de verdade — o título ficava enviesado porque só tinha `flex:1` (centralizado no espaço sobrando, não na barra inteira); agora é `position:absolute; left:50%` sobre o container relativo. (3) Pin de posição (T-069/T-070) cortava na borda perto de 0%/100% (print real mostrando 'v.31' cortado) — nova `calcularEsquerdaDoPin` usa `clamp()` CSS pra garantir margem mínima dos dois lados, independente da largura do texto do pin.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "critica",
+      "status": "done",
+      "dependencias": ["T-070"]
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  calcularEsquerdaDoPin,
   capituloConcluido,
   contarLivrosIniciados,
   estimarPosicaoPeloPercentual,
@@ -113,5 +114,29 @@ describe("estimarPosicaoPeloPercentual", () => {
 
   it("nunca lança erro e nunca aponta pro capítulo 0 quando totalCapitulos é 0", () => {
     expect(estimarPosicaoPeloPercentual(50, 0)).toBe(1);
+  });
+});
+
+/**
+ * Bug real reportado com print: o pin usa `translateX(-50%)` pra
+ * centralizar no ponto exato do percentual — perto de 100% isso fazia a
+ * metade direita do pin vazar pra fora da tela, cortada. `clamp()` mantém
+ * uma margem mínima dos dois lados.
+ */
+describe("calcularEsquerdaDoPin", () => {
+  it("no meio do progresso, usa o percentual cru (longe das bordas)", () => {
+    expect(calcularEsquerdaDoPin(50)).toBe("clamp(22px, 50%, calc(100% - 22px))");
+  });
+
+  it("perto de 0% ou 100%, o clamp garante margem mínima nos dois lados", () => {
+    const emZero = calcularEsquerdaDoPin(0);
+    const emCem = calcularEsquerdaDoPin(100);
+    expect(emZero).toContain("22px");
+    expect(emCem).toContain("calc(100% - 22px)");
+  });
+
+  it("nunca lança erro com valores fora do intervalo 0-100", () => {
+    expect(() => calcularEsquerdaDoPin(-10)).not.toThrow();
+    expect(() => calcularEsquerdaDoPin(150)).not.toThrow();
   });
 });
