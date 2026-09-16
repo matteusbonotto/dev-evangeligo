@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BsTranslate, BsXLg } from "react-icons/bs";
 import {
+  calcularIntervaloDePalavras,
+  filtrarPalavrasPelaSelecao,
   obterPalavrasOriginais,
   type PalavraOriginal,
 } from "../linguaOriginal";
@@ -14,22 +16,24 @@ import type { Livro } from "../types";
  * abrir o painel completo de `PainelInfoVersiculo` (esse continua existindo,
  * aberto ao tocar o NÚMERO do versículo).
  *
- * Limitação técnica real, mostrada na própria UI (não escondida):
- * `obterPalavrasOriginais` retorna as palavras do VERSÍCULO INTEIRO — não há
- * como mapear com certeza qual palavra do hebraico/grego corresponde
- * caractere-a-caractere ao trecho exato selecionado em português (a ordem e
- * a quantidade de palavras nunca são as mesmas entre os idiomas). O balão
- * mostra todas as palavras originais do versículo que contém a seleção.
- *
- * Revisão de UX (Fase 4, feedback direto do usuário): no mobile isso virava
- * um "balão" perto do toque, achado feio — agora usa `.bctx-central`
- * (cartão centralizado, mesmo espírito do `PainelInfoVersiculo`) em vez de
- * bottom sheet; o desktop mantém o popup perto do clique.
+ * `obterPalavrasOriginais` só consegue buscar as palavras do VERSÍCULO
+ * INTEIRO (a API não segmenta por trecho) — mas mostrar TODAS elas pra
+ * quem selecionou 1 palavra só era "muito mal implementado" (bug real
+ * reportado, T-068): agora `filtrarPalavrasPelaSelecao` usa a POSIÇÃO
+ * proporcional do trecho selecionado (por palavra, dentro do versículo em
+ * português) pra recortar a MESMA posição na lista de palavras originais.
+ * Continua sendo uma aproximação (tradução reordena a frase às vezes), por
+ * isso o link "ver todas as palavras do versículo" continua disponível
+ * como saída pra quando o recorte erra.
  */
 export interface BalaoTextoOriginalProps {
   livro: Livro;
   capitulo: number;
   numero: number;
+  /** Texto completo do versículo em português e o trecho exato selecionado dentro dele — usados só pra recortar proporcionalmente a lista de palavras originais (T-068). Sem isso, mostra o versículo inteiro (comportamento anterior). */
+  textoVersiculo?: string;
+  selecaoInicio?: number;
+  selecaoFim?: number;
   modoSheet: boolean;
   x: number;
   y: number;
@@ -40,23 +44,45 @@ export function BalaoTextoOriginal({
   livro,
   capitulo,
   numero,
+  textoVersiculo,
+  selecaoInicio,
+  selecaoFim,
   modoSheet,
   x,
   y,
   onFechar,
 }: BalaoTextoOriginalProps) {
-  const [palavras, setPalavras] = useState<PalavraOriginal[] | null>(null);
+  const [todasAsPalavras, setTodasAsPalavras] = useState<PalavraOriginal[] | null>(null);
+  const [mostrarTudo, setMostrarTudo] = useState(false);
 
   useEffect(() => {
     let ativo = true;
-    setPalavras(null);
+    setTodasAsPalavras(null);
+    setMostrarTudo(false);
     obterPalavrasOriginais(livro, capitulo, numero).then((resultado) => {
-      if (ativo) setPalavras(resultado);
+      if (ativo) setTodasAsPalavras(resultado);
     });
     return () => {
       ativo = false;
     };
   }, [livro, capitulo, numero]);
+
+  const selecaoValida =
+    textoVersiculo !== undefined && selecaoInicio !== undefined && selecaoFim !== undefined;
+
+  const palavrasFiltradas = useMemo(() => {
+    if (!todasAsPalavras || !selecaoValida) return todasAsPalavras;
+    const intervalo = calcularIntervaloDePalavras(textoVersiculo, selecaoInicio, selecaoFim);
+    return filtrarPalavrasPelaSelecao(todasAsPalavras, intervalo);
+  }, [todasAsPalavras, selecaoValida, textoVersiculo, selecaoInicio, selecaoFim]);
+
+  const houveRecorte =
+    selecaoValida &&
+    !!todasAsPalavras &&
+    !!palavrasFiltradas &&
+    palavrasFiltradas.length < todasAsPalavras.length;
+
+  const palavras = mostrarTudo ? todasAsPalavras : palavrasFiltradas;
 
   const LARGURA_BALAO = 300;
   const MARGEM = 12;
@@ -95,11 +121,20 @@ export function BalaoTextoOriginal({
             {capitulo}:{numero}
           </p>
           <p className="balao-original-aviso">
-            Palavras do versículo inteiro no idioma original — a
-            correspondência exata com o trecho selecionado nem sempre é
-            possível palavra por palavra.
+            {mostrarTudo || !selecaoValida
+              ? "Palavras do versículo inteiro no idioma original."
+              : "Palavra(s) aproximada(s) do trecho selecionado — a tradução às vezes reordena a frase, então pode não ser exata."}
           </p>
           <PainelSignificadoOriginal palavras={palavras} />
+          {houveRecorte && !mostrarTudo && (
+            <button
+              type="button"
+              className="balao-original-ver-tudo"
+              onClick={() => setMostrarTudo(true)}
+            >
+              Não é essa a palavra? Ver o versículo inteiro
+            </button>
+          )}
         </div>
 
         <button type="button" className="bctx-btn-fechar" onClick={onFechar}>

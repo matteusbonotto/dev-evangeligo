@@ -596,6 +596,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-065"]
+    },
+    {
+      "id": "T-068",
+      "titulo": "Texto original: recorte proporcional pela seleção real, em vez de sempre devolver o versículo inteiro",
+      "descricao": "Bug real reportado pelo usuário: selecionar 1 palavra em português no balão 'Ver texto original' sempre devolvia TODAS as palavras do versículo hebraico/grego pra remexer (\"muito mal implementado\"). A limitação de fundo é real (a API `bolls.life` só segmenta por versículo inteiro, e tradução reordena a frase), mas o app descartava completamente `inicio`/`fim`/`texto` da seleção (`SelecaoPendente`) ao abrir o balão — só passava o número do versículo. Corrigido: novas funções puras em `linguaOriginal.ts` — `calcularIntervaloDePalavras` (acha em que ÍNDICE DE PALAVRA, não caractere, o trecho selecionado cai dentro do versículo completo em português) e `filtrarPalavrasPelaSelecao` (aplica a MESMA posição proporcional na lista de palavras originais, sempre devolvendo ao menos 1 palavra). `LeituraPage.tsx` agora passa `textoVersiculo`/`selecaoInicio`/`selecaoFim` pro `BalaoTextoOriginal`, que filtra antes de mostrar. Continua sendo uma aproximação (não uma correspondência garantida) — por isso um link 'Não é essa a palavra? Ver o versículo inteiro' continua disponível como saída pra quando o recorte erra, sem esconder a limitação.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": []
     }
   ]
 }

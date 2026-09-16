@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { obterPalavrasOriginais } from "./linguaOriginal";
+import {
+  calcularIntervaloDePalavras,
+  filtrarPalavrasPelaSelecao,
+  obterPalavrasOriginais,
+  type PalavraOriginal,
+} from "./linguaOriginal";
 import type { Livro } from "./types";
 
 const genesis: Livro = {
@@ -220,5 +225,89 @@ describe("obterPalavrasOriginais — Novo Testamento (grego, TISCH)", () => {
     const chamadasAntes = fetchMock.mock.calls.length;
     await obterPalavrasOriginais(joao, 3, 16);
     expect(fetchMock).toHaveBeenCalledTimes(chamadasAntes);
+  });
+});
+
+/**
+ * T-068 — bug real: selecionar 1 palavra em português sempre devolvia
+ * TODAS as palavras do versículo original. `calcularIntervaloDePalavras` +
+ * `filtrarPalavrasPelaSelecao` recortam pela posição proporcional.
+ */
+describe("calcularIntervaloDePalavras", () => {
+  const texto = "no princípio criou Deus os céus e a terra";
+  // índices:      0    1        2     3   4    5   6 7   8
+
+  it("acha o índice de 1 única palavra selecionada", () => {
+    const inicio = texto.indexOf("Deus");
+    const fim = inicio + "Deus".length;
+    expect(calcularIntervaloDePalavras(texto, inicio, fim)).toEqual({
+      indiceInicio: 3,
+      indiceFim: 4,
+      totalPalavras: 9,
+    });
+  });
+
+  it("acha o intervalo de uma frase selecionada (várias palavras)", () => {
+    const inicio = texto.indexOf("céus");
+    const fim = texto.indexOf("terra") + "terra".length;
+    const resultado = calcularIntervaloDePalavras(texto, inicio, fim);
+    expect(resultado.indiceInicio).toBe(5);
+    expect(resultado.indiceFim).toBe(9);
+    expect(resultado.totalPalavras).toBe(9);
+  });
+
+  it("nunca lança erro com um intervalo vazio/degenerado", () => {
+    expect(calcularIntervaloDePalavras(texto, 5, 5)).toEqual({
+      indiceInicio: 0,
+      indiceFim: 0,
+      totalPalavras: 9,
+    });
+    expect(calcularIntervaloDePalavras("", 0, 0)).toEqual({
+      indiceInicio: 0,
+      indiceFim: 0,
+      totalPalavras: 0,
+    });
+  });
+});
+
+describe("filtrarPalavrasPelaSelecao", () => {
+  function palavra(texto: string): PalavraOriginal {
+    return { palavra: texto, strong: "H0", definicao: null };
+  }
+
+  const palavrasOriginais = [
+    palavra("א"),
+    palavra("ב"),
+    palavra("ג"),
+    palavra("ד"),
+    palavra("ה"),
+    palavra("ו"),
+    palavra("ז"),
+    palavra("ח"),
+  ]; // 8 palavras, mesmo total do exemplo em português acima
+
+  it("recorta só a palavra na mesma posição proporcional (1 palavra selecionada)", () => {
+    const intervalo = { indiceInicio: 2, indiceFim: 3, totalPalavras: 8 };
+    const resultado = filtrarPalavrasPelaSelecao(palavrasOriginais, intervalo);
+    expect(resultado).toEqual([palavra("ג")]);
+  });
+
+  it("recorta o trecho proporcional quando uma frase inteira foi selecionada", () => {
+    const intervalo = { indiceInicio: 4, indiceFim: 8, totalPalavras: 8 };
+    const resultado = filtrarPalavrasPelaSelecao(palavrasOriginais, intervalo);
+    expect(resultado).toEqual([palavra("ה"), palavra("ו"), palavra("ז"), palavra("ח")]);
+  });
+
+  it("nunca devolve uma lista vazia — sempre pelo menos 1 palavra", () => {
+    const intervalo = { indiceInicio: 0, indiceFim: 0, totalPalavras: 8 };
+    const resultado = filtrarPalavrasPelaSelecao(palavrasOriginais, intervalo);
+    expect(resultado.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("devolve a lista inteira se o total de palavras em português for 0 (nunca quebra)", () => {
+    const intervalo = { indiceInicio: 0, indiceFim: 0, totalPalavras: 0 };
+    expect(filtrarPalavrasPelaSelecao(palavrasOriginais, intervalo)).toEqual(
+      palavrasOriginais,
+    );
   });
 });

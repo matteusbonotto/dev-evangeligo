@@ -315,3 +315,77 @@ export async function obterPalavrasOriginais(
     };
   });
 }
+
+/**
+ * Bug real reportado pelo usuário (2026-09-16): selecionar 1 palavra em
+ * português sempre devolvia TODAS as palavras do versículo original pra
+ * remexer — "muito mal implementado". A limitação de fundo continua real
+ * (tradução reordena/reformula a frase, não dá pra alinhar com certeza
+ * absoluta), mas dava pra fazer bem melhor que "sempre mostra tudo":
+ * localiza em que POSIÇÃO (por palavra, não caractere) o trecho
+ * selecionado cai dentro do versículo em português, e usa a MESMA posição
+ * proporcional dentro da lista de palavras originais — hebraico/grego
+ * raramente inverte a ordem geral da frase numa tradução formal como a
+ * Almeida, então a vizinhança proporcional costuma acertar a palavra
+ * certa (ou ficar bem perto dela), o que já é muito melhor que devolver
+ * o versículo inteiro pra 1 palavra selecionada.
+ */
+export interface IntervaloDePalavras {
+  indiceInicio: number;
+  indiceFim: number;
+  totalPalavras: number;
+}
+
+/** Conta em que índice de PALAVRA (não caractere) os offsets `inicio`/`fim` caem dentro do texto completo. */
+export function calcularIntervaloDePalavras(
+  textoCompleto: string,
+  inicio: number,
+  fim: number,
+): IntervaloDePalavras {
+  const palavras = textoCompleto.split(/\s+/).filter(Boolean);
+  if (palavras.length === 0 || fim <= inicio) {
+    return { indiceInicio: 0, indiceFim: 0, totalPalavras: palavras.length };
+  }
+
+  let cursor = 0;
+  let indiceInicio = palavras.length;
+  let indiceFim = palavras.length;
+  for (let i = 0; i < palavras.length; i++) {
+    const inicioPalavra = textoCompleto.indexOf(palavras[i], cursor);
+    const fimPalavra = inicioPalavra + palavras[i].length;
+    if (indiceInicio === palavras.length && fimPalavra > inicio) {
+      indiceInicio = i;
+    }
+    if (inicioPalavra < fim) {
+      indiceFim = i + 1;
+    }
+    cursor = fimPalavra;
+  }
+  return { indiceInicio, indiceFim: Math.max(indiceFim, indiceInicio + 1), totalPalavras: palavras.length };
+}
+
+/**
+ * Aplica a MESMA posição proporcional do intervalo em português na lista
+ * de palavras originais — sempre devolve ao menos 1 palavra. Nunca lança
+ * erro: entradas degeneradas (0 palavras em algum dos lados) devolvem a
+ * lista inteira, que é o comportamento anterior (melhor que devolver
+ * vazio).
+ */
+export function filtrarPalavrasPelaSelecao(
+  palavras: PalavraOriginal[],
+  intervaloPt: IntervaloDePalavras,
+): PalavraOriginal[] {
+  if (palavras.length === 0 || intervaloPt.totalPalavras === 0) return palavras;
+
+  const proporcaoInicio = intervaloPt.indiceInicio / intervaloPt.totalPalavras;
+  const proporcaoFim = intervaloPt.indiceFim / intervaloPt.totalPalavras;
+  const indiceInicio = Math.min(
+    palavras.length - 1,
+    Math.floor(proporcaoInicio * palavras.length),
+  );
+  const indiceFim = Math.max(
+    indiceInicio + 1,
+    Math.min(palavras.length, Math.ceil(proporcaoFim * palavras.length)),
+  );
+  return palavras.slice(indiceInicio, indiceFim);
+}

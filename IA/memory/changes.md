@@ -294,3 +294,8 @@
 - Corrigido com um `MutationObserver` no atributo `style`/`class` do próprio botão que reaplica o canto salvo continuamente sempre que algo além do nosso arrasto mexe na posição — não é mais uma correção de uma vez só.
 - Achado real ao testar: a 1ª versão chamava a reaplicação de estilos base incondicionalmente a cada disparo do observador, o que gerava uma nova mutação a cada chamada e disparava o próprio observador de novo — loop infinito via microtask que travava a suíte (vitest nunca terminava). Corrigido pra só escrever quando uma correção de verdade é necessária.
 - `npm run typecheck`/`lint`/`test`/`build` limpos, 573 testes.
+
+## 2026-09-16 (rodada seguinte) — Texto original: recorte proporcional pela seleção (T-068)
+- Bug real: selecionar 1 palavra sempre devolvia TODAS as palavras do versículo original — o app descartava `inicio`/`fim`/`texto` da seleção antes de abrir o balão, só passando o número do versículo.
+- Novas funções puras em `linguaOriginal.ts`: `calcularIntervaloDePalavras` (posição por ÍNDICE DE PALAVRA do trecho selecionado dentro do versículo em português) + `filtrarPalavrasPelaSelecao` (mesma posição proporcional na lista de palavras originais, sempre ≥1 palavra). `LeituraPage.tsx`/`BalaoTextoOriginal.tsx` passam a usar isso; link "ver o versículo inteiro" continua disponível pra quando o recorte erra (tradução às vezes reordena a frase).
+- `npm run typecheck`/`lint`/`test`/`build` limpos, 580 testes (14 novos cobrindo palavra única, frase e casos degenerados).

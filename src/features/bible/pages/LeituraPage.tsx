@@ -122,6 +122,10 @@ interface InfoVersiculoState {
 /** Balão "Ver texto original" aberto a partir do menu de seleção (T-048). */
 interface BalaoOriginalState {
   versiculo: number;
+  /** Trecho selecionado (T-068) — usados só pra recortar proporcionalmente as palavras originais mostradas, ver `BalaoTextoOriginal`. */
+  textoVersiculo: string;
+  selecaoInicio: number;
+  selecaoFim: number;
   modoSheet: boolean;
   x: number;
   y: number;
@@ -734,11 +738,15 @@ export function LeituraPage() {
     });
   }
 
-  /** "Ver texto original" a partir do menu de seleção (T-048/ADR-041). */
+  /** "Ver texto original" a partir do menu de seleção (T-048/ADR-041, recorte proporcional T-068). */
   function abrirBalaoOriginalDoMenu() {
     if (!menuContexto) return;
+    const { pendente } = menuContexto;
     setBalaoOriginal({
-      versiculo: menuContexto.pendente.versiculo,
+      versiculo: pendente.versiculo,
+      textoVersiculo: versiculos[pendente.versiculo - 1] ?? "",
+      selecaoInicio: pendente.inicio,
+      selecaoFim: pendente.fim,
       modoSheet: menuContexto.modoSheet,
       x: menuContexto.x,
       y: menuContexto.y,
@@ -1366,6 +1374,9 @@ export function LeituraPage() {
           livro={livro}
           capitulo={capitulo}
           numero={balaoOriginal.versiculo}
+          textoVersiculo={balaoOriginal.textoVersiculo}
+          selecaoInicio={balaoOriginal.selecaoInicio}
+          selecaoFim={balaoOriginal.selecaoFim}
           modoSheet={balaoOriginal.modoSheet}
           x={balaoOriginal.x}
           y={balaoOriginal.y}
