@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   capituloConcluido,
   contarLivrosIniciados,
-  estimarCapituloAtual,
+  estimarPosicaoPeloPercentual,
   obterProgressoCapitulo,
   obterProgressoLivro,
   registrarProgressoLeitura,
@@ -94,24 +94,24 @@ describe("contarLivrosIniciados", () => {
   });
 });
 
-describe("estimarCapituloAtual", () => {
+describe("estimarPosicaoPeloPercentual", () => {
   it("começa no capítulo 1 quando não há nenhum progresso (0%)", () => {
-    expect(estimarCapituloAtual(0, 50)).toBe(1);
+    expect(estimarPosicaoPeloPercentual(0, 50)).toBe(1);
   });
 
   it("acerta o exemplo do usuário: ~12% de um livro de 50 capítulos aponta pro capítulo 6", () => {
-    expect(estimarCapituloAtual(12, 50)).toBe(6);
+    expect(estimarPosicaoPeloPercentual(12, 50)).toBe(6);
   });
 
   it("termina no último capítulo quando o livro está 100% lido", () => {
-    expect(estimarCapituloAtual(100, 50)).toBe(50);
+    expect(estimarPosicaoPeloPercentual(100, 50)).toBe(50);
   });
 
   it("nunca aponta além do total de capítulos, mesmo com arredondamento", () => {
-    expect(estimarCapituloAtual(99, 50)).toBe(50);
+    expect(estimarPosicaoPeloPercentual(99, 50)).toBe(50);
   });
 
   it("nunca lança erro e nunca aponta pro capítulo 0 quando totalCapitulos é 0", () => {
-    expect(estimarCapituloAtual(50, 0)).toBe(1);
+    expect(estimarPosicaoPeloPercentual(50, 0)).toBe(1);
   });
 });

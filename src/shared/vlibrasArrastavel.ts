@@ -112,6 +112,23 @@ function tornarArrastavel(botao: HTMLElement): void {
     set(botao, "z-index", "2147483647");
   }
 
+  /**
+   * CUIDADO: só escreve estilo quando `correspondeAoCanto` já for falso.
+   * Chamar isso incondicionalmente de um observador (mesmo repetindo os
+   * MESMOS valores) geraria uma nova mutação de `style` a cada chamada,
+   * disparando o próprio observador de novo — loop infinito síncrono via
+   * microtask (achado real rodando os testes: a suíte travava sem nunca
+   * terminar). Aqui é seguro porque só é chamada a partir de gatilhos
+   * externos (observer/rAF), nunca em cadeia consigo mesma.
+   */
+  function corrigirSeNecessario(): void {
+    if (arrastando) return;
+    if (!correspondeAoCanto(botao, cantoAtual)) {
+      aplicarCanto(botao, cantoAtual);
+      garantirEstilosBase();
+    }
+  }
+
   aplicarCanto(botao, cantoAtual);
   garantirEstilosBase();
 
@@ -120,23 +137,28 @@ function tornarArrastavel(botao: HTMLElement): void {
    * no topo do arquivo) e reaplica a própria posição por cima da nossa —
    * este observador reage a QUALQUER mudança no atributo `style` do botão
    * e desfaz o que não for nosso, continuamente (não só uma vez no
-   * carregamento). Ignorado durante o arrasto, já que ali o estilo
-   * intencionalmente não bate com nenhum canto fixo ainda.
-   *
-   * CUIDADO: só escreve estilo quando `correspondeAoCanto` já for falso.
-   * Escrever incondicionalmente aqui (mesmo repetindo os MESMOS valores)
-   * geraria uma nova mutação de `style` a cada chamada, disparando o
-   * próprio observador de novo — um loop infinito síncrono via microtask
-   * (achado real rodando os testes: a suíte travava sem nunca terminar).
+   * carregamento).
    */
-  const observadorDeEstilo = new MutationObserver(() => {
-    if (arrastando) return;
-    if (!correspondeAoCanto(botao, cantoAtual)) {
-      aplicarCanto(botao, cantoAtual);
-      garantirEstilosBase();
-    }
-  });
+  const observadorDeEstilo = new MutationObserver(corrigirSeNecessario);
   observadorDeEstilo.observe(botao, { attributes: true, attributeFilter: ["style", "class"] });
+
+  /**
+   * Reforço além do observer (achado real, T-070): mesmo com o observer,
+   * testadores continuaram vendo o botão fugir do canto — o widget
+   * provavelmente reposiciona em resposta a rolagem/redimensionamento (a
+   * tela de leitura da Bíblia rola bastante), e não dá pra confirmar o
+   * gatilho exato usado pelo script de terceiro sem acesso ao código dele.
+   * Em vez de adivinhar, um loop de `requestAnimationFrame` garante que a
+   * nossa correção sempre "ganha por último", a cada quadro, não importa
+   * o que disparou a mudança. Para sozinho se o botão sair do documento
+   * (evita um loop eterno vazando entre testes/remontagens).
+   */
+  function loopDeCorrecao(): void {
+    if (!document.body.contains(botao)) return;
+    corrigirSeNecessario();
+    requestAnimationFrame(loopDeCorrecao);
+  }
+  requestAnimationFrame(loopDeCorrecao);
 
   function aoPressionar(event: PointerEvent) {
     arrastando = true;

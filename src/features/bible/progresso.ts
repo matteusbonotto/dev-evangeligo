@@ -90,22 +90,25 @@ export function obterProgressoLivro(
 }
 
 /**
- * Estima em qual capítulo o leitor está a partir do % médio do livro —
- * pedido explícito do usuário: "quero que a barra de progresso da leitura
- * mostre um pin com o versículo/capítulo a qual o usuário está... se
- * rolei até o Gn6 mostra Gn6". Não existe rastreio separado de "capítulo
- * mais avançado" — reaproveita `obterProgressoLivro` (a mesma % já usada
- * pra desenhar a barra), então o pin sempre fica exatamente na borda do
+ * Estima em que posição (capítulo dentro do livro, OU versículo dentro do
+ * capítulo — a mesma conta serve pros dois, ver `CapitulosPage.tsx` e
+ * `LeituraPage.tsx`) o leitor está, a partir de um percentual 0-100 já
+ * calculado. Pedido explícito do usuário: "quero que a barra de progresso
+ * da leitura mostre um pin com o versículo/capítulo a qual o usuário
+ * está... se rolei até o Gn6 mostra Gn6". Não existe rastreio separado de
+ * "posição mais avançada" — reaproveita o mesmo percentual já usado pra
+ * desenhar a barra (`obterProgressoLivro` pro livro, `progressoAtual` de
+ * rolagem pro capítulo), então o pin sempre fica exatamente na borda do
  * preenchimento, nunca dessincronizado dele. Sempre ao menos 1 (nunca
- * "capítulo 0").
+ * "posição 0").
  */
-export function estimarCapituloAtual(
-  percentualLivro: number,
-  totalCapitulos: number,
+export function estimarPosicaoPeloPercentual(
+  percentual: number,
+  total: number,
 ): number {
-  if (totalCapitulos <= 0) return 1;
-  const estimado = Math.round((percentualLivro / 100) * totalCapitulos);
-  return Math.min(totalCapitulos, Math.max(1, estimado));
+  if (total <= 0) return 1;
+  const estimado = Math.round((percentual / 100) * total);
+  return Math.min(total, Math.max(1, estimado));
 }
 
 /** Quantos dos livros informados (por `order`) têm ao menos 1 capítulo com progresso > 0. */

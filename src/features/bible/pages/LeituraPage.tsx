@@ -70,6 +70,7 @@ import {
 import { expandirParaPalavra } from "../selecaoTexto";
 import { useNarracaoBiblia } from "../useNarracaoBiblia";
 import {
+  estimarPosicaoPeloPercentual,
   obterProgressoCapitulo,
   registrarProgressoLeitura,
 } from "../progresso";
@@ -1025,18 +1026,30 @@ export function LeituraPage() {
 
           {status === "pronto" && (
             <>
-              <div
-                className="biblia-progresso-track biblia-progresso-track--leitura"
-                role="progressbar"
-                aria-label={`Progresso de leitura de ${livro.nome} ${capitulo}`}
-                aria-valuenow={progressoAtual}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
+              {/* Pin com o versículo estimado onde a leitura está (T-070) —
+                  mesma ideia do pin de capítulo em `CapitulosPage.tsx`,
+                  agora dentro do capítulo: mostra o VERSÍCULO conforme a
+                  rolagem avança, não só o capítulo. */}
+              <div className="biblia-progresso-com-pin">
+                <span
+                  className="biblia-progresso-pin"
+                  style={{ left: `${progressoAtual}%` }}
+                >
+                  v.{estimarPosicaoPeloPercentual(progressoAtual, versiculos.length)}
+                </span>
                 <div
-                  className="biblia-progresso-fill"
-                  style={{ width: `${progressoAtual}%` }}
-                />
+                  className="biblia-progresso-track biblia-progresso-track--leitura"
+                  role="progressbar"
+                  aria-label={`Progresso de leitura de ${livro.nome} ${capitulo}`}
+                  aria-valuenow={progressoAtual}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className="biblia-progresso-fill"
+                    style={{ width: `${progressoAtual}%` }}
+                  />
+                </div>
               </div>
 
               <div className="bctrl-toolbar">

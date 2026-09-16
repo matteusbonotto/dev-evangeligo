@@ -614,6 +614,15 @@
       "prioridade": "media",
       "status": "done",
       "dependencias": []
+    },
+    {
+      "id": "T-070",
+      "titulo": "VLibras: reforço contínuo por requestAnimationFrame; pin de versículo dentro do capítulo (só existia por livro)",
+      "descricao": "2 achados do usuário depois do T-069. (1) VLibras: mesmo com o MutationObserver do T-067, o botão continuou fugindo do canto — evidência real (screenshot): horizontalmente correto (perto da borda direita) mas verticalmente no meio da tela, sugerindo que o widget reposiciona em resposta a algo (rolagem/redimensionamento são os gatilhos mais prováveis numa tela de leitura) sem dar pra confirmar com certeza qual exatamente, sem acesso ao código-fonte do widget. Em vez de tentar adivinhar o gatilho, `vlibrasArrastavel.ts` ganhou um loop de `requestAnimationFrame` que reafirma a posição a cada quadro (além do observer, que continua existindo) — garante que nossa correção 'ganha por último' não importa a causa, parando sozinho se o botão sair do documento. (2) O pin de posição (T-069) só existia na barra de progresso POR LIVRO (`CapitulosPage.tsx`, mostrando capítulo) — faltava o mesmo pin na barra de progresso DENTRO do capítulo (`LeituraPage.tsx`), que já existia mas sem indicar o VERSÍCULO onde a rolagem está. Renomeada `estimarCapituloAtual` para `estimarPosicaoPeloPercentual` (a mesma conta serve pra capítulo dentro do livro OU versículo dentro do capítulo) e reaproveitada em `LeituraPage.tsx` com `progressoAtual`/`versiculos.length`.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-067", "T-069"]
     }
   ]
 }

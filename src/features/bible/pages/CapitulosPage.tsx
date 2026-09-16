@@ -6,7 +6,7 @@ import { getLivroByCodigo } from "../data/livros";
 import { obterAbreviacaoLivro } from "../data/abreviacoesLivros";
 import { buildLeituraPath } from "../routePaths";
 import {
-  estimarCapituloAtual,
+  estimarPosicaoPeloPercentual,
   obterProgressoCapitulo,
   obterProgressoLivro,
 } from "../progresso";
@@ -26,7 +26,7 @@ export function CapitulosPage() {
     livro.order,
     livro.totalCapitulos,
   );
-  const capituloDoPin = estimarCapituloAtual(percentualLivro, livro.totalCapitulos);
+  const capituloDoPin = estimarPosicaoPeloPercentual(percentualLivro, livro.totalCapitulos);
 
   return (
     <AppShell>
