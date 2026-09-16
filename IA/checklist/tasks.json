@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-062; T-045 anotada no backlog)",
+  "atualizado": "2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-063; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -551,6 +551,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": []
+    },
+    {
+      "id": "T-063",
+      "titulo": "Auditoria completa pós-T-062: reverte Termo pra tamanho dinâmico, une conceito+prática no guia Fruto/Carne",
+      "descricao": "Usuário enviou uma auditoria detalhada de 13 itens corrigindo o rumo de T-062. (1) Termo Bíblico: a correção anterior (fixar em 5 letras) estava ERRADA — revertida. O motor (`engine.ts`) sempre foi dinâmico (`resposta.length` em tudo — grade, teclado, comparação); só o CONTEÚDO tinha sido artificialmente limitado. Restauradas as 7 palavras removidas (Pastor/6, Aliança/7, Oração/6, Salvador/8, Perdão/6, Templo/6, Maná/4) mantendo as 9 novas de 5 letras — 18 palavras, tamanhos de 4 a 8. Verificado ao vivo: palavra de 4 letras renderiza 4 células, de 8 letras renderiza 8, ambas corretas. (2) `guiaCultivoEspiritual.ts` ganhou `significadoFruto`/`exemploFruto`/`significadoObra` pra cada um dos 9 itens — os 2 accordions gerais (`GuiaFrutoCarne.tsx`, restaurados após remoção acidental no meio da correção) agora unem conceito+identificação+exemplo+prática NUM SÓ bloco por item, em vez de definição solta separada da aplicação. (3) Auditoria de balanceamento de XP feita (não implementada — só reportada): jogos de palavras (Termo/Quebra-cabeça/Caça-palavras) dão 50 XP/25 ouro e podem ser rejogados sem limite (decisão deliberada anterior, sem mecanismo anti-farming), enquanto check-ins passivos (versículo/leitura/vida interior) dão 5 XP/2 ouro 1x/dia — desproporção real que precisa de decisão de produto. Itens permanentes (4, todos dados de graça na criação, nada pra 'ganhar' hoje) e bônus de leitura bíblica (já existe recompensa pequena por abrir a leitura do dia) documentados como pontos que exigem decisão, não implementados. \"Ovos de Dragon Ball\" tratado como ideia experimental, não implementado, aguardando proposta formal.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-062"]
     }
   ]
 }
