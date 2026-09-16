@@ -587,6 +587,15 @@
       "prioridade": "alta",
       "status": "done",
       "dependencias": ["T-065"]
+    },
+    {
+      "id": "T-067",
+      "titulo": "VLibras: correção real do 'ainda atrapalha' — widget reescreve a posição depois do nosso script rodar",
+      "descricao": "T-065 corrigiu o `!important` mas o usuário reportou que o botão continuava atrapalhando mesmo assim. Causa raiz real: o `<div vw-access-button>` já vem pronto no HTML estático (`index.html`), então nosso script (module, roda antes de `DOMContentLoaded`) posiciona ele primeiro — mas a inicialização do próprio widget do VLibras só roda DEPOIS, no handler de `DOMContentLoaded`, e reescreve o `style` do mesmo elemento por cima (escrever `elemento.style.top = '...'` sempre reseta a prioridade `important` daquela propriedade, não só o valor — então mesmo o fix do T-065 perdia pra essa reescrita tardia). Corrigido com um `MutationObserver` observando o atributo `style`/`class` do próprio botão continuamente: sempre que algo além do nosso próprio arrasto muda a posição, reaplicamos o canto salvo — não é mais uma correção de 'uma vez só' no carregamento. Cuidado real encontrado ao escrever o teste: a primeira versão desse observador chamava `garantirEstilosBase()` incondicionalmente a cada disparo (mesmo quando nada precisava de correção), o que gerava uma nova mutação de estilo a cada chamada e disparava o próprio observador de novo — loop infinito via microtask que travava a suíte de testes sem nunca terminar. Corrigido pra só escrever estilo quando `correspondeAoCanto` já for falso.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "alta",
+      "status": "done",
+      "dependencias": ["T-065"]
     }
   ]
 }

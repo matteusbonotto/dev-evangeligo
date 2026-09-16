@@ -60,4 +60,34 @@ describe("iniciarVLibrasArrastavel", () => {
     expect(botao.style.cursor).toBe("grab");
     expect(botao.style.getPropertyPriority("cursor")).toBe("important");
   });
+
+  /**
+   * Bug real relatado DEPOIS da correção acima (2026-09-16, "ainda ta
+   * atrapalhando"): o botão já existe pronto no HTML estático e nosso
+   * script roda antes do `DOMContentLoaded` — mas a inicialização própria
+   * do widget do VLibras roda DEPOIS (nesse evento) e reescreve o `style`
+   * do mesmo elemento, o que reseta a prioridade `important` daquela
+   * propriedade (escrever `elemento.style.top = "x"` sempre limpa a
+   * prioridade anterior). Simula exatamente isso: depois que o VLibras
+   * "chega atrasado" e sobrescreve a posição, o observador de atributo
+   * precisa desfazer sozinho, sem exigir um reload.
+   */
+  it("desfaz uma reescrita tardia de posição feita pelo próprio script do VLibras", async () => {
+    iniciarVLibrasArrastavel();
+    expect(botao.style.bottom).toBe("16px");
+
+    // Simula a inicialização tardia do widget mexendo direto no estilo.
+    botao.style.top = "0px";
+    botao.style.bottom = "";
+    botao.style.right = "0px";
+    botao.style.left = "";
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(botao.style.bottom).toBe("16px");
+    expect(botao.style.right).toBe("16px");
+    expect(botao.style.top).toBe("auto");
+    expect(botao.style.left).toBe("auto");
+    expect(botao.style.getPropertyPriority("bottom")).toBe("important");
+  });
 });

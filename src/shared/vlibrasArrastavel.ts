@@ -7,6 +7,19 @@
  * `index.html`: o script do governo gerencia esse DOM sozinho) — este
  * módulo só observa o botão já renderizado pelo VLibras e adiciona
  * arrastar+ancorar por cima, sem reimplementar nem substituir o widget.
+ *
+ * Causa raiz do "ainda atrapalha" reportado depois do T-065 (que só
+ * resolvia o `!important` da posição): o `<div vw-access-button>` já vem
+ * PRONTO no HTML estático (`index.html`), então nosso script (module,
+ * roda antes de `DOMContentLoaded`) posiciona ele primeiro — mas o script
+ * do VLibras só inicializa DEPOIS, no handler de `DOMContentLoaded`, e
+ * reaplica a própria posição/estilo por cima da nossa, desfazendo o
+ * ancoramento assim que a página carrega (mesmo com `!important`: se o
+ * widget escreve via `elemento.style.top = "..."`, isso reseta a
+ * prioridade daquela propriedade, não só o valor). Por isso agora
+ * observamos mudanças no atributo `style` do próprio botão continuamente
+ * e reaplicamos nosso canto sempre que algo além do nosso próprio arrasto
+ * mexer nele — não é uma correção de "uma vez só".
  */
 
 const CHAVE_POSICAO = "evangeligo:vlibras:canto";
@@ -71,16 +84,59 @@ function salvarCanto(canto: Canto): void {
 /** Distância mínima de movimento pra contar como arrasto (evita bloquear um toque/clique normal por tremor da mão). */
 const LIMIAR_ARRASTO_PX = 6;
 
-function tornarArrastavel(botao: HTMLElement): void {
-  aplicarCanto(botao, carregarCantoSalvo());
-  set(botao, "cursor", "grab");
-  set(botao, "touch-action", "none");
-  set(botao, "z-index", "2147483647");
+/** O canto atual bate com o que `aplicarCanto` teria escrito? Usado pelo observador de estilo pra decidir se algo de FORA mexeu no botão (e precisa ser desfeito) sem entrar em loop com nossas próprias escritas. */
+function correspondeAoCanto(botao: HTMLElement, canto: Canto): boolean {
+  const esperadoTop = canto.startsWith("top") ? `${MARGEM_PX}px` : "auto";
+  const esperadoBottom = canto.startsWith("bottom") ? `${MARGEM_PX}px` : "auto";
+  const esperadoLeft = canto.endsWith("left") ? `${MARGEM_PX}px` : "auto";
+  const esperadoRight = canto.endsWith("right") ? `${MARGEM_PX}px` : "auto";
+  return (
+    botao.style.position === "fixed" &&
+    botao.style.top === esperadoTop &&
+    botao.style.bottom === esperadoBottom &&
+    botao.style.left === esperadoLeft &&
+    botao.style.right === esperadoRight
+  );
+}
 
+function tornarArrastavel(botao: HTMLElement): void {
+  let cantoAtual = carregarCantoSalvo();
   let arrastando = false;
   let moveu = false;
   let inicioX = 0;
   let inicioY = 0;
+
+  function garantirEstilosBase(): void {
+    set(botao, "cursor", arrastando ? "grabbing" : "grab");
+    set(botao, "touch-action", "none");
+    set(botao, "z-index", "2147483647");
+  }
+
+  aplicarCanto(botao, cantoAtual);
+  garantirEstilosBase();
+
+  /**
+   * O widget do VLibras inicializa DEPOIS do nosso script (ver comentário
+   * no topo do arquivo) e reaplica a própria posição por cima da nossa —
+   * este observador reage a QUALQUER mudança no atributo `style` do botão
+   * e desfaz o que não for nosso, continuamente (não só uma vez no
+   * carregamento). Ignorado durante o arrasto, já que ali o estilo
+   * intencionalmente não bate com nenhum canto fixo ainda.
+   *
+   * CUIDADO: só escreve estilo quando `correspondeAoCanto` já for falso.
+   * Escrever incondicionalmente aqui (mesmo repetindo os MESMOS valores)
+   * geraria uma nova mutação de `style` a cada chamada, disparando o
+   * próprio observador de novo — um loop infinito síncrono via microtask
+   * (achado real rodando os testes: a suíte travava sem nunca terminar).
+   */
+  const observadorDeEstilo = new MutationObserver(() => {
+    if (arrastando) return;
+    if (!correspondeAoCanto(botao, cantoAtual)) {
+      aplicarCanto(botao, cantoAtual);
+      garantirEstilosBase();
+    }
+  });
+  observadorDeEstilo.observe(botao, { attributes: true, attributeFilter: ["style", "class"] });
 
   function aoPressionar(event: PointerEvent) {
     arrastando = true;
@@ -111,9 +167,9 @@ function tornarArrastavel(botao: HTMLElement): void {
     arrastando = false;
     set(botao, "cursor", "grab");
     if (moveu) {
-      const canto = cantoMaisProximo(event.clientX, event.clientY);
-      aplicarCanto(botao, canto);
-      salvarCanto(canto);
+      cantoAtual = cantoMaisProximo(event.clientX, event.clientY);
+      aplicarCanto(botao, cantoAtual);
+      salvarCanto(cantoAtual);
     }
   }
 
@@ -131,7 +187,12 @@ function tornarArrastavel(botao: HTMLElement): void {
   botao.addEventListener("click", aoClicarCapturado, true);
 }
 
-/** Observa o DOM até o VLibras injetar seu botão (script de terceiro, assíncrono). */
+/**
+ * O botão já existe no HTML estático (`index.html`) desde o início — mas
+ * inicializamos de novo se ele for substituído por completo (o
+ * `MutationObserver` de `childList` no `body` cobre esse caso extra,
+ * mesmo não sendo o cenário mais comum hoje).
+ */
 export function iniciarVLibrasArrastavel(): void {
   const existente = document.querySelector<HTMLElement>("[vw-access-button]");
   if (existente) {

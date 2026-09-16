@@ -288,3 +288,9 @@
 - Todos os 9 `significadoFruto` reescritos pra responder diretamente "o que é X" (queixa pontual: "o texto de amor não ficou muito claro o que é amor").
 - Referência bíblica abreviada (economia de espaço): "1 Coríntios 13:4-7" → "1Co 13:4-7", mesmo padrão de `bible/data/abreviacoesLivros.ts`.
 - `npm run typecheck`/`lint`/`test`/`build` limpos, 572 testes. Verificado ao vivo (Playwright): modal empilhado no mobile (390px) e lado a lado no desktop (1280px), termos agrupados renderizando corretamente, Esc fecha o modal.
+
+## 2026-09-16 (rodada seguinte) — VLibras: correção real do "ainda atrapalha" (T-067)
+- T-065 corrigiu o `!important` mas não resolveu de fato — causa raiz real: o botão já vem pronto no HTML estático e nosso script roda ANTES do `DOMContentLoaded`, mas a inicialização do próprio widget do VLibras roda DEPOIS e reescreve o `style` do mesmo elemento por cima (escrever `elemento.style.top=...` reseta a prioridade `important` daquela propriedade, não só o valor).
+- Corrigido com um `MutationObserver` no atributo `style`/`class` do próprio botão que reaplica o canto salvo continuamente sempre que algo além do nosso arrasto mexe na posição — não é mais uma correção de uma vez só.
+- Achado real ao testar: a 1ª versão chamava a reaplicação de estilos base incondicionalmente a cada disparo do observador, o que gerava uma nova mutação a cada chamada e disparava o próprio observador de novo — loop infinito via microtask que travava a suíte (vitest nunca terminava). Corrigido pra só escrever quando uma correção de verdade é necessária.
+- `npm run typecheck`/`lint`/`test`/`build` limpos, 573 testes.
