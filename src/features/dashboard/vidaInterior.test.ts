@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  agruparEmPeriodos,
   calcularEntradasVidaInterior,
   calcularPeriodoAtual,
   calcularSequenciaVidaInterior,
   obterIndiceCenarioVidaInterior,
   obterParesDoCheckinHoje,
   type CheckinVidaInteriorComData,
+  type CheckinVidaInteriorCompleto,
 } from "./vidaInterior";
 import { PARES_VIDA_INTERIOR } from "./data/paresVidaInterior";
 
@@ -84,6 +86,72 @@ describe("calcularPeriodoAtual", () => {
     const primeiro = new Date("2026-01-10T00:00:00Z");
     const agora = new Date("2026-01-01T00:00:00Z");
     expect(calcularPeriodoAtual(primeiro, agora).numero).toBe(0);
+  });
+});
+
+/** `diasDepois` conta a partir do 1º check-in (`2026-01-01`), nunca do relógio real do teste. */
+function checkinCompleto(
+  parId: string,
+  escolha: "fruto" | "carne",
+  diasDepois: number,
+): CheckinVidaInteriorCompleto {
+  const data = new Date("2026-01-01T00:00:00Z");
+  data.setDate(data.getDate() + diasDepois);
+  return { par_id: parId, escolha, created_at: data.toISOString() };
+}
+
+describe("agruparEmPeriodos", () => {
+  const primeiroCheckin = new Date("2026-01-01T00:00:00Z");
+
+  it("sem nenhum check-in, devolve histórico vazio (nenhum período fake)", () => {
+    expect(agruparEmPeriodos([], primeiroCheckin)).toEqual([]);
+  });
+
+  it("agrupa check-ins do mesmo período de 30 dias juntos, no período 0", () => {
+    const periodos = agruparEmPeriodos(
+      [
+        checkinCompleto("amor", "fruto", 0),
+        checkinCompleto("amor", "fruto", 5),
+        checkinCompleto("amor", "carne", 10),
+      ],
+      primeiroCheckin,
+    );
+    expect(periodos).toHaveLength(1);
+    expect(periodos[0].numero).toBe(0);
+    const amor = periodos[0].entradas.find((e) => e.id === "amor")!;
+    expect(amor.fruitValue).toBe(2);
+    expect(amor.fleshValue).toBe(1);
+  });
+
+  it("separa check-ins de períodos diferentes, ordenado do mais recente pro mais antigo", () => {
+    const periodos = agruparEmPeriodos(
+      [
+        checkinCompleto("amor", "fruto", 2), // período 0
+        checkinCompleto("amor", "carne", 35), // período 1
+        checkinCompleto("amor", "fruto", 65), // período 2
+      ],
+      primeiroCheckin,
+    );
+    expect(periodos.map((p) => p.numero)).toEqual([2, 1, 0]);
+    expect(
+      periodos.find((p) => p.numero === 0)!.entradas.find((e) => e.id === "amor")!
+        .fruitValue,
+    ).toBe(1);
+    expect(
+      periodos.find((p) => p.numero === 1)!.entradas.find((e) => e.id === "amor")!
+        .fleshValue,
+    ).toBe(1);
+  });
+
+  it("cada período preserva todos os 9 pares (mesmo os sem check-in naquele período, 0x0)", () => {
+    const periodos = agruparEmPeriodos(
+      [checkinCompleto("amor", "fruto", 0)],
+      primeiroCheckin,
+    );
+    expect(periodos[0].entradas).toHaveLength(PARES_VIDA_INTERIOR.length);
+    const paz = periodos[0].entradas.find((e) => e.id === "paz")!;
+    expect(paz.fruitValue).toBe(0);
+    expect(paz.fleshValue).toBe(0);
   });
 });
 

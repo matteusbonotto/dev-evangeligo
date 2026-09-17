@@ -42,6 +42,11 @@ export interface CheckinVidaInteriorComData {
   created_at: string;
 }
 
+/** Uma linha completa de check-in — usada só pelo histórico (T-074, Fase 2), que precisa de `escolha` + `created_at` juntos (as outras funções acima já tinham cada um separado, mas não os dois). */
+export interface CheckinVidaInteriorCompleto extends LinhaCheckin {
+  created_at: string;
+}
+
 const DIAS_PERIODO = 30;
 
 export interface PeriodoVidaInterior {
@@ -133,6 +138,74 @@ export async function carregarVidaInteriorReal(
     return calcularEntradasVidaInterior((data as LinhaCheckin[] | null) ?? []);
   } catch {
     return calcularEntradasVidaInterior([]);
+  }
+}
+
+export interface PeriodoComEntradas extends PeriodoVidaInterior {
+  entradas: SpiritBattleEntry[];
+}
+
+/**
+ * Agrupa TODOS os check-ins já registrados em períodos de 30 dias
+ * (T-074, Fase 2 — histórico) — pura, testável, reaproveita
+ * `calcularEntradasVidaInterior` (mesma função do card ao vivo) 1x por
+ * período em vez de 1x pro total. Períodos sem nenhum check-in não
+ * aparecem — não faz sentido mostrar um período vazio. Ordenado do mais
+ * recente pro mais antigo (leitura natural de histórico).
+ */
+export function agruparEmPeriodos(
+  checkins: CheckinVidaInteriorCompleto[],
+  primeiroCheckin: Date,
+): PeriodoComEntradas[] {
+  const porNumero = new Map<number, LinhaCheckin[]>();
+  for (const checkin of checkins) {
+    const { numero } = calcularPeriodoAtual(
+      primeiroCheckin,
+      new Date(checkin.created_at),
+    );
+    const lista = porNumero.get(numero) ?? [];
+    lista.push({ par_id: checkin.par_id, escolha: checkin.escolha });
+    porNumero.set(numero, lista);
+  }
+
+  return [...porNumero.keys()]
+    .sort((a, b) => b - a)
+    .map((numero) => {
+      const inicio = new Date(
+        primeiroCheckin.getTime() + numero * DIAS_PERIODO * 86_400_000,
+      );
+      const fim = new Date(inicio.getTime() + DIAS_PERIODO * 86_400_000);
+      return {
+        numero,
+        inicio,
+        fim,
+        entradas: calcularEntradasVidaInterior(porNumero.get(numero)!),
+      };
+    });
+}
+
+/**
+ * Carrega o histórico completo (todos os períodos já vividos) pra uma
+ * conta real — volume pequeno (no máximo 9 check-ins/dia), mesmo
+ * raciocínio já documentado na migration original, então busca tudo sem
+ * filtro de data. Nunca lança — falha de rede ou conta sem nenhum
+ * check-in ainda viram histórico vazio.
+ */
+export async function carregarHistoricoVidaInterior(
+  userId: string,
+): Promise<PeriodoComEntradas[]> {
+  if (!supabaseClient) return [];
+  try {
+    const { data } = await supabaseClient
+      .from("vida_interior_checkins")
+      .select("par_id, escolha, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
+    const checkins = (data as CheckinVidaInteriorCompleto[] | null) ?? [];
+    if (checkins.length === 0) return [];
+    return agruparEmPeriodos(checkins, new Date(checkins[0].created_at));
+  } catch {
+    return [];
   }
 }
 

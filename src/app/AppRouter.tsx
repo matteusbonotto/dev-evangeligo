@@ -92,6 +92,13 @@ const ProfilePage = lazy(() =>
     default: module.ProfilePage,
   })),
 );
+const VidaInteriorHistoricoPage = lazy(() =>
+  import("../features/dashboard/pages/VidaInteriorHistoricoPage").then(
+    (module) => ({
+      default: module.VidaInteriorHistoricoPage,
+    }),
+  ),
+);
 const LojaPage = lazy(() =>
   import("../features/rpg/pages/LojaPage").then((module) => ({
     default: module.LojaPage,
@@ -174,6 +181,10 @@ export function AppRouter() {
         <Route path={ROUTE_PATHS.harpaHino} element={<HinoPage />} />
         <Route path={ROUTE_PATHS.avatar} element={<AvatarEditorPage />} />
         <Route path={ROUTE_PATHS.profile} element={<ProfilePage />} />
+        <Route
+          path={ROUTE_PATHS.vidaInteriorHistorico}
+          element={<VidaInteriorHistoricoPage />}
+        />
         <Route path={ROUTE_PATHS.loja} element={<LojaPage />} />
         <Route path={ROUTE_PATHS.inventario} element={<InventarioPage />} />
         <Route path={ROUTE_PATHS.exercicios} element={<ExerciciosPage />} />

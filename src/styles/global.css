@@ -2096,6 +2096,57 @@ textarea:focus-visible,
   color: var(--sucesso);
 }
 
+/* Link do Dashboard pro histórico de Vida Interior (T-074, Fase 2). */
+.civ-historico-link {
+  display: block;
+  margin-top: var(--space-10);
+  text-align: center;
+  font-size: var(--font-size-13);
+  font-weight: 700;
+  color: var(--verde-700);
+}
+
+.civ-historico-intro {
+  color: var(--texto-suave);
+  font-size: var(--font-size-13);
+  margin-bottom: var(--space-12);
+}
+
+.civ-historico-vazio {
+  color: var(--texto-suave);
+  font-size: var(--font-size-13);
+  padding: var(--space-16) 0;
+  text-align: center;
+}
+
+.civ-historico-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  margin-bottom: var(--space-16);
+}
+
+.civ-historico-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--texto-suave);
+  flex: 1;
+  min-width: 160px;
+}
+
+.civ-historico-campo select {
+  padding: var(--space-8) var(--space-10);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  color: var(--texto);
+  background: var(--color-surface);
+}
+
 .civ-modal-fim-texto {
   font-size: var(--font-size-14);
   font-weight: 600;

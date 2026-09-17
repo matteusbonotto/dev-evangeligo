@@ -336,3 +336,7 @@
 ## 2026-09-17 (rodada seguinte) — Bíblia: alternância Grade/Lista/Compacto em LivrosPage (T-075)
 - Pedido registrado desde 2026-09-15, ainda sem plano: alternância de visualização na lista de 66 livros. Implementado com 3 botões persistidos em `localStorage`: Grade (padrão, inalterado), Lista (1 coluna, linha horizontal) e Compacto (grade densa, ~2x mais livros por tela). Tudo via CSS sobre a mesma estrutura de cartão, sem duplicar markup.
 - `npm run typecheck`/`lint`/`test`/`build` limpos, 609 testes (3 novos). Verificado ao vivo (Playwright): os 3 modos renderizam corretamente, escolha persiste após reload completo.
+
+## 2026-09-17 (rodada seguinte) — Vida Interior: histórico por período com filtros (Fase 2, T-076)
+- Continuação direta da Fase 1 (T-074). `agruparEmPeriodos` agrupa todos os check-ins em períodos de 30 dias; `carregarHistoricoVidaInterior` busca o histórico completo (sem filtro de data). Nova página `/vida-interior/historico`, link a partir do card do Dashboard, 2 filtros (período/par) reaproveitando o MESMO `SpiritBattle` do card ao vivo — sem duplicar UI. Demo ganha 2 períodos fake ilustrativos.
+- `npm run typecheck`/`lint`/`test`/`build` limpos, 616 testes. Verificado ao vivo (Playwright): período/par selecionáveis, números mudam corretamente ao trocar filtro.

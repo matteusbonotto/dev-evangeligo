@@ -101,6 +101,12 @@ export function DashboardPage() {
               Vida interior — Gálatas 5:16-23
             </p>
             <SpiritBattle entries={user.spiritBattle} />
+            <Link
+              className="civ-historico-link"
+              to={ROUTE_PATHS.vidaInteriorHistorico}
+            >
+              Ver histórico por período
+            </Link>
           </section>
 
           <section className="dash-card" aria-labelledby="progress-title">

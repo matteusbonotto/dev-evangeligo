@@ -668,6 +668,15 @@
       "prioridade": "media",
       "status": "done",
       "dependencias": []
+    },
+    {
+      "id": "T-076",
+      "titulo": "Vida Interior: histórico por período com filtros (Fase 2 do plano de reset+histórico)",
+      "descricao": "Fase 2 do plano aprovado 'Vida Interior: períodos de 30 dias com reset + histórico com filtros', direto na sequência da Fase 1 (T-074). Nova `agruparEmPeriodos(checkins, primeiroCheckin)` (pura, testável) em `vidaInterior.ts` agrupa TODOS os check-ins já registrados em períodos de 30 dias, reaproveitando `calcularEntradasVidaInterior` 1x por período. Nova `carregarHistoricoVidaInterior(userId)` busca todos os check-ins (sem filtro de data, volume pequeno) e devolve o histórico completo. Nova página `/vida-interior/historico` (`VidaInteriorHistoricoPage.tsx`), com link 'Ver histórico por período' no card de Vida Interior do Dashboard — 2 filtros (seletor de período, seletor de par específico) reaproveitando o MESMO componente `SpiritBattle` já usado no card ao vivo (só troca qual array de `entries` ele recebe, sem duplicar a UI de barras/modal). Conta demonstração ganha 2 períodos fake ilustrativos (`HISTORICO_DEMO` em `VidaInteriorHistoricoPage.tsx`), claramente separados do cálculo real.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": ["T-074"]
     }
   ]
 }
