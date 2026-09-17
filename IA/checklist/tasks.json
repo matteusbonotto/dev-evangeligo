@@ -659,6 +659,15 @@
       "prioridade": "media",
       "status": "done",
       "dependencias": []
+    },
+    {
+      "id": "T-075",
+      "titulo": "Bíblia: alternância de visualização Grade/Lista/Compacto em LivrosPage",
+      "descricao": "Pedido registrado em 2026-09-15 (project-memory.md), ainda não planejado em detalhe: 'LivrosPage.tsx ganhar alternância de visualização lista/grid/compacto (mobile e desktop)'. Implementado com 3 botões (`role=group`, `aria-pressed`) acima da grade de livros: Grade (padrão, layout já existente, inalterado), Lista (1 coluna, cartão vira linha horizontal — nome+ícone à esquerda, %+sigla à direita) e Compacto (grade bem mais densa, ~2x mais livros por tela, ícone de categoria escondido pra caber). Escolha persistida em `localStorage` (`evangeligo:biblia:visualizacaoLivros`) — não precisa escolher de novo a cada visita. Implementado só com CSS por cima da mesma estrutura de `.biblia-livro-card` (nenhuma duplicação de markup) via classes modificadoras `.biblia-livro-grid--{grade,lista,compacto}`.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": []
     }
   ]
 }

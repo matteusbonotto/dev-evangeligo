@@ -117,6 +117,48 @@ describe("LivrosPage", () => {
     ).toBeInTheDocument();
   });
 
+  /**
+   * T-075 — pedido registrado em 2026-09-15: alternância lista/grid/
+   * compacto, persistida (escolher uma vez não deve exigir escolher de
+   * novo a cada visita).
+   */
+  describe("alternância de visualização (grade/lista/compacto)", () => {
+    it("começa em 'grade' por padrão", () => {
+      renderLivrosPage();
+      expect(
+        screen.getByRole("button", { name: /Grade/ }),
+      ).toHaveAttribute("aria-pressed", "true");
+      expect(document.querySelector(".biblia-livro-grid--grade")).toBeInTheDocument();
+    });
+
+    it("trocar pra 'Lista' aplica a classe certa e marca o botão pressionado", () => {
+      renderLivrosPage();
+      fireEvent.click(screen.getByRole("button", { name: /Lista/ }));
+
+      expect(screen.getByRole("button", { name: /Lista/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(screen.getByRole("button", { name: /Grade/ })).toHaveAttribute(
+        "aria-pressed",
+        "false",
+      );
+      expect(document.querySelector(".biblia-livro-grid--lista")).toBeInTheDocument();
+    });
+
+    it("persiste a escolha em localStorage e restaura numa nova montagem", () => {
+      const { unmount } = renderLivrosPage();
+      fireEvent.click(screen.getByRole("button", { name: /Compacto/ }));
+      unmount();
+
+      renderLivrosPage();
+      expect(
+        screen.getByRole("button", { name: /Compacto/ }),
+      ).toHaveAttribute("aria-pressed", "true");
+      expect(document.querySelector(".biblia-livro-grid--compacto")).toBeInTheDocument();
+    });
+  });
+
   describe("filtro por nome do livro", () => {
     it("digitar um nome estreita a grade só pros livros que combinam", () => {
       renderLivrosPage();

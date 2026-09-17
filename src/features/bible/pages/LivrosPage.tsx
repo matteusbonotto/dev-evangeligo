@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import {
   FiArrowRight,
   FiChevronDown,
+  FiGrid,
+  FiList,
+  FiMinimize2,
   FiMusic,
   FiSearch,
 } from "react-icons/fi";
@@ -36,9 +39,42 @@ function normalizar(texto: string): string {
     .toLowerCase();
 }
 
+/**
+ * Alternância de visualização (T-075, pedido registrado em 2026-09-15 —
+ * "alternância lista/grid/compacto em LivrosPage, mobile e desktop").
+ * Persistida em `localStorage`: escolher uma vez e não precisar escolher
+ * de novo a cada visita é o ponto do pedido.
+ */
+type VisualizacaoLivros = "grade" | "lista" | "compacto";
+const CHAVE_VISUALIZACAO = "evangeligo:biblia:visualizacaoLivros";
+const VISUALIZACOES: VisualizacaoLivros[] = ["grade", "lista", "compacto"];
+
+function carregarVisualizacaoSalva(): VisualizacaoLivros {
+  try {
+    const salva = localStorage.getItem(CHAVE_VISUALIZACAO);
+    return (VISUALIZACOES as string[]).includes(salva ?? "")
+      ? (salva as VisualizacaoLivros)
+      : "grade";
+  } catch {
+    return "grade";
+  }
+}
+
 export function LivrosPage() {
   const [filtro, setFiltro] = useState<FiltroLivros>("canonico");
   const [buscaNome, setBuscaNome] = useState("");
+  const [visualizacao, setVisualizacao] = useState<VisualizacaoLivros>(
+    carregarVisualizacaoSalva,
+  );
+
+  function handleVisualizacao(nova: VisualizacaoLivros) {
+    setVisualizacao(nova);
+    try {
+      localStorage.setItem(CHAVE_VISUALIZACAO, nova);
+    } catch {
+      // localStorage indisponível — a escolha só não persiste entre sessões.
+    }
+  }
 
   const todasOrdens = useMemo(() => LIVROS_BIBLIA.map((l) => l.order), []);
   const livrosIniciados = contarLivrosIniciados(todasOrdens);
@@ -105,6 +141,37 @@ export function LivrosPage() {
               />
             </div>
           </div>
+
+          <div
+            className="biblia-visualizacao-grupo"
+            role="group"
+            aria-label="Visualização da lista de livros"
+          >
+            <button
+              type="button"
+              className={`biblia-visualizacao-btn${visualizacao === "grade" ? " biblia-visualizacao-btn--ativo" : ""}`}
+              aria-pressed={visualizacao === "grade"}
+              onClick={() => handleVisualizacao("grade")}
+            >
+              <FiGrid aria-hidden="true" /> Grade
+            </button>
+            <button
+              type="button"
+              className={`biblia-visualizacao-btn${visualizacao === "lista" ? " biblia-visualizacao-btn--ativo" : ""}`}
+              aria-pressed={visualizacao === "lista"}
+              onClick={() => handleVisualizacao("lista")}
+            >
+              <FiList aria-hidden="true" /> Lista
+            </button>
+            <button
+              type="button"
+              className={`biblia-visualizacao-btn${visualizacao === "compacto" ? " biblia-visualizacao-btn--ativo" : ""}`}
+              aria-pressed={visualizacao === "compacto"}
+              onClick={() => handleVisualizacao("compacto")}
+            >
+              <FiMinimize2 aria-hidden="true" /> Compacto
+            </button>
+          </div>
         </section>
 
         {livrosFiltrados.length === 0 && (
@@ -113,7 +180,7 @@ export function LivrosPage() {
           </p>
         )}
 
-        <div className="biblia-livro-grid">
+        <div className={`biblia-livro-grid biblia-livro-grid--${visualizacao}`}>
           {livrosFiltrados.map((livro) => {
             const percentual = obterProgressoLivro(
               livro.order,

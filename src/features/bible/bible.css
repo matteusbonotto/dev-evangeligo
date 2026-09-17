@@ -319,6 +319,88 @@
   );
 }
 
+/* Alternância de visualização (T-075): grade (padrão, estilo já definido
+   acima), lista (1 coluna, cartão vira linha horizontal) e compacto
+   (grade bem mais densa, só sigla+nome+%). */
+.biblia-visualizacao-grupo {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: var(--space-10);
+}
+
+.biblia-visualizacao-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-10);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.biblia-visualizacao-btn--ativo {
+  border-color: var(--verde-600);
+  background: var(--color-primary-surface);
+  color: var(--verde-700);
+}
+
+.biblia-livro-grid--lista {
+  grid-template-columns: 1fr;
+}
+
+.biblia-livro-grid--lista .biblia-livro-card {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-10) var(--space-14);
+  text-align: left;
+}
+
+.biblia-livro-grid--lista .biblia-livro-categoria {
+  position: static;
+  opacity: 1;
+  flex-shrink: 0;
+}
+
+.biblia-livro-grid--lista .biblia-livro-nome {
+  flex: 1;
+}
+
+.biblia-livro-grid--lista .biblia-livro-percentual {
+  flex-shrink: 0;
+}
+
+.biblia-livro-grid--lista .biblia-livro-sigla {
+  position: static;
+  flex-shrink: 0;
+}
+
+.biblia-livro-grid--compacto {
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: var(--space-6);
+}
+
+.biblia-livro-grid--compacto .biblia-livro-card {
+  padding: var(--space-8) var(--space-6);
+  gap: 2px;
+}
+
+.biblia-livro-grid--compacto .biblia-livro-categoria {
+  display: none;
+}
+
+.biblia-livro-grid--compacto .biblia-livro-nome {
+  font-size: var(--font-size-11);
+}
+
+.biblia-livro-grid--compacto .biblia-livro-percentual {
+  font-size: 9px;
+}
+
 .biblia-livro-card--lido {
   border-color: var(--verde-600);
   background: var(--color-primary-surface);
