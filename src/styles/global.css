@@ -2376,6 +2376,9 @@ textarea:focus-visible,
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: var(--font-size-10);
   font-weight: 800;
   color: var(--branco);

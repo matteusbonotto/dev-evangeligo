@@ -159,10 +159,10 @@
     {
       "id": "T-018",
       "titulo": "PWA (instalável, offline)",
-      "descricao": "Manifest, service worker, offline.",
+      "descricao": "Manifest, service worker, offline. Marcado done em 2026-09-17 (achado numa varredura de pendências antigas): vite-plugin-pwa configurado (`vite.config.ts`) com manifest completo (ícones 192/512, tema, start_url), registerType autoUpdate, cache offline sob demanda do conteúdo bíblico (runtimeCaching), e atualização forçada de verdade (T-065/T-072, `shared/atualizacaoAutomatica.ts`) — resolve o problema real de service workers antigos ficarem presos em cache.",
       "agente": "frontend-specialist",
       "prioridade": "media",
-      "status": "todo",
+      "status": "done",
       "dependencias": ["T-003"]
     },
     {
@@ -650,6 +650,15 @@
       "prioridade": "critica",
       "status": "done",
       "dependencias": ["T-072"]
+    },
+    {
+      "id": "T-074",
+      "titulo": "Vida Interior: período fixo de 30 dias (Fase 1 do plano de reset+histórico) — substitui a janela móvel",
+      "descricao": "Fase 1 do plano aprovado 'Vida Interior: períodos de 30 dias com reset + histórico com filtros' (usuário pediu pra priorizar o que é rápido primeiro). Contas reais já usavam uma janela MÓVEL de 30 dias (`carregarVidaInteriorReal`) — o que já limitava a prática de números com 3+ dígitos, mas não dava um marco fixo de início/fim de período pra comparar com um anterior (necessário pra Fase 2, histórico, ainda não implementada). Nova `calcularPeriodoAtual(primeiroCheckin, agora)` (pura, testável) em `vidaInterior.ts` calcula em que período de 30 dias 'agora' cai, ancorado no 1º check-in do usuário (`MIN(created_at)`, 1 query leve) — `carregarVidaInteriorReal` passou a filtrar pelo período atual `[inicio, fim)` em vez de 'últimos 30 dias corridos'. Nada é apagado — check-ins continuam append-only pra sempre, só a janela de consulta do card ao vivo mudou. `VALORES_DEMO_VIDA_INTERIOR` (demoUser.ts) recalibrado de números irreais (até 78) pra uma faixa realista de UM período de 30 dias (8-11 no lado fruto, 2-4 no lado obra), mantendo a mesma proporção/ranking de antes. CSS defensivo em `.sb-track-label` (max-width 45% + ellipsis) pra nunca colidir visualmente mesmo se um número crescer além do esperado. Fase 2 (histórico com filtros) fica para uma próxima rodada.",
+      "agente": "ux-ui-specialist",
+      "prioridade": "media",
+      "status": "done",
+      "dependencias": []
     }
   ]
 }

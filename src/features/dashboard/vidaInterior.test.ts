@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calcularEntradasVidaInterior,
+  calcularPeriodoAtual,
   calcularSequenciaVidaInterior,
   obterIndiceCenarioVidaInterior,
   obterParesDoCheckinHoje,
@@ -39,6 +40,50 @@ describe("calcularEntradasVidaInterior", () => {
     const [primeiro] = calcularEntradasVidaInterior([]);
     expect(primeiro.fruitLabel).toBe(PARES_VIDA_INTERIOR[0].fruitLabel);
     expect(primeiro.explicacao).toBe(PARES_VIDA_INTERIOR[0].explicacao);
+  });
+});
+
+/**
+ * T-074 — plano "Vida Interior: períodos de 30 dias com reset +
+ * histórico". Substitui a antiga janela MÓVEL ("últimos 30 dias a partir
+ * de agora") por um período FIXO ancorado no 1º check-in, com início/fim
+ * comparáveis — necessário pro histórico (Fase 2) e resolve o pedido do
+ * usuário de "resetar a cada 30 dias".
+ */
+describe("calcularPeriodoAtual", () => {
+  it("no dia do 1º check-in, está no período 0", () => {
+    const primeiro = new Date("2026-01-01T00:00:00Z");
+    const periodo = calcularPeriodoAtual(primeiro, primeiro);
+    expect(periodo.numero).toBe(0);
+    expect(periodo.inicio).toEqual(primeiro);
+  });
+
+  it("no dia 29 (dentro dos primeiros 30 dias), ainda está no período 0", () => {
+    const primeiro = new Date("2026-01-01T00:00:00Z");
+    const agora = new Date("2026-01-30T00:00:00Z"); // 29 dias depois
+    expect(calcularPeriodoAtual(primeiro, agora).numero).toBe(0);
+  });
+
+  it("no dia 30 exato, vira o período 1 (o reset acontece aqui)", () => {
+    const primeiro = new Date("2026-01-01T00:00:00Z");
+    const agora = new Date("2026-01-31T00:00:00Z"); // 30 dias depois
+    const periodo = calcularPeriodoAtual(primeiro, agora);
+    expect(periodo.numero).toBe(1);
+    expect(periodo.inicio).toEqual(new Date("2026-01-31T00:00:00Z"));
+    expect(periodo.fim).toEqual(new Date("2026-03-02T00:00:00Z"));
+  });
+
+  it("vários períodos depois, ainda calcula certo (não é só o próximo)", () => {
+    const primeiro = new Date("2026-01-01T00:00:00Z");
+    const agora = new Date("2026-01-01T00:00:00Z");
+    agora.setDate(agora.getDate() + 30 * 3 + 5); // período 3, 5 dias dentro dele
+    expect(calcularPeriodoAtual(primeiro, agora).numero).toBe(3);
+  });
+
+  it("nunca lança erro quando 'agora' é antes do 1º check-in (relógio adiantado/atrasado) — cai no período 0", () => {
+    const primeiro = new Date("2026-01-10T00:00:00Z");
+    const agora = new Date("2026-01-01T00:00:00Z");
+    expect(calcularPeriodoAtual(primeiro, agora).numero).toBe(0);
   });
 });
 

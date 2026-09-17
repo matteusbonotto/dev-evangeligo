@@ -42,11 +42,46 @@ export interface CheckinVidaInteriorComData {
   created_at: string;
 }
 
-const DIAS_JANELA = 30;
+const DIAS_PERIODO = 30;
+
+export interface PeriodoVidaInterior {
+  /** 0 = primeiro período de 30 dias desde o 1º check-in, 1 = o seguinte, etc. */
+  numero: number;
+  inicio: Date;
+  /** Exclusivo — o período seguinte começa exatamente aqui. */
+  fim: Date;
+}
+
+/**
+ * Em que período de 30 dias "agora" cai, contando a partir do 1º check-in
+ * do usuário (T-074, plano "Vida Interior: períodos de 30 dias com reset +
+ * histórico") — pura, testável. Antes disso, `carregarVidaInteriorReal`
+ * usava uma janela MÓVEL ("últimos 30 dias a partir de agora", recalculada
+ * a cada carregamento) — funcionava pra manter os números pequenos, mas
+ * não dava um marco fixo de início/fim pra comparar um período com o
+ * anterior (o que o histórico do T-074 precisa). Sem nenhum check-in
+ * ainda, `primeiroCheckin` pode ser o próprio `agora` — sempre cai no
+ * período 0.
+ */
+export function calcularPeriodoAtual(
+  primeiroCheckin: Date,
+  agora: Date,
+): PeriodoVidaInterior {
+  const diasDesdeOPrimeiro = Math.max(
+    0,
+    Math.floor((agora.getTime() - primeiroCheckin.getTime()) / 86_400_000),
+  );
+  const numero = Math.floor(diasDesdeOPrimeiro / DIAS_PERIODO);
+  const inicio = new Date(
+    primeiroCheckin.getTime() + numero * DIAS_PERIODO * 86_400_000,
+  );
+  const fim = new Date(inicio.getTime() + DIAS_PERIODO * 86_400_000);
+  return { numero, inicio, fim };
+}
 
 /**
  * Conta quantos check-ins de cada lado existem por par, dentro da lista já
- * filtrada pelo chamador (janela de 30 dias) — pura, sem rede, fácil de
+ * filtrada pelo chamador (período de 30 dias) — pura, sem rede, fácil de
  * testar. Um par sem nenhum check-in ainda fica 0×0 (a UI mostra 50%/50%
  * nesse caso, "sem dados ainda" em vez de fingir um número).
  */
@@ -65,19 +100,36 @@ export function calcularEntradasVidaInterior(
   });
 }
 
-/** Carrega os check-ins reais dos últimos 30 dias e calcula os percentuais. Nunca lança — falha de rede vira "sem dados ainda" (0×0 em todo par). */
+/**
+ * Carrega os check-ins do PERÍODO ATUAL de 30 dias (não mais uma janela
+ * móvel, T-074) e calcula os percentuais. Nunca lança — falha de rede ou
+ * conta sem nenhum check-in ainda viram "sem dados ainda" (0×0 em todo
+ * par).
+ */
 export async function carregarVidaInteriorReal(
   userId: string,
 ): Promise<SpiritBattleEntry[]> {
   if (!supabaseClient) return calcularEntradasVidaInterior([]);
   try {
-    const desde = new Date();
-    desde.setDate(desde.getDate() - DIAS_JANELA);
+    const { data: primeiro } = await supabaseClient
+      .from("vida_interior_checkins")
+      .select("created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (!primeiro) return calcularEntradasVidaInterior([]);
+
+    const periodo = calcularPeriodoAtual(
+      new Date((primeiro as { created_at: string }).created_at),
+      new Date(),
+    );
     const { data } = await supabaseClient
       .from("vida_interior_checkins")
       .select("par_id, escolha")
       .eq("user_id", userId)
-      .gte("created_at", desde.toISOString());
+      .gte("created_at", periodo.inicio.toISOString())
+      .lt("created_at", periodo.fim.toISOString());
     return calcularEntradasVidaInterior((data as LinhaCheckin[] | null) ?? []);
   } catch {
     return calcularEntradasVidaInterior([]);

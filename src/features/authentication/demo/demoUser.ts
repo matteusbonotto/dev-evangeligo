@@ -105,20 +105,29 @@ export interface DemoUser {
   spiritBattle: SpiritBattleEntry[];
 }
 
-/** Contagens fixas só pra ilustrar o recurso no modo demonstração — conta real usa check-ins de verdade (`dashboard/vidaInterior.ts`). */
+/**
+ * Contagens fixas só pra ilustrar o recurso no modo demonstração — conta
+ * real usa check-ins de verdade (`dashboard/vidaInterior.ts`), sempre
+ * dentro de UM período de 30 dias desde T-074. Antes estes números
+ * (até 78) eram irreais pra um período de 30 dias (no máximo ~1 check-in
+ * por par por semana, via a agenda de rotação) e não refletiam esse
+ * limite — recalibrados pra uma faixa que uma conta real atingiria de
+ * verdade num período, mantendo a mesma proporção/ranking de antes
+ * (Fidelidade à frente, Longanimidade mais equilibrada).
+ */
 const VALORES_DEMO_VIDA_INTERIOR: Record<
   string,
   { fruitValue: number; fleshValue: number }
 > = {
-  amor: { fruitValue: 78, fleshValue: 22 },
-  alegria: { fruitValue: 70, fleshValue: 18 },
-  paz: { fruitValue: 74, fleshValue: 20 },
-  longanimidade: { fruitValue: 60, fleshValue: 30 },
-  benignidade: { fruitValue: 68, fleshValue: 25 },
-  bondade: { fruitValue: 72, fleshValue: 15 },
-  fidelidade: { fruitValue: 80, fleshValue: 10 },
-  mansidao: { fruitValue: 64, fleshValue: 12 },
-  "dominio-proprio": { fruitValue: 58, fleshValue: 28 },
+  amor: { fruitValue: 11, fleshValue: 3 },
+  alegria: { fruitValue: 10, fleshValue: 3 },
+  paz: { fruitValue: 10, fleshValue: 3 },
+  longanimidade: { fruitValue: 8, fleshValue: 4 },
+  benignidade: { fruitValue: 9, fleshValue: 4 },
+  bondade: { fruitValue: 10, fleshValue: 2 },
+  fidelidade: { fruitValue: 11, fleshValue: 2 },
+  mansidao: { fruitValue: 9, fleshValue: 2 },
+  "dominio-proprio": { fruitValue: 8, fleshValue: 4 },
 };
 
 export const demoUser: DemoUser = {
