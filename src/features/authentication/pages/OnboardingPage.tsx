@@ -4,6 +4,8 @@ import { FiArrowLeft } from "react-icons/fi";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "../onboarding.css";
 import { ROUTE_PATHS } from "../../../app/routePaths";
+import { AvatarCustomizador } from "../../avatar/components/AvatarCustomizador";
+import { CATEGORIAS_AVATAR } from "../../avatar/data/opcoesAvatar";
 import { useAuth } from "../context/AuthContext";
 import { PRIVACY_VERSION, TERMS_VERSION } from "../domain/legalVersions";
 import {
@@ -11,6 +13,7 @@ import {
   OBJETIVOS,
   ONBOARDING_STEP_SCHEMAS,
   ONBOARDING_TOTAL_PASSOS,
+  VALORES_AVATAR_INICIAIS,
   type OnboardingFormValues,
 } from "../domain/onboardingSchemas";
 import {
@@ -21,6 +24,11 @@ import {
   definirPreferenciaNotificacoes,
   definirPreferenciaVLibras,
 } from "../../../shared/preferencias";
+
+/** Curadoria pro passo de avatar do onboarding (T-077b) — os outros ~7 campos continuam ajustáveis depois em `/avatar`. */
+const CATEGORIAS_AVATAR_ONBOARDING = CATEGORIAS_AVATAR.filter((c) =>
+  ["topType", "clotheType", "skinColor"].includes(c.campo),
+);
 
 const VALORES_INICIAIS: OnboardingFormValues = {
   aceitaTermos: false,
@@ -35,6 +43,7 @@ const VALORES_INICIAIS: OnboardingFormValues = {
   objetivo: "",
   usaLibras: "",
   quisNotificacoes: "",
+  avatarConfig: VALORES_AVATAR_INICIAIS,
 };
 
 type Erros = Partial<Record<keyof OnboardingFormValues, string>>;
@@ -44,22 +53,21 @@ type Erros = Partial<Record<keyof OnboardingFormValues, string>>;
  * (T-043/ADR-037, `?google=1`, vindo de `AuthCallbackPage`) — pula nome/
  * sobrenome (1), e-mail (3) e senha (4), que já vieram do Google/não
  * existem nessa conta. Termos (0), nascimento (2), estado civil (5),
- * objetivo (6), Libras (7) e notificações (8) continuam sendo pedidos
- * normalmente: os 2 últimos (T-077) não dependem de sessão/dados do
- * Google, são só preferências locais (`shared/preferencias.ts`).
+ * objetivo (6), Libras (7), notificações (8) e avatar (9) continuam
+ * sendo pedidos normalmente: nenhum dos 3 últimos depende de dados
+ * exclusivos do fluxo por e-mail.
  */
-const PASSOS_GOOGLE = [0, 2, 5, 6, 7, 8] as const;
+const PASSOS_GOOGLE = [0, 2, 5, 6, 7, 8, 9] as const;
 
 /**
- * Onboarding estilo Duolingo (T-006, 7 passos): boas-vindas/termos, nome,
- * nascimento, e-mail, senha, estado civil, objetivo — substitui a antiga
- * `SignUpPage` (uma tela só) como fluxo principal de `/cadastro`. Migrado
- * do app legado (`passoCadastro`/`avancarCadastro()`/`finalizarCadastro()`
- * em `app.js`): todos os campos ficam em memória local; a conta só é
- * criada de fato no passo final, numa única chamada (ver
- * `domain/onboardingSchemas.ts` para o porquê dessa arquitetura). Único
- * desvio deliberado do legado: o 7º passo é "objetivo" em vez de criação
- * de avatar (que já existe como feature própria, `/avatar`, T-033).
+ * Onboarding estilo Duolingo (T-006, 10 passos desde T-077b): boas-vindas/
+ * termos, nome, nascimento, e-mail, senha, estado civil, objetivo, Libras,
+ * notificações, avatar — substitui a antiga `SignUpPage` (uma tela só)
+ * como fluxo principal de `/cadastro`. Migrado do app legado
+ * (`passoCadastro`/`avancarCadastro()`/`finalizarCadastro()` em `app.js`):
+ * todos os campos ficam em memória local; a conta só é criada de fato no
+ * passo final, numa única chamada (ver `domain/onboardingSchemas.ts` para
+ * o porquê dessa arquitetura).
  */
 export function OnboardingPage() {
   const {
@@ -185,6 +193,7 @@ export function OnboardingPage() {
         nascimento: valores.nascimento || undefined,
         estadoCivil: valores.estadoCivil || undefined,
         objetivo: valores.objetivo || undefined,
+        avatarConfig: valores.avatarConfig,
       });
       setIsSubmitting(false);
       if (!resultado.ok) {
@@ -209,6 +218,7 @@ export function OnboardingPage() {
       nascimento: valores.nascimento || undefined,
       estadoCivil: valores.estadoCivil || undefined,
       objetivo: valores.objetivo || undefined,
+      avatarConfig: valores.avatarConfig,
     });
     setIsSubmitting(false);
     if (!resultado.ok) {
@@ -247,14 +257,11 @@ export function OnboardingPage() {
   }
 
   /**
-   * Passo notificações (T-077) — sempre o ÚLTIMO passo dos 2 fluxos, ao
-   * contrário do de Libras (por isso chama `finalizarCadastro()` em vez
-   * de só avançar — usar `setPasso` aqui, como o de Libras faz, nunca
-   * dispararia a criação da conta: achado real rodando os testes, a
-   * própria máquina de estados ficava presa no último passo pra sempre).
-   * "Sim" pede a permissão de verdade do navegador (mesmo fluxo do
-   * switch em Perfil, T-073); só liga a preferência se o navegador
-   * realmente conceder, nunca finge que ligou.
+   * Passo notificações (T-077) — checa `ehUltimoPasso` antes de decidir
+   * entre avançar ou finalizar (desde T-077b não é mais sempre o último
+   * passo — o avatar vem depois). "Sim" pede a permissão de verdade do
+   * navegador (mesmo fluxo do switch em Perfil, T-073); só liga a
+   * preferência se o navegador realmente conceder, nunca finge que ligou.
    */
   async function escolherNotificacoes(valor: "sim" | "nao") {
     atualizar("quisNotificacoes", valor);
@@ -631,6 +638,29 @@ export function OnboardingPage() {
                   Não
                 </button>
               </div>
+            </>
+          )}
+
+          {passo === 9 && (
+            <>
+              <h1 className="onboarding-passo-titulo" ref={tituloRef} tabIndex={-1}>
+                Personalize seu avatar
+              </h1>
+              <p className="onboarding-passo-subtitulo">
+                Escolha um visual pra começar — dá pra ajustar tudo com calma
+                depois em Perfil.
+              </p>
+              <AvatarCustomizador
+                config={valores.avatarConfig}
+                categorias={CATEGORIAS_AVATAR_ONBOARDING}
+                mostrarFundo
+                onEscolher={(campo, valor) =>
+                  atualizar("avatarConfig", { ...valores.avatarConfig, [campo]: valor })
+                }
+                onEscolherFundo={(valor) =>
+                  atualizar("avatarConfig", { ...valores.avatarConfig, fundo: valor })
+                }
+              />
             </>
           )}
 

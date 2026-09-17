@@ -1,23 +1,26 @@
 import { z } from "zod";
+import type { AvatarConfig } from "../../avatar/types";
+import { CONFIG_AVATAR_PADRAO } from "../../avatar/avatarUrl";
 import { emailSchema, nameFieldSchema, passwordSchema } from "./authSchemas";
 
 /**
- * Onboarding estilo Duolingo (T-006, 9 passos desde T-077 —
+ * Onboarding estilo Duolingo (T-006, 10 passos desde T-077b —
  * `IA/docs/ux-ui.md`, "Onboarding"): boas-vindas/termos, nome,
  * nascimento, e-mail, senha, estado civil, objetivo, Libras,
- * notificações. Migrado do app legado (`dev-pwa-biblia-game`,
+ * notificações, avatar. Migrado do app legado (`dev-pwa-biblia-game`,
  * `passoCadastro`/`avancarCadastro()`/`finalizarCadastro()` em `app.js`) —
  * mesma ordem de passos e mesma arquitetura de "tudo em memória, uma
  * única chamada de cadastro no final" (evita depender de sessão
  * autenticada nos passos intermediários, já que o Supabase pode exigir
- * confirmação de e-mail antes de liberar sessão). Desvios deliberados do
- * legado: o 7º passo é "objetivo" (sem equivalente no legado, que usava
- * esse passo para criação de avatar — aqui a criação de avatar já existe
- * como feature própria, `/avatar`, acessível a qualquer momento, T-033,
- * e passou a ser destacada pelo tour guiado em vez de virar um passo do
- * cadastro, T-077); os passos 8/9 (Libras/notificações) não têm
- * equivalente no legado — pedido novo do usuário depois de já existirem
- * como preferências avulsas (T-073) nunca perguntadas no cadastro.
+ * confirmação de e-mail antes de liberar sessão). Os passos 8/9 (Libras/
+ * notificações) não têm equivalente no legado — pedido novo do usuário
+ * depois de já existirem como preferências avulsas (T-073) nunca
+ * perguntadas no cadastro. O 10º passo (avatar) foi inicialmente pensado
+ * como um destaque do tour em vez de passo do assistente (pra não
+ * estender a metadata do signup) — voltou a ser um passo de verdade a
+ * pedido explícito do usuário; usa o MESMO mecanismo já provado de
+ * nascimento/estado_civil/objetivo (metadata do `auth.signUp` → trigger
+ * `handle_new_user`), sem duplicar lógica nova de persistência.
  */
 
 const NAME_MAX_LENGTH = 80;
@@ -145,6 +148,13 @@ export const passoNotificacoesSchema = z.object({
   quisNotificacoes: z.enum(["sim", "nao", ""]),
 });
 
+/**
+ * Avatar (T-077b) — sempre válido, nunca trava o cadastro: quem não mexer
+ * em nada segue com `CONFIG_AVATAR_PADRAO` (o mesmo padrão de contas já
+ * existentes) e pode personalizar de novo a qualquer momento em `/avatar`.
+ */
+export const passoAvatarSchema = z.object({});
+
 export interface OnboardingFormValues {
   aceitaTermos: boolean;
   aceitaPrivacidade: boolean;
@@ -158,7 +168,10 @@ export interface OnboardingFormValues {
   objetivo: string;
   usaLibras: "sim" | "nao" | "";
   quisNotificacoes: "sim" | "nao" | "";
+  avatarConfig: AvatarConfig;
 }
+
+export const VALORES_AVATAR_INICIAIS: AvatarConfig = CONFIG_AVATAR_PADRAO;
 
 export const ONBOARDING_STEP_SCHEMAS = [
   passoBoasVindasSchema,
@@ -170,6 +183,7 @@ export const ONBOARDING_STEP_SCHEMAS = [
   passoObjetivoSchema,
   passoLibrasSchema,
   passoNotificacoesSchema,
+  passoAvatarSchema,
 ] as const;
 
 export const ONBOARDING_TOTAL_PASSOS = ONBOARDING_STEP_SCHEMAS.length;

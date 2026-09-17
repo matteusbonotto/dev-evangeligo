@@ -55,15 +55,15 @@ function preencherAteEstadoCivil() {
 }
 
 describe("OnboardingPage", () => {
-  it("exibe o passo 1 de 9 com o título de boas-vindas", () => {
+  it("exibe o passo 1 de 10 com o título de boas-vindas", () => {
     renderOnboardingPage();
     expect(
       screen.getByRole("heading", { name: /Bem-vindo\(a\) ao EvangeliGO/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText("1 / 9")).toBeInTheDocument();
+    expect(screen.getByText("1 / 10")).toBeInTheDocument();
     expect(
       screen.getByRole("progressbar", { name: "Progresso do cadastro" }),
-    ).toHaveAttribute("aria-valuenow", "11");
+    ).toHaveAttribute("aria-valuenow", "10");
   });
 
   it("não avança sem aceitar termos e privacidade", () => {
@@ -75,7 +75,7 @@ describe("OnboardingPage", () => {
     expect(
       screen.getByText("É necessário aceitar a Política de Privacidade."),
     ).toBeInTheDocument();
-    expect(screen.getByText("1 / 9")).toBeInTheDocument();
+    expect(screen.getByText("1 / 10")).toBeInTheDocument();
   });
 
   it("não mostra o botão Voltar no primeiro passo, mas mostra a partir do segundo", () => {
@@ -91,7 +91,7 @@ describe("OnboardingPage", () => {
     expect(
       screen.getByRole("button", { name: "Voltar ao passo anterior" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("2 / 9")).toBeInTheDocument();
+    expect(screen.getByText("2 / 10")).toBeInTheDocument();
   });
 
   it("Voltar retorna ao passo anterior preservando o que já foi digitado", () => {
@@ -105,7 +105,7 @@ describe("OnboardingPage", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Voltar ao passo anterior" }));
 
-    expect(screen.getByText("1 / 9")).toBeInTheDocument();
+    expect(screen.getByText("1 / 10")).toBeInTheDocument();
     expect(screen.getByLabelText(/Termos de Uso/i)).toBeChecked();
 
     avancar();
@@ -134,9 +134,9 @@ describe("OnboardingPage", () => {
     });
     avancar();
 
-    expect(screen.getByText("3 / 9")).toBeInTheDocument();
+    expect(screen.getByText("3 / 10")).toBeInTheDocument();
     avancar(); // não preenche nascimento
-    expect(screen.getByText("4 / 9")).toBeInTheDocument();
+    expect(screen.getByText("4 / 10")).toBeInTheDocument();
   });
 
   it("rejeita senhas que não coincidem", () => {
@@ -163,17 +163,17 @@ describe("OnboardingPage", () => {
     avancar();
 
     expect(screen.getByText("As senhas não coincidem.")).toBeInTheDocument();
-    expect(screen.getByText("5 / 9")).toBeInTheDocument();
+    expect(screen.getByText("5 / 10")).toBeInTheDocument();
   });
 
   it("selecionar um estado civil avança automaticamente para o próximo passo", () => {
     renderOnboardingPage();
     preencherAteEstadoCivil();
 
-    expect(screen.getByText("6 / 9")).toBeInTheDocument();
+    expect(screen.getByText("6 / 10")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Casado(a)" }));
 
-    expect(screen.getByText("7 / 9")).toBeInTheDocument();
+    expect(screen.getByText("7 / 10")).toBeInTheDocument();
   });
 
   it("objetivo é obrigatório para concluir o cadastro", () => {
@@ -181,7 +181,7 @@ describe("OnboardingPage", () => {
     preencherAteEstadoCivil();
     avancar(); // pula estado civil sem escolher
 
-    expect(screen.getByText("7 / 9")).toBeInTheDocument();
+    expect(screen.getByText("7 / 10")).toBeInTheDocument();
     avancar();
 
     expect(
@@ -189,7 +189,7 @@ describe("OnboardingPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("completar todos os 9 passos tenta criar a conta (sem Supabase configurado no teste)", async () => {
+  it("completar todos os 10 passos tenta criar a conta (sem Supabase configurado no teste)", async () => {
     renderOnboardingPage();
     preencherAteEstadoCivil();
     avancar(); // pula estado civil
@@ -200,6 +200,7 @@ describe("OnboardingPage", () => {
     avancar();
     fireEvent.click(screen.getByRole("button", { name: "Não" })); // Libras
     fireEvent.click(screen.getByRole("button", { name: "Não" })); // notificações
+    avancar(); // avatar — opcional, pula sem escolher
 
     expect(
       await screen.findByText(/Autenticação por e-mail indisponível/i),
@@ -221,7 +222,7 @@ describe("OnboardingPage", () => {
       );
       avancar();
 
-      expect(screen.getByText("8 / 9")).toBeInTheDocument();
+      expect(screen.getByText("8 / 10")).toBeInTheDocument();
       expect(
         screen.getByRole("heading", { name: "Você usa Libras?" }),
       ).toBeInTheDocument();
@@ -229,7 +230,7 @@ describe("OnboardingPage", () => {
       fireEvent.click(screen.getByRole("button", { name: "Sim" }));
 
       expect(obterPreferenciaVLibras()).toBe(true);
-      expect(screen.getByText("9 / 9")).toBeInTheDocument();
+      expect(screen.getByText("9 / 10")).toBeInTheDocument();
     });
 
     it("escolher 'Não' em Libras desliga a preferência", () => {
@@ -265,8 +266,11 @@ describe("OnboardingPage", () => {
       fireEvent.click(screen.getByRole("button", { name: "Sim" }));
 
       expect(requestPermission).toHaveBeenCalled();
-      await screen.findByText(/Autenticação por e-mail indisponível/i);
+      await screen.findByRole("heading", { name: "Personalize seu avatar" });
       expect(obterPreferenciaNotificacoes()).toBe(true);
+
+      avancar(); // avatar — opcional, pula sem escolher
+      await screen.findByText(/Autenticação por e-mail indisponível/i);
 
       vi.unstubAllGlobals();
     });
@@ -282,22 +286,25 @@ describe("OnboardingPage", () => {
       fireEvent.click(screen.getByRole("button", { name: "Não" })); // Libras
       fireEvent.click(screen.getByRole("button", { name: "Sim" })); // notificações, sem suporte no jsdom
 
-      await screen.findByText(/Autenticação por e-mail indisponível/i);
+      await screen.findByRole("heading", { name: "Personalize seu avatar" });
       expect(obterPreferenciaNotificacoes()).toBe(false);
+
+      avancar(); // avatar — opcional, pula sem escolher
+      await screen.findByText(/Autenticação por e-mail indisponível/i);
     });
   });
 
   describe("modo Google (?google=1, T-043/ADR-037)", () => {
-    it("pula nome, e-mail e senha — só 6 passos no total", () => {
+    it("pula nome, e-mail e senha — só 7 passos no total", () => {
       renderOnboardingPage("/cadastro?google=1");
-      expect(screen.getByText("1 / 6")).toBeInTheDocument();
+      expect(screen.getByText("1 / 7")).toBeInTheDocument();
 
       fireEvent.click(screen.getByLabelText(/Termos de Uso/i));
       fireEvent.click(screen.getByLabelText(/Política de Privacidade/i));
       avancar();
 
       // Pulou direto pro passo de nascimento (índice 2), não nome (índice 1).
-      expect(screen.getByText("2 / 6")).toBeInTheDocument();
+      expect(screen.getByText("2 / 7")).toBeInTheDocument();
       expect(
         screen.getByRole("heading", { name: /Quando você nasceu\?/ }),
       ).toBeInTheDocument();
@@ -316,24 +323,24 @@ describe("OnboardingPage", () => {
       fireEvent.click(screen.getByLabelText(/Termos de Uso/i));
       fireEvent.click(screen.getByLabelText(/Política de Privacidade/i));
       avancar();
-      expect(screen.getByText("2 / 6")).toBeInTheDocument();
+      expect(screen.getByText("2 / 7")).toBeInTheDocument();
 
       fireEvent.click(
         screen.getByRole("button", { name: "Voltar ao passo anterior" }),
       );
-      expect(screen.getByText("1 / 6")).toBeInTheDocument();
+      expect(screen.getByText("1 / 7")).toBeInTheDocument();
       expect(screen.getByLabelText(/Termos de Uso/i)).toBeChecked();
     });
 
-    it("chegando no último passo (objetivo) tenta concluir via Google, não por senha", async () => {
+    it("chegando no último passo (avatar) tenta concluir via Google, não por senha", async () => {
       renderOnboardingPage("/cadastro?google=1");
       fireEvent.click(screen.getByLabelText(/Termos de Uso/i));
       fireEvent.click(screen.getByLabelText(/Política de Privacidade/i));
       avancar();
       avancar(); // nascimento — opcional, pula
-      expect(screen.getByText("3 / 6")).toBeInTheDocument();
+      expect(screen.getByText("3 / 7")).toBeInTheDocument();
       fireEvent.click(screen.getByRole("button", { name: "Casado(a)" }));
-      expect(screen.getByText("4 / 6")).toBeInTheDocument();
+      expect(screen.getByText("4 / 7")).toBeInTheDocument();
 
       fireEvent.click(
         screen.getByRole("button", { name: "Aprofundar em teologia reformada" }),
@@ -341,6 +348,7 @@ describe("OnboardingPage", () => {
       avancar();
       fireEvent.click(screen.getByRole("button", { name: "Não" })); // Libras
       fireEvent.click(screen.getByRole("button", { name: "Não" })); // notificações
+      avancar(); // avatar — opcional, pula sem escolher
 
       // Sem Supabase configurado no teste, `completarCadastroGoogle` falha
       // graciosamente (mesma mensagem genérica de indisponibilidade dos

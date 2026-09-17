@@ -27,6 +27,8 @@ import {
   persistirEstadoRpgReal,
   type PerfilBasico,
 } from "../../rpg/estadoReal";
+import { montarUrlAvatar } from "../../avatar/avatarUrl";
+import type { AvatarConfig } from "../../avatar/types";
 
 /**
  * Retorna uma URL absoluta preservando o `base` do Vite. Em produção o
@@ -97,6 +99,8 @@ export interface SignUpInput {
   nascimento?: string;
   estadoCivil?: string;
   objetivo?: string;
+  /** Escolha do 10º passo (T-077b) — sempre presente, mesmo que só com os valores padrão. */
+  avatarConfig?: AvatarConfig;
 }
 
 export interface SignInInput {
@@ -116,6 +120,7 @@ export interface CompletarCadastroGoogleInput {
   nascimento?: string;
   estadoCivil?: string;
   objetivo?: string;
+  avatarConfig?: AvatarConfig;
 }
 
 export type AuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -284,6 +289,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             termos_aceitos_em: acceptedAt,
             privacidade_versao: input.privacidadeVersao,
             privacidade_aceita_em: acceptedAt,
+            avatar_config: input.avatarConfig ?? null,
+            avatar_url: input.avatarConfig ? montarUrlAvatar(input.avatarConfig) : "",
           },
         },
       });
@@ -385,6 +392,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           nascimento: input.nascimento || null,
           estado_civil: input.estadoCivil || null,
           objetivo: input.objetivo || null,
+          avatar_config: input.avatarConfig ?? null,
+          avatar_url: input.avatarConfig ? montarUrlAvatar(input.avatarConfig) : null,
           onboarding_completo: true,
         })
         .eq("id", usuario.id);

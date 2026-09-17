@@ -6,6 +6,7 @@ import {
   estadoCivilSchema,
   nascimentoSchema,
   objetivoSchema,
+  passoAvatarSchema,
   passoBoasVindasSchema,
   passoEstadoCivilSchema,
   passoLibrasSchema,
@@ -134,8 +135,15 @@ describe("passoEstadoCivilSchema / passoObjetivoSchema", () => {
 });
 
 describe("ONBOARDING_TOTAL_PASSOS", () => {
-  it("são 9 passos, um por schema (T-077 acrescentou Libras e notificações)", () => {
-    expect(ONBOARDING_TOTAL_PASSOS).toBe(9);
+  it("são 10 passos, um por schema (T-077b acrescentou o passo de avatar)", () => {
+    expect(ONBOARDING_TOTAL_PASSOS).toBe(10);
+  });
+});
+
+/** T-077b — avatar nunca trava o cadastro: qualquer coisa (ou nada) passa. */
+describe("passoAvatarSchema (sempre válido)", () => {
+  it("aceita mesmo sem nenhuma escolha", () => {
+    expect(passoAvatarSchema.safeParse({}).success).toBe(true);
   });
 });
 
