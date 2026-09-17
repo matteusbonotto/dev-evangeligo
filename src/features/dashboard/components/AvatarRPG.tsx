@@ -58,7 +58,12 @@ export function AvatarRPG({ user, onSelecionarSlot }: AvatarRPGProps) {
 
   return (
     <div className="hud-avatar-column">
-      <div className="hud-ring" role="group" aria-label="Armadura de Deus">
+      <div
+        className="hud-ring"
+        role="group"
+        aria-label="Armadura de Deus"
+        data-tour="armadura"
+      >
         <svg
           className="hud-ring-connectors"
           viewBox="0 0 100 100"
@@ -117,7 +122,11 @@ export function AvatarRPG({ user, onSelecionarSlot }: AvatarRPGProps) {
           );
         })}
 
-        <div className="hud-avatar" aria-label={`Avatar de ${user.name}`}>
+        <div
+          className="hud-avatar"
+          aria-label={`Avatar de ${user.name}`}
+          data-tour="avatar-hud"
+        >
           <img
             className="hud-avatar-img"
             src={montarUrlAvatar(user.avatarConfig)}

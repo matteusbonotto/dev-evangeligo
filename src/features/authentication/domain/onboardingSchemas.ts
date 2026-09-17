@@ -2,19 +2,22 @@ import { z } from "zod";
 import { emailSchema, nameFieldSchema, passwordSchema } from "./authSchemas";
 
 /**
- * Onboarding estilo Duolingo (T-006, 7 passos — `IA/docs/ux-ui.md`,
- * "Onboarding"): boas-vindas/termos, nome, nascimento, e-mail, senha,
- * estado civil, objetivo. Migrado do app legado (`dev-pwa-biblia-game`,
+ * Onboarding estilo Duolingo (T-006, 9 passos desde T-077 —
+ * `IA/docs/ux-ui.md`, "Onboarding"): boas-vindas/termos, nome,
+ * nascimento, e-mail, senha, estado civil, objetivo, Libras,
+ * notificações. Migrado do app legado (`dev-pwa-biblia-game`,
  * `passoCadastro`/`avancarCadastro()`/`finalizarCadastro()` em `app.js`) —
  * mesma ordem de passos e mesma arquitetura de "tudo em memória, uma
  * única chamada de cadastro no final" (evita depender de sessão
  * autenticada nos passos intermediários, já que o Supabase pode exigir
- * confirmação de e-mail antes de liberar sessão). Único desvio
- * deliberado do legado: o 7º passo é "objetivo" (sem equivalente no
- * legado, que usava esse passo para criação de avatar — aqui a criação
- * de avatar já existe como feature própria, `/avatar`, acessível a
- * qualquer momento, T-033) — ver ADR correspondente em
- * `IA/memory/decisions.md`.
+ * confirmação de e-mail antes de liberar sessão). Desvios deliberados do
+ * legado: o 7º passo é "objetivo" (sem equivalente no legado, que usava
+ * esse passo para criação de avatar — aqui a criação de avatar já existe
+ * como feature própria, `/avatar`, acessível a qualquer momento, T-033,
+ * e passou a ser destacada pelo tour guiado em vez de virar um passo do
+ * cadastro, T-077); os passos 8/9 (Libras/notificações) não têm
+ * equivalente no legado — pedido novo do usuário depois de já existirem
+ * como preferências avulsas (T-073) nunca perguntadas no cadastro.
  */
 
 const NAME_MAX_LENGTH = 80;
@@ -126,6 +129,22 @@ export const passoObjetivoSchema = z.object({
   objetivo: objetivoSchema,
 });
 
+/**
+ * Libras (VLibras) e notificações push (T-077) — pedido explícito do
+ * usuário: o onboarding nunca perguntava sobre nenhum dos dois, mesmo os
+ * 2 já existindo como preferência (`shared/preferencias.ts`, T-073).
+ * Ambos são OPCIONAIS/puláveis de propósito — nunca travam o cadastro, e
+ * não dependem de sessão/`profiles` (só `localStorage`/permissão do
+ * navegador), então funcionam igual nos fluxos por e-mail e por Google.
+ */
+export const passoLibrasSchema = z.object({
+  usaLibras: z.enum(["sim", "nao", ""]),
+});
+
+export const passoNotificacoesSchema = z.object({
+  quisNotificacoes: z.enum(["sim", "nao", ""]),
+});
+
 export interface OnboardingFormValues {
   aceitaTermos: boolean;
   aceitaPrivacidade: boolean;
@@ -137,6 +156,8 @@ export interface OnboardingFormValues {
   confirmPassword: string;
   estadoCivil: string;
   objetivo: string;
+  usaLibras: "sim" | "nao" | "";
+  quisNotificacoes: "sim" | "nao" | "";
 }
 
 export const ONBOARDING_STEP_SCHEMAS = [
@@ -147,6 +168,8 @@ export const ONBOARDING_STEP_SCHEMAS = [
   passoSenhaSchema,
   passoEstadoCivilSchema,
   passoObjetivoSchema,
+  passoLibrasSchema,
+  passoNotificacoesSchema,
 ] as const;
 
 export const ONBOARDING_TOTAL_PASSOS = ONBOARDING_STEP_SCHEMAS.length;

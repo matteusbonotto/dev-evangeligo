@@ -82,7 +82,7 @@ function ItemTile({
 
 export function ItemSlots({ items, onSelecionarItem }: ItemSlotsProps) {
   return (
-    <ul className="item-grid">
+    <ul className="item-grid" data-tour="itens">
       {items.map((item) => (
         <ItemTile key={item.id} item={item} onSelecionar={onSelecionarItem} />
       ))}

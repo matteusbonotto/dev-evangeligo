@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   FiAward,
@@ -13,19 +13,59 @@ import {
 } from "react-icons/fi";
 import { ROUTE_PATHS } from "../../../app/routePaths";
 import { AppShell } from "../../../shared/components/AppShell";
+import { TourOverlay } from "../../../shared/tour/TourOverlay";
+import { tourJaConcluido, useTourGuiado } from "../../../shared/tour/useTourGuiado";
 import { useAuth } from "../../authentication/context/AuthContext";
 import { DestaquesDoDia } from "../../daily/components/DestaquesDoDia";
 import { RpgItemModal, type SelecaoRpg } from "../../rpg/components/RpgItemModal";
 import { AvatarRPG } from "../components/AvatarRPG";
+import { BoasVindasModal } from "../components/BoasVindasModal";
 import { HeartsBar } from "../components/HeartsBar";
 import { ItemSlots } from "../components/ItemSlots";
 import { SpiritBattle } from "../components/SpiritBattle";
 import { StatBar } from "../components/StatBar";
 import { StatPill } from "../components/StatPill";
+import { ID_TOUR_DASHBOARD, PASSOS_TOUR_DASHBOARD } from "../tourDashboard";
+
+const CHAVE_BOAS_VINDAS_VISTA = "evangeligo:onboarding:boasVindasVista";
 
 export function DashboardPage() {
   const { user, authStatus } = useAuth();
   const [selecaoRpg, setSelecaoRpg] = useState<SelecaoRpg | null>(null);
+  const [boasVindasAberta, setBoasVindasAberta] = useState(false);
+  // `autoIniciar: false` de propósito — orquestrado manualmente abaixo,
+  // pra nunca disparar por cima do popup de boas-vindas (achado real: com
+  // auto-início embutido no hook, a corrida entre os 2 `useEffect` fazia
+  // o tour começar 1 frame antes do popup aparecer).
+  const tour = useTourGuiado(PASSOS_TOUR_DASHBOARD, ID_TOUR_DASHBOARD, false);
+
+  /** Boas-vindas (T-077) aparece 1x; o tour só é considerado DEPOIS dela fechar (ou de saber que não vai aparecer). */
+  useEffect(() => {
+    let mostrarBoasVindas = false;
+    try {
+      mostrarBoasVindas = localStorage.getItem(CHAVE_BOAS_VINDAS_VISTA) !== "true";
+    } catch {
+      // localStorage indisponível — segue sem popup, direto pro tour.
+    }
+    if (mostrarBoasVindas) {
+      setBoasVindasAberta(true);
+    } else if (!tourJaConcluido(ID_TOUR_DASHBOARD)) {
+      tour.iniciar();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function fecharBoasVindas() {
+    try {
+      localStorage.setItem(CHAVE_BOAS_VINDAS_VISTA, "true");
+    } catch {
+      // localStorage indisponível — só não persiste, a sessão atual já fechou.
+    }
+    setBoasVindasAberta(false);
+    if (!tourJaConcluido(ID_TOUR_DASHBOARD)) {
+      tour.iniciar();
+    }
+  }
 
   if (!user) {
     // Conta real autenticada: `user` ainda está sendo carregado do Supabase
@@ -195,6 +235,11 @@ export function DashboardPage() {
             onClose={() => setSelecaoRpg(null)}
           />
         )}
+
+        {boasVindasAberta && (
+          <BoasVindasModal onFechar={fecharBoasVindas} />
+        )}
+        <TourOverlay tour={tour} />
       </div>
     </AppShell>
   );

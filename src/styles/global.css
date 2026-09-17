@@ -2553,3 +2553,173 @@ textarea:focus-visible,
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Popup de boas-vindas (T-077) — overlay/caixa próprios (não reaproveita
+   `.bctx-*`, que só existe em `bible.css` e não carrega no Dashboard). */
+.boas-vindas-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-20);
+}
+
+.boas-vindas-caixa {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-16);
+  width: 100%;
+  max-width: 380px;
+  max-height: min(82vh, calc(100vh - 40px));
+  overflow-y: auto;
+}
+
+.boas-vindas-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-10);
+  text-align: center;
+  max-width: 380px;
+}
+
+.boas-vindas-icone {
+  font-size: 40px;
+  color: var(--verde-600);
+}
+
+.boas-vindas-modal p {
+  text-align: left;
+  color: var(--texto);
+  font-size: var(--font-size-14);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.boas-vindas-contato {
+  color: var(--texto-suave) !important;
+  font-size: var(--font-size-13) !important;
+}
+
+/* Tour guiado (T-077): escurece a tela com um recorte ao redor do
+   elemento destacado + balão flutuante com a explicação. */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+}
+
+.tour-destaque {
+  position: fixed;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 20, 0.7);
+  outline: 3px solid var(--verde-500);
+  transition:
+    top 0.3s ease,
+    left 0.3s ease,
+    width 0.3s ease,
+    height 0.3s ease;
+  pointer-events: none;
+}
+
+.tour-balao {
+  position: fixed;
+  pointer-events: auto;
+  background: var(--branco);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-14);
+  transition:
+    top 0.3s ease,
+    left 0.3s ease;
+}
+
+.tour-balao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.tour-balao-contador {
+  font-size: var(--font-size-11);
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+
+.tour-balao-fechar {
+  border: none;
+  background: transparent;
+  color: var(--texto-suave);
+  cursor: pointer;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+}
+
+.tour-balao-fechar:hover {
+  background: var(--fundo);
+}
+
+.tour-balao-titulo {
+  margin: 0 0 var(--space-6);
+  font-size: var(--font-size-16, 16px);
+}
+
+.tour-balao-texto {
+  margin: 0 0 var(--space-12);
+  font-size: var(--font-size-13);
+  color: var(--texto);
+  line-height: 1.5;
+}
+
+.tour-balao-acoes {
+  display: flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+/* FAQ (T-077). */
+.faq-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-top: var(--space-16);
+}
+
+.faq-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.faq-item-titulo-wrap {
+  margin: 0;
+}
+
+.faq-item-header {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  width: 100%;
+  padding: var(--space-12) var(--space-14);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: var(--font-size-14);
+  color: var(--texto);
+}
+
+.faq-item-resposta {
+  margin: 0;
+  padding: 0 var(--space-14) var(--space-14);
+  color: var(--texto-suave);
+  font-size: var(--font-size-13);
+  line-height: 1.5;
+}

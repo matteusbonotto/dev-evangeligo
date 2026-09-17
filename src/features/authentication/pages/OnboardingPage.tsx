@@ -17,6 +17,10 @@ import {
   evaluatePasswordStrength,
   type PasswordStrengthResult,
 } from "../domain/passwordStrength";
+import {
+  definirPreferenciaNotificacoes,
+  definirPreferenciaVLibras,
+} from "../../../shared/preferencias";
 
 const VALORES_INICIAIS: OnboardingFormValues = {
   aceitaTermos: false,
@@ -29,6 +33,8 @@ const VALORES_INICIAIS: OnboardingFormValues = {
   confirmPassword: "",
   estadoCivil: "",
   objetivo: "",
+  usaLibras: "",
+  quisNotificacoes: "",
 };
 
 type Erros = Partial<Record<keyof OnboardingFormValues, string>>;
@@ -37,11 +43,12 @@ type Erros = Partial<Record<keyof OnboardingFormValues, string>>;
  * Sequência de passos para quem já chegou aqui com sessão do Google
  * (T-043/ADR-037, `?google=1`, vindo de `AuthCallbackPage`) — pula nome/
  * sobrenome (1), e-mail (3) e senha (4), que já vieram do Google/não
- * existem nessa conta. Termos (0), nascimento (2), estado civil (5) e
- * objetivo (6) continuam sendo pedidos normalmente: o Google não coleta
- * aceite dos NOSSOS termos, nem esses dados específicos do app.
+ * existem nessa conta. Termos (0), nascimento (2), estado civil (5),
+ * objetivo (6), Libras (7) e notificações (8) continuam sendo pedidos
+ * normalmente: os 2 últimos (T-077) não dependem de sessão/dados do
+ * Google, são só preferências locais (`shared/preferencias.ts`).
  */
-const PASSOS_GOOGLE = [0, 2, 5, 6] as const;
+const PASSOS_GOOGLE = [0, 2, 5, 6, 7, 8] as const;
 
 /**
  * Onboarding estilo Duolingo (T-006, 7 passos): boas-vindas/termos, nome,
@@ -230,6 +237,38 @@ export function OnboardingPage() {
     setErros({});
     setFormError(null);
     setPasso(passoAnterior(passo));
+  }
+
+  /** Passo Libras (T-077) — aplica a preferência (T-073) já ao escolher, avança sozinho. */
+  function escolherLibras(valor: "sim" | "nao") {
+    atualizar("usaLibras", valor);
+    definirPreferenciaVLibras(valor === "sim");
+    setPasso((atual) => proximoPasso(atual));
+  }
+
+  /**
+   * Passo notificações (T-077) — sempre o ÚLTIMO passo dos 2 fluxos, ao
+   * contrário do de Libras (por isso chama `finalizarCadastro()` em vez
+   * de só avançar — usar `setPasso` aqui, como o de Libras faz, nunca
+   * dispararia a criação da conta: achado real rodando os testes, a
+   * própria máquina de estados ficava presa no último passo pra sempre).
+   * "Sim" pede a permissão de verdade do navegador (mesmo fluxo do
+   * switch em Perfil, T-073); só liga a preferência se o navegador
+   * realmente conceder, nunca finge que ligou.
+   */
+  async function escolherNotificacoes(valor: "sim" | "nao") {
+    atualizar("quisNotificacoes", valor);
+    if (valor === "sim" && typeof Notification !== "undefined") {
+      const permissao = await Notification.requestPermission();
+      definirPreferenciaNotificacoes(permissao === "granted");
+    } else {
+      definirPreferenciaNotificacoes(false);
+    }
+    if (ehUltimoPasso) {
+      await finalizarCadastro();
+    } else {
+      setPasso((atual) => proximoPasso(atual));
+    }
   }
 
   async function handleGoogle() {
@@ -528,6 +567,70 @@ export function OnboardingPage() {
               {erros.objetivo && (
                 <span className="field-error">{erros.objetivo}</span>
               )}
+            </>
+          )}
+
+          {passo === 7 && (
+            <>
+              <h1 className="onboarding-passo-titulo" ref={tituloRef} tabIndex={-1}>
+                Você usa Libras?
+              </h1>
+              <p className="onboarding-passo-subtitulo">
+                Se sim, deixamos o ícone do VLibras (tradução em Libras)
+                ativado — dá pra desligar quando quiser em Configurações.
+              </p>
+              <div className="onboarding-opcoes" role="group" aria-label="Usa Libras">
+                <button
+                  type="button"
+                  className={`onboarding-opcao${valores.usaLibras === "sim" ? " onboarding-opcao--ativa" : ""}`}
+                  aria-pressed={valores.usaLibras === "sim"}
+                  onClick={() => escolherLibras("sim")}
+                >
+                  Sim
+                </button>
+                <button
+                  type="button"
+                  className={`onboarding-opcao${valores.usaLibras === "nao" ? " onboarding-opcao--ativa" : ""}`}
+                  aria-pressed={valores.usaLibras === "nao"}
+                  onClick={() => escolherLibras("nao")}
+                >
+                  Não
+                </button>
+              </div>
+            </>
+          )}
+
+          {passo === 8 && (
+            <>
+              <h1 className="onboarding-passo-titulo" ref={tituloRef} tabIndex={-1}>
+                Quer receber notificações?
+              </h1>
+              <p className="onboarding-passo-subtitulo">
+                Lembretes pra manter sua ofensiva e sua constância. Você pode
+                mudar de ideia a qualquer momento em Configurações.
+              </p>
+              <div
+                className="onboarding-opcoes"
+                role="group"
+                aria-label="Quer receber notificações"
+              >
+                <button
+                  type="button"
+                  className={`onboarding-opcao${valores.quisNotificacoes === "sim" ? " onboarding-opcao--ativa" : ""}`}
+                  aria-pressed={valores.quisNotificacoes === "sim"}
+                  onClick={() => void escolherNotificacoes("sim")}
+                >
+                  Sim
+                </button>
+                <button
+                  type="button"
+                  className={`onboarding-opcao${valores.quisNotificacoes === "nao" ? " onboarding-opcao--ativa" : ""}`}
+                  aria-pressed={valores.quisNotificacoes === "nao"}
+                  onClick={() => void escolherNotificacoes("nao")}
+                >
+                  Não
+                </button>
+              </div>
             </>
           )}
 

@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { FiArrowLeft, FiCheckCircle, FiSettings, FiUser } from "react-icons/fi";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import {
+  FiArrowLeft,
+  FiCheckCircle,
+  FiHelpCircle,
+  FiSettings,
+  FiUser,
+} from "react-icons/fi";
 import { ROUTE_PATHS } from "../../../app/routePaths";
 import { AppShell } from "../../../shared/components/AppShell";
 import {
@@ -9,6 +15,8 @@ import {
   obterPreferenciaNotificacoes,
   obterPreferenciaVLibras,
 } from "../../../shared/preferencias";
+import { resetarTour } from "../../../shared/tour/useTourGuiado";
+import { ID_TOUR_DASHBOARD } from "../../dashboard/tourDashboard";
 import { useAuth } from "../context/AuthContext";
 import { montarUrlAvatar } from "../../avatar/avatarUrl";
 import { supabaseClient } from "../../../infrastructure/supabase/client";
@@ -69,6 +77,7 @@ function InterruptorConfig({
 
 export function ProfilePage() {
   const { user, authStatus, supabaseUser } = useAuth();
+  const navigate = useNavigate();
   const [consentimento, setConsentimento] = useState<
     ConsentimentoRecente | null | "carregando" | "indisponivel"
   >(null);
@@ -263,6 +272,36 @@ export function ProfilePage() {
               </button>
             </p>
           )}
+        </section>
+
+        <section className="dash-card" aria-labelledby="profile-tutorial-title">
+          <p className="eyebrow" id="profile-tutorial-title">
+            <FiHelpCircle aria-hidden="true" /> Tutorial e ajuda
+          </p>
+
+          <div className="config-linha">
+            <div className="config-linha-texto">
+              <p className="config-linha-titulo">Tour guiado do Início</p>
+              <p className="config-linha-descricao">
+                Reveja a explicação de nível, ouro, ofensiva, armadura,
+                avatar e itens.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="secondary-button small"
+              onClick={() => {
+                resetarTour(ID_TOUR_DASHBOARD);
+                navigate(ROUTE_PATHS.dashboard);
+              }}
+            >
+              Refazer tour
+            </button>
+          </div>
+
+          <Link to={ROUTE_PATHS.faq} className="civ-historico-link">
+            Ver perguntas frequentes (FAQ)
+          </Link>
         </section>
       </div>
     </AppShell>

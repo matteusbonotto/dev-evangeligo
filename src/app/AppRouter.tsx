@@ -99,6 +99,11 @@ const VidaInteriorHistoricoPage = lazy(() =>
     }),
   ),
 );
+const FaqPage = lazy(() =>
+  import("../features/faq/pages/FaqPage").then((module) => ({
+    default: module.FaqPage,
+  })),
+);
 const LojaPage = lazy(() =>
   import("../features/rpg/pages/LojaPage").then((module) => ({
     default: module.LojaPage,
@@ -185,6 +190,7 @@ export function AppRouter() {
           path={ROUTE_PATHS.vidaInteriorHistorico}
           element={<VidaInteriorHistoricoPage />}
         />
+        <Route path={ROUTE_PATHS.faq} element={<FaqPage />} />
         <Route path={ROUTE_PATHS.loja} element={<LojaPage />} />
         <Route path={ROUTE_PATHS.inventario} element={<InventarioPage />} />
         <Route path={ROUTE_PATHS.exercicios} element={<ExerciciosPage />} />

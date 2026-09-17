@@ -8,7 +8,9 @@ import {
   objetivoSchema,
   passoBoasVindasSchema,
   passoEstadoCivilSchema,
+  passoLibrasSchema,
   passoNomeSchema,
+  passoNotificacoesSchema,
   passoObjetivoSchema,
   passoSenhaSchema,
 } from "./onboardingSchemas";
@@ -132,7 +134,25 @@ describe("passoEstadoCivilSchema / passoObjetivoSchema", () => {
 });
 
 describe("ONBOARDING_TOTAL_PASSOS", () => {
-  it("são 7 passos, um por schema", () => {
-    expect(ONBOARDING_TOTAL_PASSOS).toBe(7);
+  it("são 9 passos, um por schema (T-077 acrescentou Libras e notificações)", () => {
+    expect(ONBOARDING_TOTAL_PASSOS).toBe(9);
+  });
+});
+
+/** T-077 — Libras e notificações são sempre opcionais/puláveis, nunca travam o cadastro. */
+describe("passoLibrasSchema / passoNotificacoesSchema (opcionais)", () => {
+  it("aceita 'sim', 'nao' ou vazio (pulado) pra Libras", () => {
+    expect(passoLibrasSchema.safeParse({ usaLibras: "sim" }).success).toBe(true);
+    expect(passoLibrasSchema.safeParse({ usaLibras: "nao" }).success).toBe(true);
+    expect(passoLibrasSchema.safeParse({ usaLibras: "" }).success).toBe(true);
+  });
+
+  it("aceita 'sim', 'nao' ou vazio (pulado) pra notificações", () => {
+    expect(
+      passoNotificacoesSchema.safeParse({ quisNotificacoes: "sim" }).success,
+    ).toBe(true);
+    expect(
+      passoNotificacoesSchema.safeParse({ quisNotificacoes: "" }).success,
+    ).toBe(true);
   });
 });

@@ -39,7 +39,7 @@ export function TopHud({
   return (
     <div className="top-hud">
       <div className="top-hud-inner">
-        <div className="top-hud-level">
+        <div className="top-hud-level" data-tour="nivel">
           <span className="top-hud-level-badge">{user.level}</span>
           <div
             className="top-hud-xp-track"
@@ -57,13 +57,13 @@ export function TopHud({
         </div>
 
         <div className="top-hud-stats">
-          <span className="top-hud-pill top-hud-pill--gold">
+          <span className="top-hud-pill top-hud-pill--gold" data-tour="ouro">
             <FiDollarSign aria-hidden="true" /> {user.gold}
           </span>
-          <span className="top-hud-pill top-hud-pill--streak">
+          <span className="top-hud-pill top-hud-pill--streak" data-tour="ofensiva">
             <FiZap aria-hidden="true" /> {user.streakDays}
           </span>
-          <span className="top-hud-pill top-hud-pill--hearts">
+          <span className="top-hud-pill top-hud-pill--hearts" data-tour="coracoes">
             <FiHeart aria-hidden="true" /> {user.hearts}/{user.maxHearts}
           </span>
         </div>
@@ -74,6 +74,7 @@ export function TopHud({
             <button
               type="button"
               className="top-hud-menu-trigger"
+              data-tour="perfil"
               aria-expanded={menuAberto}
               aria-label={`Menu de ${user.name}`}
               onClick={() => setMenuAberto((atual) => !atual)}
