@@ -32,6 +32,7 @@ export function criarUsuarioDeTeste(overrides: Partial<DemoUser> = {}): DemoUser
     hearts: 5,
     maxHearts: 5,
     spiritBattle: [],
+    role: "user",
     ...overrides,
   };
 }

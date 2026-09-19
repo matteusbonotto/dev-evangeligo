@@ -103,6 +103,8 @@ export interface DemoUser {
   hearts: number;
   maxHearts: number;
   spiritBattle: SpiritBattleEntry[];
+  /** `profiles.role` (T-015, painel admin) — sempre "user" no modo demonstração. */
+  role: "user" | "admin";
 }
 
 /**
@@ -143,6 +145,7 @@ export const demoUser: DemoUser = {
   streakDays: 12,
   bestStreak: 21,
   isDemo: true,
+  role: "user",
   achievements: [
     {
       // Id igual ao do catálogo real (`gamification/domain/achievements.ts`,

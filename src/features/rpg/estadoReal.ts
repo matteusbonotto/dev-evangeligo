@@ -162,6 +162,8 @@ export interface PerfilBasico {
   sobrenome: string;
   /** `null` até a pessoa customizar o avatar pela 1ª vez (T-053/ADR-046). */
   avatar_config: AvatarConfig | null;
+  /** `profiles.role` (T-015, painel admin). */
+  role: "user" | "admin";
 }
 
 export async function carregarOuCriarEstadoReal(
@@ -183,6 +185,7 @@ export async function carregarOuCriarEstadoReal(
     avatarInitial: nomeExibicao.charAt(0).toUpperCase() || "P",
     avatarConfig: perfil?.avatar_config ?? CONFIG_AVATAR_PADRAO,
     isDemo: false,
+    role: perfil?.role ?? "user",
     level: 1,
     xp: 0,
     xpToNextLevel: XP_PARA_PROXIMO_NIVEL_INICIAL,

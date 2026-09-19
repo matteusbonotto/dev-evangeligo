@@ -159,6 +159,11 @@ const FeedDevocionaisPage = lazy(() =>
     default: module.FeedDevocionaisPage,
   })),
 );
+const AdminPage = lazy(() =>
+  import("../features/admin/pages/AdminPage").then((module) => ({
+    default: module.AdminPage,
+  })),
+);
 
 export function AppRouter() {
   return (
@@ -225,6 +230,7 @@ export function AppRouter() {
           path={ROUTE_PATHS.devocionais}
           element={<FeedDevocionaisPage />}
         />
+        <Route path={ROUTE_PATHS.admin} element={<AdminPage />} />
         <Route path={ROUTE_PATHS.terms} element={<LegalPage kind="terms" />} />
         <Route
           path={ROUTE_PATHS.privacy}

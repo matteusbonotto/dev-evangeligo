@@ -225,6 +225,15 @@ export function DashboardPage() {
                   <FiChevronRight aria-hidden="true" />
                 </Link>
               </li>
+              {user.role === "admin" && (
+                <li>
+                  <Link className="mais-opcoes-item" to={ROUTE_PATHS.admin}>
+                    <FiShield aria-hidden="true" />
+                    <span>Painel admin</span>
+                    <FiChevronRight aria-hidden="true" />
+                  </Link>
+                </li>
+              )}
             </ul>
           </section>
         </div>

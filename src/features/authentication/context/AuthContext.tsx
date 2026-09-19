@@ -221,7 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     Promise.resolve(
       supabaseClient
         .from("profiles")
-        .select("nome, sobrenome, avatar_config")
+        .select("nome, sobrenome, avatar_config, role")
         .eq("id", supaUser.id)
         .maybeSingle(),
     )
