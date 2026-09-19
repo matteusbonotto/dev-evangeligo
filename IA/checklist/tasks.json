@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-19 (T-013 e T-020 concluídas, ADR-053); anteriormente 2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-063; T-045 anotada no backlog)",
+  "atualizado": "2026-09-19 (T-013/T-020 concluídas ADR-053; T-015 em review ADR-054; sons efeitos sonoros); anteriormente 2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-063; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -132,10 +132,10 @@
     {
       "id": "T-015",
       "titulo": "Painel admin",
-      "descricao": "CRUD de conteúdo e usuários.",
+      "descricao": "CRUD de conteúdo e usuários. Implementado 2026-09-19 (ADR-054): /admin (role-gated), gestão de usuários/role, CRUD real de conquistas/missões (RLS admin-only). Deliberadamente SEM CRUD de trilhas/quiz (conteúdo doutrinário, exige revisão teologia-reformada — ADR-004). Status review, não done: migration não deployada ainda (bloqueio de supabase db push), CRUD não verificado contra o banco real; primeiro admin precisa ser promovido manualmente via SQL.",
       "agente": "backend-specialist",
       "prioridade": "media",
-      "status": "todo",
+      "status": "review",
       "dependencias": ["T-003"]
     },
     {
