@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-19 (T-013/T-020 concluídas ADR-053; T-015 em review ADR-054; sons efeitos sonoros); anteriormente 2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-063; T-045 anotada no backlog)",
+  "atualizado": "2026-09-19 (T-013/T-020/T-045 concluídas; T-015/T-014 em review, ADR-053 a ADR-057; sons efeitos sonoros); anteriormente 2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-063)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -123,10 +123,10 @@
     {
       "id": "T-014",
       "titulo": "Chat com amigos e missões colaborativas",
-      "descricao": "Mensagens, amizades, convites.",
+      "descricao": "Mensagens, amizades, convites. MVP real implementado 2026-09-19 (ADR-057): amigos (buscar/solicitar/aceitar/recusar/listar), chat 1:1 via Supabase Realtime, convite de amigo pra missão colaborativa (só o convite — progresso conjunto depende do sistema de missões ser ligado a contas reais, ADR-052). Fora de escopo: feed, grupos, ranking/ligas, notificações de comunidade, XP centralizado (pedido de 48 seções de 2026-09-15 cujo plano de 6 fases foi perdido — precisa ser refeito com o usuário se ainda for a intenção). Status review: migration não deployada, não verificado contra o banco real.",
       "agente": "social",
       "prioridade": "media",
-      "status": "todo",
+      "status": "review",
       "dependencias": ["T-003"]
     },
     {
