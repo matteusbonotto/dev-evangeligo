@@ -159,6 +159,11 @@ const FeedDevocionaisPage = lazy(() =>
     default: module.FeedDevocionaisPage,
   })),
 );
+const BibliaQuizPage = lazy(() =>
+  import("../features/bible/quiz/pages/BibliaQuizPage").then((module) => ({
+    default: module.BibliaQuizPage,
+  })),
+);
 const AdminPage = lazy(() =>
   import("../features/admin/pages/AdminPage").then((module) => ({
     default: module.AdminPage,
@@ -192,6 +197,14 @@ export function AppRouter() {
         <Route path={ROUTE_PATHS.bible} element={<LivrosPage />} />
         <Route path={ROUTE_PATHS.bibleCapitulos} element={<CapitulosPage />} />
         <Route path={ROUTE_PATHS.bibleLeitura} element={<LeituraPage />} />
+        <Route
+          path={ROUTE_PATHS.bibleQuizCapitulo}
+          element={<BibliaQuizPage />}
+        />
+        <Route
+          path={ROUTE_PATHS.bibleQuizLivro}
+          element={<BibliaQuizPage />}
+        />
         <Route path={ROUTE_PATHS.harpa} element={<HinosPage />} />
         <Route path={ROUTE_PATHS.harpaHino} element={<HinoPage />} />
         <Route path={ROUTE_PATHS.avatar} element={<AvatarEditorPage />} />

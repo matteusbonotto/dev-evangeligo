@@ -21,7 +21,8 @@ describe("QUIZZES", () => {
 
   it("cada quiz referencia uma aula que realmente existe", () => {
     for (const quiz of QUIZZES) {
-      expect(getAulaById(quiz.aulaId), `aula "${quiz.aulaId}"`).toBeDefined();
+      expect(quiz.aulaId, quiz.id).toBeDefined();
+      expect(getAulaById(quiz.aulaId ?? ""), `aula "${quiz.aulaId}"`).toBeDefined();
     }
   });
 

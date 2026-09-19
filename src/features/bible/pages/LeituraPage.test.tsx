@@ -561,4 +561,20 @@ describe("LeituraPage", () => {
     renderLeituraPage("/biblia/jhn/999");
     expect(screen.getByText("Lista de livros")).toBeInTheDocument();
   });
+
+  /** T-045 — o link real de quiz só existe para Rute; outros livros seguem "em breve". */
+  describe("botão Quiz do capítulo (T-045)", () => {
+    it("vira um link de verdade em Rute 1 (tem quiz)", () => {
+      renderLeituraPage("/biblia/rut/1");
+      expect(screen.getByRole("link", { name: /Quiz do capítulo/ })).toHaveAttribute(
+        "href",
+        "/biblia/rut/1/quiz",
+      );
+    });
+
+    it("continua desabilitado ('em breve') em João 1 (sem quiz ainda)", () => {
+      renderLeituraPage("/biblia/jhn/1");
+      expect(screen.getByRole("button", { name: /Quiz do capítulo/ })).toBeDisabled();
+    });
+  });
 });

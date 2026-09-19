@@ -1,10 +1,12 @@
 import type { CSSProperties } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
+import { BsPatchQuestionFill } from "react-icons/bs";
 import "../bible.css";
 import { getLivroByCodigo } from "../data/livros";
 import { obterAbreviacaoLivro } from "../data/abreviacoesLivros";
-import { buildLeituraPath } from "../routePaths";
+import { buildLeituraPath, buildQuizLivroPath } from "../routePaths";
+import { getQuizLivroBiblia } from "../quiz/content";
 import {
   calcularEsquerdaDoPin,
   estimarPosicaoPeloPercentual,
@@ -46,6 +48,11 @@ export function CapitulosPage() {
           <p className="biblia-capitulos-resumo">
             {livro.totalCapitulos} capítulos · {percentualLivro}% lido
           </p>
+          {getQuizLivroBiblia(livro.order) && (
+            <Link className="secondary-button small" to={buildQuizLivroPath(livro.codigo)}>
+              <BsPatchQuestionFill aria-hidden="true" /> Quiz do livro inteiro
+            </Link>
+          )}
           {/* Pin com o capítulo estimado onde a leitura parou (T-069) —
               pedido explícito do usuário: "lembrar onde parou caso queira
               ler depois". Fica sempre na mesma posição horizontal da borda

@@ -15,6 +15,8 @@ export const ROUTE_PATHS = {
   bible: "/biblia",
   bibleCapitulos: "/biblia/:livroCodigo",
   bibleLeitura: "/biblia/:livroCodigo/:capitulo",
+  bibleQuizCapitulo: "/biblia/:livroCodigo/:capitulo/quiz",
+  bibleQuizLivro: "/biblia/:livroCodigo/quiz",
   harpa: "/harpa",
   harpaHino: "/harpa/:numero",
   avatar: "/avatar",

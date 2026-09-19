@@ -39,4 +39,19 @@ describe("CapitulosPage", () => {
     renderCapitulosPage("/biblia/xxx");
     expect(screen.getByText("Lista de livros")).toBeInTheDocument();
   });
+
+  /** T-045 — Rute é o único livro com quiz completo (prova de conceito). */
+  it("exibe o link 'Quiz do livro inteiro' para Rute", () => {
+    renderCapitulosPage("/biblia/rut");
+    expect(
+      screen.getByRole("link", { name: /Quiz do livro inteiro/ }),
+    ).toHaveAttribute("href", "/biblia/rut/quiz");
+  });
+
+  it("não exibe o link de quiz de livro para um livro sem quiz ainda (Gênesis)", () => {
+    renderCapitulosPage("/biblia/gen");
+    expect(
+      screen.queryByRole("link", { name: /Quiz do livro inteiro/ }),
+    ).not.toBeInTheDocument();
+  });
 });

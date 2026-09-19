@@ -52,7 +52,8 @@ import {
   obterReferenciasCruzadas,
   type ReferenciaCruzada,
 } from "../referenciasCruzadas";
-import { buildLeituraPath } from "../routePaths";
+import { buildLeituraPath, buildQuizCapituloPath } from "../routePaths";
+import { getQuizCapituloBiblia } from "../quiz/content";
 import {
   aplicarMarcaTexto,
   atualizarNota,
@@ -264,9 +265,10 @@ function anotacaoSobrepondo(
  * o legado não tem alto contraste como feature (tem tema
  * claro/escuro/sistema, global — fora do escopo desta página), e só
  * migramos 1 das 3 traduções do legado. O "Quiz do capítulo" do rodapé
- * fica bloqueado ("em breve") porque não existe conteúdo de quiz
- * por capítulo bíblico ainda (os quizzes de T-008 são por aula/trilha,
- * não por capítulo da Bíblia). "Cores de fala" (botão na toolbar, ligado
+ * (T-045) libera de verdade só para o livro de Rute por enquanto — prova
+ * de conceito de `IA/docs/quiz-biblico-plano.md`; qualquer outro livro
+ * ainda mostra "em breve" (cadeado) até ganhar conteúdo próprio.
+ * "Cores de fala" (botão na toolbar, ligado
  * por padrão) pinta o versículo inteiro em vermelho quando é fala de
  * Jesus, ou azul quando é fala de Deus Pai — ver `data/falasEspeciais.ts`
  * para a proveniência dos dados e o escopo (Jesus: as 4 evangelhos +
@@ -1309,19 +1311,30 @@ export function LeituraPage() {
             <span className="biblia-nav-lateral" />
           )}
 
-          <button
-            type="button"
-            className="biblia-nav-quiz"
-            disabled
-            title="Quiz deste capítulo — em breve"
-          >
-            <BsPatchQuestionFill aria-hidden="true" />
-            <span className="biblia-nav-texto">Quiz do capítulo</span>
-            <BsLockFill
-              className="biblia-nav-quiz-cadeado"
-              aria-hidden="true"
-            />
-          </button>
+          {getQuizCapituloBiblia(livro.order, capitulo) ? (
+            <Link
+              className="biblia-nav-quiz"
+              to={buildQuizCapituloPath(livro.codigo, capitulo)}
+              title="Quiz deste capítulo"
+            >
+              <BsPatchQuestionFill aria-hidden="true" />
+              <span className="biblia-nav-texto">Quiz do capítulo</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="biblia-nav-quiz"
+              disabled
+              title="Quiz deste capítulo — em breve (ainda só disponível para o livro de Rute, T-045)"
+            >
+              <BsPatchQuestionFill aria-hidden="true" />
+              <span className="biblia-nav-texto">Quiz do capítulo</span>
+              <BsLockFill
+                className="biblia-nav-quiz-cadeado"
+                aria-hidden="true"
+              />
+            </button>
+          )}
 
           {temProximo ? (
             <Link

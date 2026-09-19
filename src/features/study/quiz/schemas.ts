@@ -55,7 +55,13 @@ export const quizQuestionSchema = z.discriminatedUnion("type", [
 
 export const quizSchema = z.object({
   id: z.string().min(1),
-  aulaId: z.string().min(1),
+  /**
+   * Presente só em quizzes de trilha/aula (`study/quiz/content.ts`,
+   * `getQuizByAulaId`). Quizzes bíblicos por capítulo/livro (T-045,
+   * `bible/quiz/content.ts`) não têm aula associada — motor genérico,
+   * sem dependência de `study/`, ver `IA/docs/quiz-biblico-plano.md` seção 4.
+   */
+  aulaId: z.string().min(1).optional(),
   title: z.string().min(1),
   questions: z.array(quizQuestionSchema).min(3),
 });
