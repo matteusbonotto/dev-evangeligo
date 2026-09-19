@@ -3,6 +3,7 @@ import { FiX } from "react-icons/fi";
 import { useAuth } from "../../authentication/context/AuthContext";
 import type { ArmorSlot } from "../../authentication/demo/demoUser";
 import { ARMOR_SLOTS } from "../../dashboard/armorSlots";
+import { tocarSom } from "../../../shared/sons";
 import "../rpg.css";
 import {
   alternarEquiparArmadura,
@@ -70,6 +71,7 @@ export function RpgItemModal({ selecao, onClose }: RpgItemModalProps) {
     updateUser(() => resultado.usuario);
     const novasConquistas = resultado.usuario.achievements.slice(conquistasAntes);
     if (novasConquistas.length > 0) {
+      tocarSom("conquista");
       setMensagem({
         texto: `Conquista desbloqueada: ${novasConquistas.map((a) => a.title).join(", ")}!`,
         tipo: "sucesso",

@@ -7,6 +7,7 @@ import { buildAulaPath, buildTrilhaPath } from "../routePaths";
 import { AppShell } from "../../../shared/components/AppShell";
 import { useAuth } from "../../authentication/context/AuthContext";
 import { temEscudoDaFe } from "../../rpg/bonus";
+import { tocarSom } from "../../../shared/sons";
 import { getQuizByAulaId } from "../quiz/content";
 import {
   calculateQuizReward,
@@ -90,6 +91,15 @@ export function QuizPage() {
     setLastFeedback({ question: currentQuestion, entry });
     setSession(next);
     setPhase("feedback");
+
+    // Efeitos sonoros (pedido do usuário, estilo Duolingo — ver `shared/sons.ts`).
+    if (next.status === "sem_coracoes") {
+      tocarSom("falha");
+    } else if (next.status === "concluido") {
+      tocarSom("concluido");
+    } else {
+      tocarSom(entry.correct ? "sucesso" : "erro");
+    }
   }
 
   function handleContinue() {

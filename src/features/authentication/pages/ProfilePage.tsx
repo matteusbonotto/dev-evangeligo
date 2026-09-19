@@ -13,10 +13,13 @@ import { ROUTE_PATHS } from "../../../app/routePaths";
 import { AppShell } from "../../../shared/components/AppShell";
 import {
   definirPreferenciaNotificacoes,
+  definirPreferenciaSons,
   definirPreferenciaVLibras,
   obterPreferenciaNotificacoes,
+  obterPreferenciaSons,
   obterPreferenciaVLibras,
 } from "../../../shared/preferencias";
+import { tocarSom } from "../../../shared/sons";
 import { resetarTour } from "../../../shared/tour/useTourGuiado";
 import { ID_TOUR_DASHBOARD } from "../../dashboard/tourDashboard";
 import { useAuth } from "../context/AuthContext";
@@ -93,6 +96,7 @@ export function ProfilePage() {
   const [notificacoesLigadas, setNotificacoesLigadas] = useState(() =>
     obterPreferenciaNotificacoes(),
   );
+  const [sonsLigados, setSonsLigados] = useState(() => obterPreferenciaSons());
   const [precisaRecarregar, setPrecisaRecarregar] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [erroExportar, setErroExportar] = useState<string | null>(null);
@@ -141,6 +145,12 @@ export function ProfilePage() {
     definirPreferenciaVLibras(ligado);
     setVlibrasLigado(ligado);
     setPrecisaRecarregar(true);
+  }
+
+  function alternarSons(ligado: boolean) {
+    definirPreferenciaSons(ligado);
+    setSonsLigados(ligado);
+    if (ligado) tocarSom("notificacao");
   }
 
   async function alternarNotificacoes(ligado: boolean) {
@@ -301,6 +311,12 @@ export function ProfilePage() {
             descricao="Permite que o app peça autorização do navegador para enviar notificações."
             ligado={notificacoesLigadas}
             onAlternar={alternarNotificacoes}
+          />
+          <InterruptorConfig
+            titulo="Efeitos sonoros"
+            descricao="Sons curtos de acerto, erro e conquista nos quizzes e no RPG."
+            ligado={sonsLigados}
+            onAlternar={alternarSons}
           />
 
           {precisaRecarregar && (

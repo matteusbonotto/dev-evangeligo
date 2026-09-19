@@ -10,6 +10,7 @@
 
 const CHAVE_VLIBRAS = "evangeligo:pref:vlibrasHabilitado";
 const CHAVE_NOTIFICACOES = "evangeligo:pref:notificacoesHabilitadas";
+const CHAVE_SONS = "evangeligo:pref:sonsHabilitados";
 
 function lerBooleano(chave: string, padrao: boolean): boolean {
   try {
@@ -45,4 +46,13 @@ export function obterPreferenciaNotificacoes(): boolean {
 
 export function definirPreferenciaNotificacoes(habilitado: boolean): void {
   salvarBooleano(CHAVE_NOTIFICACOES, habilitado);
+}
+
+/** Efeitos sonoros (sucesso/erro/conquista/etc., ver `shared/sons.ts`) vêm HABILITADOS por padrão. */
+export function obterPreferenciaSons(): boolean {
+  return lerBooleano(CHAVE_SONS, true);
+}
+
+export function definirPreferenciaSons(habilitado: boolean): void {
+  salvarBooleano(CHAVE_SONS, habilitado);
 }
