@@ -8,6 +8,19 @@
       name="description"
       content="EvangeliGO — app gamificado de Teologia Cristã Reformada Calvinista."
     />
+    <!-- CSP via meta tag (T-020, auditoria de segurança) — GitHub Pages não
+         permite cabeçalhos HTTP customizados, então esta é a única forma
+         viável de aplicar CSP nesta hospedagem. `style-src` precisa de
+         'unsafe-inline' porque o build de produção (Vite) usa `<style>` do
+         Service Worker/PWA e o servidor de desenvolvimento injeta CSS via
+         `<style>` inline (HMR) — o build de produção em si não usa scripts
+         inline. Domínios em `connect-src`/`img-src` são exatamente os já
+         usados pelo app (Supabase, VLibras, avatar, léxico/tradução/
+         biografia bíblica ao vivo — ver `IA/docs/security.md`). -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-src https://vlibras.gov.br; script-src 'self' https://vlibras.gov.br https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://avataaars.io https://vlibras.gov.br https://cdn.jsdelivr.net; font-src 'self' data:; connect-src 'self' ws: wss: https://*.supabase.co https://avataaars.io https://vlibras.gov.br https://cdn.jsdelivr.net https://www.openbible.info https://a.openbible.info https://bolls.life https://api.mymemory.translated.net https://pt.wikipedia.org https://bible-api.com https://api.getbible.net"
+    />
     <title>EvangeliGO</title>
   </head>
   <body>

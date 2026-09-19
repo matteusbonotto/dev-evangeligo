@@ -28,7 +28,14 @@ Deno.serve(async () => {
     .select("id", { count: "exact", head: true });
 
   if (error) {
-    return new Response(JSON.stringify({ ok: false, error: error.message }), {
+    // T-020 (auditoria de segurança): a função é pública/sem autenticação
+    // por design (ver comentário acima), então a resposta de erro nunca
+    // deve ecoar `error.message` do Postgres/PostgREST pra quem chamou —
+    // esse texto pode conter detalhes internos (nome de coluna, versão,
+    // dica de índice). O erro real continua nos logs da função (Supabase
+    // Dashboard → Edge Functions → Logs), só a resposta HTTP é genérica.
+    console.error("keepalive: falha ao consultar profiles:", error.message);
+    return new Response(JSON.stringify({ ok: false, error: "internal_error" }), {
       status: 500,
       headers: { "content-type": "application/json" },
     });
