@@ -132,7 +132,7 @@
     {
       "id": "T-015",
       "titulo": "Painel admin",
-      "descricao": "CRUD de conteúdo e usuários. Implementado 2026-09-19 (ADR-054): /admin (role-gated), gestão de usuários/role, CRUD real de conquistas/missões (RLS admin-only). Deliberadamente SEM CRUD de trilhas/quiz (conteúdo doutrinário, exige revisão teologia-reformada — ADR-004). Status review, não done: migration não deployada ainda (bloqueio de supabase db push), CRUD não verificado contra o banco real; primeiro admin precisa ser promovido manualmente via SQL.",
+      "descricao": "CRUD de conteúdo e usuários. Implementado 2026-09-19 (ADR-054): /admin (role-gated), gestão de usuários/role, CRUD real de conquistas/missões (RLS admin-only). Estendido no mesmo dia (ADR-056, decisão explícita do usuário 'pode incluir tudo'): abas Trilhas & Aulas e Quizzes, com integração de LEITURA real em TrilhasPage/AulaPage/QuizPage (conteúdo criado pelo admin soma ao estático, não fica isolado). Governança doutrinária (regra 18/ADR-004) não é mais imposta tecnicamente nessas 2 abas — decisão consciente do usuário, documentada. Status review, não done: 2 migrations não deployadas ainda (bloqueio de supabase db push), CRUD não verificado contra o banco real; primeiro admin precisa ser promovido manualmente via SQL.",
       "agente": "backend-specialist",
       "prioridade": "media",
       "status": "review",
