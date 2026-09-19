@@ -273,6 +273,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: var(--space-10);
+  margin-top: var(--space-20);
 }
 
 .biblia-livro-card {
@@ -326,7 +327,6 @@
   display: flex;
   gap: var(--space-8);
   margin-top: var(--space-10);
-  margin-bottom: var(--space-16);
 }
 
 .biblia-visualizacao-btn {
