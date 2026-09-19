@@ -8,6 +8,7 @@ import {
   FiClock,
   FiDollarSign,
   FiShield,
+  FiSunrise,
   FiStar,
   FiZap,
 } from "react-icons/fi";
@@ -214,6 +215,13 @@ export function DashboardPage() {
                 <Link className="mais-opcoes-item" to={ROUTE_PATHS.apologetica}>
                   <FiShield aria-hidden="true" />
                   <span>Apologética — perguntas difíceis da fé</span>
+                  <FiChevronRight aria-hidden="true" />
+                </Link>
+              </li>
+              <li>
+                <Link className="mais-opcoes-item" to={ROUTE_PATHS.devocionais}>
+                  <FiSunrise aria-hidden="true" />
+                  <span>Devocionais — reflexões com versículos</span>
                   <FiChevronRight aria-hidden="true" />
                 </Link>
               </li>

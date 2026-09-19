@@ -29,6 +29,7 @@ export const ROUTE_PATHS = {
   quebraCabeca: "/exercicios/quebra-cabeca",
   quebraCabecaJogar: "/exercicios/quebra-cabeca/:id",
   apologetica: "/apologetica",
+  devocionais: "/devocionais",
   vidaInteriorHistorico: "/vida-interior/historico",
   faq: "/faq",
 } as const;

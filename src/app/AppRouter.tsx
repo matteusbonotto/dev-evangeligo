@@ -154,6 +154,11 @@ const ApologeticaPage = lazy(() =>
     default: module.ApologeticaPage,
   })),
 );
+const FeedDevocionaisPage = lazy(() =>
+  import("../features/devotional/pages/FeedDevocionaisPage").then((module) => ({
+    default: module.FeedDevocionaisPage,
+  })),
+);
 
 export function AppRouter() {
   return (
@@ -215,6 +220,10 @@ export function AppRouter() {
         <Route
           path={ROUTE_PATHS.apologetica}
           element={<ApologeticaPage />}
+        />
+        <Route
+          path={ROUTE_PATHS.devocionais}
+          element={<FeedDevocionaisPage />}
         />
         <Route path={ROUTE_PATHS.terms} element={<LegalPage kind="terms" />} />
         <Route

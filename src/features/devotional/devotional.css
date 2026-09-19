@@ -1,0 +1,146 @@
+/* Estilos do Feed de Devocionais (T-013). Reaproveita tokens de global.css;
+   classes próprias (`.devo-*`), mesmo padrão de `apologetics.css` (features
+   não compartilham CSS entre si). */
+
+.devo-intro {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-14, var(--font-size-13));
+  margin-top: var(--space-4);
+}
+
+.devo-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-top: var(--space-20);
+}
+
+.devo-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.devo-card--aberta {
+  border-color: var(--verde-500);
+}
+
+.devo-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
+  width: 100%;
+  border: none;
+  background: none;
+  padding: var(--space-14) var(--space-16);
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.devo-card-header-esquerda {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.devo-card-icone {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--verde-600);
+}
+
+.devo-card-titulo {
+  margin: 0 0 var(--space-6);
+  font-size: var(--font-size-15, var(--font-size-14));
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.devo-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.devo-card-tema {
+  font-size: var(--font-size-11);
+  font-weight: 700;
+  padding: 2px var(--space-10);
+  border-radius: var(--radius-pill);
+  background: var(--verde-50);
+  color: var(--verde-700);
+}
+
+.devo-card-referencia {
+  font-size: var(--font-size-11);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.devo-badge-lido {
+  color: var(--verde-600);
+  flex-shrink: 0;
+}
+
+.devo-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.devo-card-conteudo {
+  padding: 0 var(--space-16) var(--space-16);
+  border-top: 1px solid var(--color-border);
+}
+
+.devo-versiculo {
+  margin: var(--space-14) 0 0;
+  padding: var(--space-12) var(--space-14);
+  border-left: 3px solid var(--verde-500);
+  background: var(--verde-50);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--verde-700);
+  font-style: italic;
+  font-size: var(--font-size-13);
+  line-height: 1.6;
+}
+
+.devo-reflexao {
+  margin-top: var(--space-14);
+}
+
+.devo-reflexao p {
+  margin: 0 0 var(--space-10);
+  color: var(--color-text);
+  font-size: var(--font-size-14, var(--font-size-13));
+  line-height: 1.7;
+}
+
+.devo-aplicacao {
+  margin-top: var(--space-14);
+  padding: var(--space-12) var(--space-14);
+  border-radius: var(--radius-lg);
+  background: var(--dourado-claro);
+  border: 1px solid var(--dourado-suave);
+}
+
+.devo-aplicacao-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--font-size-12);
+  font-weight: 700;
+  color: var(--dourado-texto);
+  margin: 0 0 var(--space-6);
+}
+
+.devo-aplicacao-texto {
+  margin: 0;
+  color: var(--dourado-texto);
+  font-size: var(--font-size-13);
+  line-height: 1.6;
+}
