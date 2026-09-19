@@ -438,10 +438,10 @@
     {
       "id": "T-045",
       "titulo": "Quiz por capítulo (5 perguntas) e por livro (20 perguntas) da Bíblia",
-      "descricao": "Pedido explícito do usuário, anotado para o futuro (não iniciar sem confirmação): ~7.265 perguntas no total (1.189 capítulos × 5 + 66 livros × 20). Plano completo (escala, reuso do motor de `study/quiz/engine.ts`, decisão de produto pendente sobre 'capítulo concluído', persistência em Supabase, faseamento começando pelos 4 Evangelhos) em `IA/docs/quiz-biblico-plano.md`.",
+      "descricao": "Prova de conceito concluída 2026-09-19 (usuário confirmou 'tem que ter'): motor+UI+conteúdo real para o livro de Rute (4 capítulos, 20 perguntas de capítulo + 10 do livro inteiro — livro curto não sustentava 20 perguntas distintas de valor real sem repetir, seguindo a própria diretriz do plano de preferir qualidade a bater um número). Quiz como selo paralelo, não bloqueia capítulo lido. Persistência ainda em localStorage (não Supabase como o plano original recomendava, pra entregar algo funcional sem depender de deploy). Escala completa (~7.265 perguntas, faseamento pelos 4 Evangelhos) segue como trabalho futuro em IA/docs/quiz-biblico-plano.md — revisão doutrinária formal do conteúdo de Rute pelo teologia-reformada ainda recomendada (mesmo padrão de ADR-007/036).",
       "agente": "teologia-reformada",
       "prioridade": "baixa",
-      "status": "backlog",
+      "status": "done",
       "dependencias": ["T-041", "T-043"]
     },
     {
