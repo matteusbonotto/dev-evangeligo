@@ -57,6 +57,18 @@ describe("ProfilePage", () => {
   });
 
   /**
+   * T-020 (LGPD, exportar/excluir dados) — modo demonstração não persiste
+   * nada de real, então não faz sentido oferecer exportar/excluir (ver
+   * `lgpd.ts` e a seção "Seus dados" condicionada a `!user.isDemo`).
+   */
+  it("não mostra exportar/excluir dados no modo demonstração", async () => {
+    renderPerfil();
+    await screen.findByText("Visitante");
+    expect(screen.queryByText("Exportar meus dados")).not.toBeInTheDocument();
+    expect(screen.queryByText("Excluir minha conta")).not.toBeInTheDocument();
+  });
+
+  /**
    * T-073 — pedido explícito do usuário depois de várias rodadas sem
    * conseguir corrigir o VLibras de forma confiável: um switch em Perfil
    * pra desligar o widget inteiro (não só escondê-lo).

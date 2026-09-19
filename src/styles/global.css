@@ -1144,6 +1144,71 @@ textarea:focus-visible,
   cursor: pointer;
 }
 
+/* Exportar/excluir dados (T-020, LGPD — IA/docs/privacy.md). */
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  background: transparent;
+  color: #b3261e;
+  border: 2px solid #b3261e;
+  border-radius: var(--radius-pill);
+  padding: var(--space-10) var(--space-24);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.danger-button:hover {
+  background: #fbe9e7;
+}
+
+.danger-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.danger-button.small {
+  padding: var(--space-8) var(--space-18);
+  font-size: var(--font-size-14);
+}
+
+.config-linha--perigo {
+  flex-wrap: wrap;
+}
+
+.config-erro {
+  margin-top: var(--space-8);
+  color: #b3261e;
+  font-size: var(--font-size-13);
+}
+
+.config-confirmacao-exclusao {
+  margin-top: var(--space-12);
+  padding: var(--space-14);
+  border-radius: var(--radius-md);
+  background: #fbe9e7;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.config-input {
+  padding: var(--space-10) var(--space-14);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-14, var(--font-size-13));
+}
+
+.config-confirmacao-botoes {
+  display: flex;
+  gap: var(--space-10);
+  flex-wrap: wrap;
+}
+
 @media (max-width: 480px) {
   .profile-header {
     flex-wrap: wrap;

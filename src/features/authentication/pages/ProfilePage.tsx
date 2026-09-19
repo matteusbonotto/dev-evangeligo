@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
+  FiAlertTriangle,
   FiArrowLeft,
   FiCheckCircle,
+  FiDownload,
   FiHelpCircle,
   FiSettings,
   FiUser,
@@ -20,6 +22,12 @@ import { ID_TOUR_DASHBOARD } from "../../dashboard/tourDashboard";
 import { useAuth } from "../context/AuthContext";
 import { montarUrlAvatar } from "../../avatar/avatarUrl";
 import { supabaseClient } from "../../../infrastructure/supabase/client";
+import {
+  baixarComoJson,
+  emailConfirmaExclusao,
+  excluirMinhaConta,
+  exportarMeusDados,
+} from "../lgpd";
 
 /**
  * Página de Perfil (T-054/ADR-047, Fase 3 do plano de UX) — pedido do
@@ -76,7 +84,7 @@ function InterruptorConfig({
 }
 
 export function ProfilePage() {
-  const { user, authStatus, supabaseUser } = useAuth();
+  const { user, authStatus, supabaseUser, signOut } = useAuth();
   const navigate = useNavigate();
   const [consentimento, setConsentimento] = useState<
     ConsentimentoRecente | null | "carregando" | "indisponivel"
@@ -86,6 +94,42 @@ export function ProfilePage() {
     obterPreferenciaNotificacoes(),
   );
   const [precisaRecarregar, setPrecisaRecarregar] = useState(false);
+  const [exportando, setExportando] = useState(false);
+  const [erroExportar, setErroExportar] = useState<string | null>(null);
+  const [exclusaoAberta, setExclusaoAberta] = useState(false);
+  const [emailConfirmacao, setEmailConfirmacao] = useState("");
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExcluir, setErroExcluir] = useState<string | null>(null);
+
+  async function handleExportarDados() {
+    setErroExportar(null);
+    setExportando(true);
+    try {
+      const dados = await exportarMeusDados();
+      baixarComoJson(dados, `evangeligo-meus-dados-${Date.now()}.json`);
+    } catch (erro) {
+      setErroExportar(
+        erro instanceof Error ? erro.message : "Não foi possível exportar seus dados.",
+      );
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  async function handleExcluirConta() {
+    setErroExcluir(null);
+    setExcluindo(true);
+    try {
+      await excluirMinhaConta();
+      await signOut();
+      navigate(ROUTE_PATHS.home, { replace: true });
+    } catch (erro) {
+      setErroExcluir(
+        erro instanceof Error ? erro.message : "Não foi possível excluir sua conta.",
+      );
+      setExcluindo(false);
+    }
+  }
 
   /**
    * O VLibras só é carregado/removido de verdade num reload da página
@@ -273,6 +317,95 @@ export function ProfilePage() {
             </p>
           )}
         </section>
+
+        {!user.isDemo && (
+          <section className="dash-card" aria-labelledby="profile-dados-title">
+            <p className="eyebrow" id="profile-dados-title">
+              <FiDownload aria-hidden="true" /> Seus dados
+            </p>
+
+            <div className="config-linha">
+              <div className="config-linha-texto">
+                <p className="config-linha-titulo">Exportar meus dados</p>
+                <p className="config-linha-descricao">
+                  Baixe um arquivo com todos os dados desta conta (perfil,
+                  consentimentos, progresso de RPG e Vida Interior) — direito
+                  de acesso e portabilidade (LGPD).
+                </p>
+              </div>
+              <button
+                type="button"
+                className="secondary-button small"
+                onClick={handleExportarDados}
+                disabled={exportando}
+              >
+                {exportando ? "Exportando…" : "Exportar"}
+              </button>
+            </div>
+            {erroExportar && <p className="config-erro">{erroExportar}</p>}
+
+            <div className="config-linha config-linha--perigo">
+              <div className="config-linha-texto">
+                <p className="config-linha-titulo">Excluir minha conta</p>
+                <p className="config-linha-descricao">
+                  Remove permanentemente sua conta e todos os dados associados
+                  a ela. Esta ação não pode ser desfeita.
+                </p>
+              </div>
+              {!exclusaoAberta && (
+                <button
+                  type="button"
+                  className="danger-button small"
+                  onClick={() => setExclusaoAberta(true)}
+                >
+                  Excluir conta
+                </button>
+              )}
+            </div>
+
+            {exclusaoAberta && (
+              <div className="config-confirmacao-exclusao" role="group" aria-label="Confirmar exclusão de conta">
+                <p className="config-linha-descricao">
+                  <FiAlertTriangle aria-hidden="true" /> Para confirmar, digite
+                  seu e-mail (<strong>{user.email}</strong>):
+                </p>
+                <input
+                  type="email"
+                  className="config-input"
+                  value={emailConfirmacao}
+                  onChange={(evento) => setEmailConfirmacao(evento.target.value)}
+                  aria-label="Digite seu e-mail para confirmar a exclusão"
+                  placeholder={user.email}
+                />
+                <div className="config-confirmacao-botoes">
+                  <button
+                    type="button"
+                    className="secondary-button small"
+                    onClick={() => {
+                      setExclusaoAberta(false);
+                      setEmailConfirmacao("");
+                      setErroExcluir(null);
+                    }}
+                    disabled={excluindo}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="danger-button small"
+                    onClick={handleExcluirConta}
+                    disabled={
+                      excluindo || !emailConfirmaExclusao(emailConfirmacao, user.email)
+                    }
+                  >
+                    {excluindo ? "Excluindo…" : "Confirmar exclusão definitiva"}
+                  </button>
+                </div>
+                {erroExcluir && <p className="config-erro">{erroExcluir}</p>}
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="dash-card" aria-labelledby="profile-tutorial-title">
           <p className="eyebrow" id="profile-tutorial-title">
