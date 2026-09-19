@@ -186,10 +186,10 @@
     {
       "id": "T-021",
       "titulo": "Revisão multidisciplinar e release",
-      "descricao": "Gate de conclusão final.",
+      "descricao": "Gate de conclusão final. Revisão feita 2026-09-19 (ADR-054), consolidada em IA/docs/release-readiness.md: veredito é que o projeto NÃO está pronto pra lançamento público ainda (bloqueios de infraestrutura, licenciamento de conteúdo, revisão jurídica formal e revisão doutrinária formal, todos pendentes de ação/decisão humana externa — nada é bug de código). Status review, não done, porque o GATE em si (liberar release) segue fechado — reavaliar quando os itens de IA/docs/release-readiness.md forem resolvidos.",
       "agente": "project-manager",
       "prioridade": "alta",
-      "status": "todo",
+      "status": "review",
       "dependencias": ["T-020"]
     },
     {
