@@ -169,6 +169,16 @@ const AdminPage = lazy(() =>
     default: module.AdminPage,
   })),
 );
+const ComunidadePage = lazy(() =>
+  import("../features/community/pages/ComunidadePage").then((module) => ({
+    default: module.ComunidadePage,
+  })),
+);
+const ChatPage = lazy(() =>
+  import("../features/community/pages/ChatPage").then((module) => ({
+    default: module.ChatPage,
+  })),
+);
 
 export function AppRouter() {
   return (
@@ -244,6 +254,8 @@ export function AppRouter() {
           element={<FeedDevocionaisPage />}
         />
         <Route path={ROUTE_PATHS.admin} element={<AdminPage />} />
+        <Route path={ROUTE_PATHS.comunidade} element={<ComunidadePage />} />
+        <Route path={ROUTE_PATHS.chat} element={<ChatPage />} />
         <Route path={ROUTE_PATHS.terms} element={<LegalPage kind="terms" />} />
         <Route
           path={ROUTE_PATHS.privacy}

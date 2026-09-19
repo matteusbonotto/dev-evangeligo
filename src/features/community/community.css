@@ -1,0 +1,121 @@
+/* Comunidade (T-014/ADR-057). Reaproveita tokens de global.css. */
+
+.comunidade-vazio {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-13);
+  margin-top: var(--space-8);
+}
+
+.comunidade-busca {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+}
+
+.comunidade-busca-icone {
+  color: var(--color-text-muted);
+}
+
+.comunidade-busca input {
+  flex: 1;
+  padding: var(--space-10) var(--space-14);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-14, var(--font-size-13));
+}
+
+.comunidade-lista {
+  list-style: none;
+  margin: var(--space-12) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.comunidade-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-10) var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.comunidade-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--verde-100);
+  color: var(--verde-700);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.comunidade-item-nome {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+}
+
+.comunidade-item-tag {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.comunidade-chat {
+  display: flex;
+  flex-direction: column;
+  height: min(70vh, 600px);
+}
+
+.comunidade-chat-mensagens {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+  padding-right: var(--space-4);
+}
+
+.comunidade-bolha {
+  align-self: flex-start;
+  max-width: 75%;
+  margin: 0;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-lg);
+  background: var(--verde-50);
+  color: var(--color-text);
+  font-size: var(--font-size-14, var(--font-size-13));
+  word-break: break-word;
+}
+
+.comunidade-bolha--minha {
+  align-self: flex-end;
+  background: var(--verde-600);
+  color: var(--branco);
+}
+
+.comunidade-chat-form {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+
+.comunidade-chat-form input {
+  flex: 1;
+  padding: var(--space-10) var(--space-14);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-14, var(--font-size-13));
+}

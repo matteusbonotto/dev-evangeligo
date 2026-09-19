@@ -9,6 +9,7 @@ import {
   FiDollarSign,
   FiShield,
   FiSunrise,
+  FiUsers,
   FiStar,
   FiZap,
 } from "react-icons/fi";
@@ -215,6 +216,13 @@ export function DashboardPage() {
                 <Link className="mais-opcoes-item" to={ROUTE_PATHS.apologetica}>
                   <FiShield aria-hidden="true" />
                   <span>Apologética — perguntas difíceis da fé</span>
+                  <FiChevronRight aria-hidden="true" />
+                </Link>
+              </li>
+              <li>
+                <Link className="mais-opcoes-item" to={ROUTE_PATHS.comunidade}>
+                  <FiUsers aria-hidden="true" />
+                  <span>Comunidade — amigos e chat</span>
                   <FiChevronRight aria-hidden="true" />
                 </Link>
               </li>

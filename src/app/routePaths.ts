@@ -33,6 +33,8 @@ export const ROUTE_PATHS = {
   apologetica: "/apologetica",
   devocionais: "/devocionais",
   admin: "/admin",
+  comunidade: "/comunidade",
+  chat: "/comunidade/:amigoId",
   vidaInteriorHistorico: "/vida-interior/historico",
   faq: "/faq",
 } as const;
