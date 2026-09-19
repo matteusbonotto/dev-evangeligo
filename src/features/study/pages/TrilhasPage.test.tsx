@@ -16,21 +16,21 @@ function renderTrilhasPage() {
 }
 
 describe("TrilhasPage", () => {
-  it("lista as 5 trilhas de estudo com seus títulos", () => {
+  it("lista as 5 trilhas de estudo com seus títulos", async () => {
     renderTrilhasPage();
 
     for (const trilha of TRILHAS) {
       expect(
-        screen.getByRole("heading", { name: trilha.title }),
+        await screen.findByRole("heading", { name: trilha.title }),
       ).toBeInTheDocument();
     }
   });
 
-  it("lista os títulos das aulas como links de navegação", () => {
+  it("lista os títulos das aulas como links de navegação", async () => {
     renderTrilhasPage();
 
     expect(
-      screen.getByRole("link", { name: /sola scriptura/i }),
+      await screen.findByRole("link", { name: /sola scriptura/i }),
     ).toBeInTheDocument();
   });
 });

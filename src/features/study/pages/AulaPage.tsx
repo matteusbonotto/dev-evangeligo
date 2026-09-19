@@ -1,16 +1,32 @@
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiBookOpen, FiCheckCircle } from "react-icons/fi";
 import "../study.css";
 import { getAulaById, getAulasByTrilha, getTrilhaBySlug } from "../content";
 import { buildAulaPath, buildQuizPath, buildTrilhaPath } from "../routePaths";
 import { AppShell } from "../../../shared/components/AppShell";
+import type { Aula, BibleReference, Trilha } from "../schemas";
+import {
+  listarAulasAdicionais,
+  listarTrilhasAdicionais,
+} from "../catalogoRemoto";
+
+interface AulaExibicao {
+  id: string;
+  order: number;
+  title: string;
+  summary: string;
+  bibleReferences: BibleReference[];
+  estimatedMinutes: number;
+  quizId?: string;
+}
 
 /**
  * Detalhe de uma aula (RF-08): resumo doutrinário, referências bíblicas e
- * um slot reservado para o quiz da aula (motor de quiz construído em
- * T-008 — aqui só exibimos se `aula.quizId` já está associado). Página
- * autônoma desta feature — ainda não registrada em
- * `src/app/AppRouter.tsx` (ver `../routePaths.ts`).
+ * um slot reservado para o quiz da aula. Busca primeiro no conteúdo
+ * estático (síncrono, sem tela de carregamento — caminho de sempre);
+ * quando não encontra, tenta as trilhas/aulas ADICIONAIS do painel admin
+ * (T-015/ADR-056, `trilhas_catalogo`/`aulas_catalogo`) antes de redirecionar.
  */
 export function AulaPage() {
   const { trilhaSlug, aulaId } = useParams<{
@@ -18,16 +34,103 @@ export function AulaPage() {
     aulaId: string;
   }>();
 
-  const trilha = trilhaSlug ? getTrilhaBySlug(trilhaSlug) : undefined;
-  const aula = aulaId ? getAulaById(aulaId) : undefined;
+  const trilhaEstatica = trilhaSlug ? getTrilhaBySlug(trilhaSlug) : undefined;
+  const aulaEstatica = aulaId ? getAulaById(aulaId) : undefined;
+  const encontradoEstatico =
+    trilhaEstatica && aulaEstatica && aulaEstatica.trilhaId === trilhaEstatica.id;
 
-  if (!trilha || !aula || aula.trilhaId !== trilha.id) {
+  const [buscaRemota, setBuscaRemota] = useState<
+    "pulando" | "carregando" | { trilha: Trilha; aulas: AulaExibicao[]; aula: AulaExibicao } | "nao-encontrado"
+  >(encontradoEstatico ? "pulando" : "carregando");
+
+  useEffect(() => {
+    if (encontradoEstatico || !trilhaSlug || !aulaId) return;
+    let ativo = true;
+    Promise.all([listarTrilhasAdicionais(), listarAulasAdicionais()]).then(
+      ([trilhas, aulas]) => {
+        if (!ativo) return;
+        const trilha = trilhas.find((t) => t.slug === trilhaSlug);
+        const aulasDaTrilha = trilha
+          ? aulas
+              .filter((a) => a.trilha_id === trilha.id)
+              .map((a) => ({
+                id: a.id,
+                order: a.order,
+                title: a.title,
+                summary: a.summary,
+                bibleReferences: a.bible_references,
+                estimatedMinutes: a.estimated_minutes,
+                quizId: a.quiz_id ?? undefined,
+              }))
+              .sort((x, y) => x.order - y.order)
+          : [];
+        const aula = aulasDaTrilha.find((a) => a.id === aulaId);
+        if (!trilha || !aula) {
+          setBuscaRemota("nao-encontrado");
+          return;
+        }
+        setBuscaRemota({
+          trilha: {
+            id: trilha.id,
+            slug: trilha.slug,
+            order: trilha.order,
+            title: trilha.title,
+            description: trilha.description,
+            verseFocus: trilha.verse_focus ?? undefined,
+          },
+          aulas: aulasDaTrilha,
+          aula,
+        });
+      },
+    );
+    return () => {
+      ativo = false;
+    };
+  }, [encontradoEstatico, trilhaSlug, aulaId]);
+
+  if (encontradoEstatico) {
+    const aulasDaTrilha = getAulasByTrilha(trilhaEstatica.id);
+    return (
+      <AulaVisualizacao
+        trilha={trilhaEstatica}
+        aula={aulaEstatica}
+        aulas={aulasDaTrilha}
+      />
+    );
+  }
+
+  if (buscaRemota === "carregando") {
+    return (
+      <AppShell>
+        <main className="loading-screen">Carregando...</main>
+      </AppShell>
+    );
+  }
+
+  if (buscaRemota === "nao-encontrado" || buscaRemota === "pulando") {
     return <Navigate to="/trilhas" replace />;
   }
 
-  const aulasDaTrilha = getAulasByTrilha(trilha.id);
-  const indiceAtual = aulasDaTrilha.findIndex((item) => item.id === aula.id);
-  const proxima = aulasDaTrilha[indiceAtual + 1];
+  return (
+    <AulaVisualizacao
+      trilha={buscaRemota.trilha}
+      aula={buscaRemota.aula}
+      aulas={buscaRemota.aulas}
+    />
+  );
+}
+
+function AulaVisualizacao({
+  trilha,
+  aula,
+  aulas,
+}: {
+  trilha: Pick<Trilha, "slug" | "title">;
+  aula: Aula | AulaExibicao;
+  aulas: (Aula | AulaExibicao)[];
+}) {
+  const indiceAtual = aulas.findIndex((item) => item.id === aula.id);
+  const proxima = aulas[indiceAtual + 1];
 
   return (
     <AppShell>
@@ -41,7 +144,7 @@ export function AulaPage() {
           aria-labelledby="aula-title"
         >
           <p className="eyebrow">
-            Aula {aula.order} de {aulasDaTrilha.length} ·{" "}
+            Aula {aula.order} de {aulas.length} ·{" "}
             {aula.estimatedMinutes} min
           </p>
           <h1 id="aula-title">{aula.title}</h1>

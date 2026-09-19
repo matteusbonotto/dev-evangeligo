@@ -46,9 +46,13 @@ describe("AulaPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("redireciona para /trilhas quando a aula não existe", () => {
+  it("redireciona para /trilhas quando a aula não existe", async () => {
+    // Assíncrono desde T-015/ADR-056: antes de redirecionar, a página
+    // também tenta achar a aula no catálogo remoto (trilhas/aulas
+    // adicionais do painel admin) — sem Supabase configurado no teste,
+    // essa busca resolve rápido e vazia, mas ainda passa por um tick.
     renderAulaPage("/trilhas/solas/aulas/aula-inexistente");
 
-    expect(screen.getByText("Lista de trilhas")).toBeInTheDocument();
+    expect(await screen.findByText("Lista de trilhas")).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiBookOpen, FiHeart, FiShield } from "react-icons/fi";
 import "../study.css";
@@ -10,6 +10,11 @@ import { temEscudoDaFe } from "../../rpg/bonus";
 import { tocarSom } from "../../../shared/sons";
 import { getQuizByAulaId } from "../quiz/content";
 import {
+  listarAulasAdicionais,
+  listarQuizzesAdicionais,
+  listarTrilhasAdicionais,
+} from "../catalogoRemoto";
+import {
   calculateQuizReward,
   getCurrentQuestion,
   startQuizSession,
@@ -18,14 +23,24 @@ import {
   type QuizSessionState,
 } from "../quiz/engine";
 import type { AnsweredQuestion, QuizAnswer } from "../quiz/types";
-import type { QuizQuestion } from "../quiz/schemas";
+import type { Quiz, QuizQuestion } from "../quiz/schemas";
 
 type Phase = "respondendo" | "feedback";
+
+interface TrilhaAulaQuizMinimo {
+  trilha: { slug: string; title: string };
+  aula: { id: string; title: string };
+  quiz: Quiz;
+}
 
 /**
  * Tela de quiz de uma aula (T-008, RF-08/RF-11): pergunta → alternativas →
  * feedback imediato (correto/errado) → explicação + referência bíblica →
  * próximo (fluxo documentado em `IA/docs/ux-ui.md`, seção "Quiz").
+ *
+ * Busca primeiro no conteúdo estático (síncrono); quando a aula/quiz não é
+ * encontrada ali, tenta as trilhas/aulas/quizzes ADICIONAIS do painel admin
+ * (T-015/ADR-056) antes de redirecionar — mesmo padrão de `AulaPage.tsx`.
  *
  * Ainda sem persistência real: hearts/XP/ouro exibidos ao final são
  * calculados pelo motor puro (`../quiz/engine.ts`) mas não são creditados
@@ -41,17 +56,55 @@ export function QuizPage() {
   }>();
   const { user } = useAuth();
 
-  const trilha = trilhaSlug ? getTrilhaBySlug(trilhaSlug) : undefined;
-  const aula = aulaId ? getAulaById(aulaId) : undefined;
-  const quiz =
-    trilha && aula && aula.trilhaId === trilha.id && aula.quizId
-      ? getQuizByAulaId(aula.id)
-      : undefined;
+  const trilhaEstatica = trilhaSlug ? getTrilhaBySlug(trilhaSlug) : undefined;
+  const aulaEstatica = aulaId ? getAulaById(aulaId) : undefined;
+  // "Encontrado estático" significa a AULA existir no conteúdo estático —
+  // mesmo que ela não tenha quiz associado ainda (nesse caso o redirect
+  // pra /trilhas deve acontecer na hora, sem tentar o catálogo remoto).
+  const aulaEncontradaEstatica = Boolean(
+    trilhaEstatica && aulaEstatica && aulaEstatica.trilhaId === trilhaEstatica.id,
+  );
+  const quizEstatico = aulaEncontradaEstatica && aulaEstatica?.quizId
+    ? getQuizByAulaId(aulaEstatica.id)
+    : undefined;
+
+  const [remoto, setRemoto] = useState<
+    "pulando" | "carregando" | TrilhaAulaQuizMinimo | "nao-encontrado"
+  >(aulaEncontradaEstatica ? "pulando" : "carregando");
+
+  useEffect(() => {
+    if (aulaEncontradaEstatica || !trilhaSlug || !aulaId) return;
+    let ativo = true;
+    Promise.all([listarTrilhasAdicionais(), listarAulasAdicionais(), listarQuizzesAdicionais()]).then(
+      ([trilhas, aulas, quizzes]) => {
+        if (!ativo) return;
+        const trilha = trilhas.find((t) => t.slug === trilhaSlug);
+        const aula = trilha ? aulas.find((a) => a.id === aulaId && a.trilha_id === trilha.id) : undefined;
+        const quiz = aula?.quiz_id ? quizzes.find((q) => q.id === aula.quiz_id) : undefined;
+        if (!trilha || !aula || !quiz) {
+          setRemoto("nao-encontrado");
+          return;
+        }
+        setRemoto({
+          trilha: { slug: trilha.slug, title: trilha.title },
+          aula: { id: aula.id, title: aula.title },
+          quiz: { id: quiz.id, title: quiz.title, questions: quiz.questions },
+        });
+      },
+    );
+    return () => {
+      ativo = false;
+    };
+  }, [aulaEncontradaEstatica, trilhaSlug, aulaId]);
+
+  const trilha = aulaEncontradaEstatica ? trilhaEstatica : typeof remoto === "object" ? remoto.trilha : undefined;
+  const aula = aulaEncontradaEstatica ? aulaEstatica : typeof remoto === "object" ? remoto.aula : undefined;
+  const quiz = aulaEncontradaEstatica ? quizEstatico : typeof remoto === "object" ? remoto.quiz : undefined;
 
   const [session, setSession] = useState<QuizSessionState | null>(() =>
-    quiz
+    quizEstatico
       ? startQuizSession({
-          quiz,
+          quiz: quizEstatico,
           hasShieldOfFaith: user ? temEscudoDaFe(user.armor) : false,
         })
       : null,
@@ -62,6 +115,22 @@ export function QuizPage() {
     question: QuizQuestion;
     entry: AnsweredQuestion;
   } | null>(null);
+
+  useEffect(() => {
+    if (session || !quiz) return;
+    setSession(
+      startQuizSession({ quiz, hasShieldOfFaith: user ? temEscudoDaFe(user.armor) : false }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quiz, session]);
+
+  if (remoto === "carregando") {
+    return (
+      <AppShell>
+        <main className="loading-screen">Carregando...</main>
+      </AppShell>
+    );
+  }
 
   if (!trilha || !aula || !quiz || !session) {
     return <Navigate to="/trilhas" replace />;

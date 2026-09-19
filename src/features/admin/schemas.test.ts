@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { conquistaFormSchema, missaoFormSchema, usuarioAdminSchema } from "./schemas";
+import {
+  aulaFormSchema,
+  conquistaFormSchema,
+  missaoFormSchema,
+  quizFormSchema,
+  trilhaFormSchema,
+  usuarioAdminSchema,
+} from "./schemas";
 
 describe("conquistaFormSchema", () => {
   const valido = {
@@ -60,6 +67,78 @@ describe("missaoFormSchema", () => {
 
   it("rejeita tipo fora do enum", () => {
     expect(missaoFormSchema.safeParse({ ...valido, tipo: "inexistente" }).success).toBe(false);
+  });
+});
+
+describe("trilhaFormSchema", () => {
+  const valido = {
+    id: "nova-trilha",
+    slug: "nova-trilha",
+    order: 6,
+    title: "Nova Trilha",
+    description: "Descrição.",
+    verse_focus: "",
+    ativo: true,
+  };
+
+  it("aceita um formulário válido (verse_focus vazio permitido)", () => {
+    expect(() => trilhaFormSchema.parse(valido)).not.toThrow();
+  });
+
+  it("rejeita slug com maiúscula ou espaço", () => {
+    expect(trilhaFormSchema.safeParse({ ...valido, slug: "Nova Trilha" }).success).toBe(false);
+  });
+
+  it("rejeita order não positivo", () => {
+    expect(trilhaFormSchema.safeParse({ ...valido, order: 0 }).success).toBe(false);
+  });
+});
+
+describe("aulaFormSchema", () => {
+  const valido = {
+    id: "nova-aula",
+    trilha_id: "solas",
+    order: 1,
+    title: "Nova Aula",
+    summary: "Resumo.",
+    bible_references: "[]",
+    estimated_minutes: 5,
+    quiz_id: "",
+    ativo: true,
+  };
+
+  it("aceita um formulário válido (a validação do JSON de referências acontece em adminApi, não aqui)", () => {
+    expect(() => aulaFormSchema.parse(valido)).not.toThrow();
+  });
+
+  it("rejeita bible_references vazio (string)", () => {
+    expect(aulaFormSchema.safeParse({ ...valido, bible_references: "" }).success).toBe(false);
+  });
+
+  it("rejeita estimated_minutes não positivo", () => {
+    expect(aulaFormSchema.safeParse({ ...valido, estimated_minutes: 0 }).success).toBe(false);
+  });
+});
+
+describe("quizFormSchema", () => {
+  const valido = {
+    id: "novo-quiz",
+    aula_id: "",
+    title: "Novo Quiz",
+    questions: "[]",
+    ativo: true,
+  };
+
+  it("aceita um formulário válido", () => {
+    expect(() => quizFormSchema.parse(valido)).not.toThrow();
+  });
+
+  it("rejeita id com maiúscula", () => {
+    expect(quizFormSchema.safeParse({ ...valido, id: "Novo Quiz" }).success).toBe(false);
+  });
+
+  it("rejeita questions vazio (string)", () => {
+    expect(quizFormSchema.safeParse({ ...valido, questions: "" }).success).toBe(false);
   });
 });
 
