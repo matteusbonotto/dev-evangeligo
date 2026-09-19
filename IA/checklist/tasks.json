@@ -1,6 +1,6 @@
 {
   "projeto": "EvangeliGO",
-  "atualizado": "2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-063; T-045 anotada no backlog)",
+  "atualizado": "2026-09-19 (T-013 e T-020 concluídas, ADR-053); anteriormente 2026-09-16 (T-038 a T-044, T-046 a T-050, T-052 a T-063; T-045 anotada no backlog)",
   "colunas": ["backlog", "todo", "in_progress", "review", "done"],
   "tarefas": [
     {
@@ -114,10 +114,10 @@
     {
       "id": "T-013",
       "titulo": "Feed de devocionais",
-      "descricao": "Publicar reflexões com versículos.",
+      "descricao": "Publicar reflexões com versículos. Concluído 2026-09-19 (ADR-053): src/features/devotional/, 12 reflexões originais (sem equivalente no legado), referência bíblica apenas + texto ao vivo (padrão ADR-023). Revisão doutrinária formal pelo teologia-reformada ainda recomendada (mesmo padrão de ADR-007/036).",
       "agente": "social",
       "prioridade": "media",
-      "status": "todo",
+      "status": "done",
       "dependencias": ["T-003"]
     },
     {
@@ -177,10 +177,10 @@
     {
       "id": "T-020",
       "titulo": "Auditoria de segurança e privacidade",
-      "descricao": "RLS, secrets, OWASP, LGPD.",
+      "descricao": "RLS, secrets, OWASP, LGPD. Concluída 2026-09-19 (ADR-053): npm audit fix (2 vulns altas); RLS de todas as 13 migrations revisada (sem tabela sem RLS); LGPD exportar/excluir conta implementado (RPC + edge function delete-account, pendente deploy); CSP via meta tag; keepalive parou de ecoar erro interno. Pendências não-bloqueantes: 3 vulns de dependência exigem major bump (vitest/vite/react-router, fora de escopo desta sessão); rate limit de login por conta bloqueado por plano pago do Supabase.",
       "agente": "security-specialist",
       "prioridade": "alta",
-      "status": "todo",
+      "status": "done",
       "dependencias": ["T-016", "T-019"]
     },
     {
